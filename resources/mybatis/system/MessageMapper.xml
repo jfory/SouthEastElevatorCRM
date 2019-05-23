@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MessageMapper">
+
+	<!-- 查询用户未读消息总数 -->
+	<select id="recvMesCount" resultType="pd" parameterType="pd">
+		select count(*) as count from tb_message where status=0 and recv_id=#{USER_ID} 
+	</select>
+	
+	<!-- 根据id查询 -->
+	<select id="findMesById" parameterType="pd" resultType="pd">
+		select
+			u1.name as recv_name,
+			m1.*
+		from 
+			(
+				select 
+					u.name as send_name,
+					m.*
+				from 
+					tb_message m
+				left join
+					sys_user u
+				on
+					u.user_id=m.send_id
+			)m1
+		left join
+			sys_user u1
+		on
+			u1.user_id=m1.recv_id
+		where m1.id=#{id}
+	</select>
+	
+	
+	
+	<!-- 插入发送信息记录 -->
+	<insert id="saveMes" parameterType="pd">
+		insert into 
+			tb_message
+			(
+				title,
+				send_id,
+				recv_id,
+				mes_text,
+				send_date,
+				status,
+				answ_id,
+				flag
+			)values(
+				#{title},
+				#{send_id},
+				#{recv_id},
+				#{mes_text},
+				now(),
+				#{status},
+				#{answ_id},
+				#{flag}
+			)
+	</insert>
+	
+	<!-- 查询列表 -->
+	<select id="listPageAllMessage" parameterType="page" resultType="pd">
+		select
+			u1.name as recv_name,
+			m1.*
+		from 
+			(
+				select 
+					u.name as send_name,
+					m.*
+				from 
+					tb_message m
+				left join
+					sys_user u
+				on
+					u.user_id=m.send_id
+			)m1
+		left join
+			sys_user u1
+		on
+			u1.user_id=m1.recv_id
+		where
+			m1.recv_id=#{pd.USER_ID}
+			and
+			m1.flag=0
+		order by
+			m1.status
+	</select>
+	
+	<!-- 修改消息状态 -->
+	<update id="editMesStatus" parameterType="pd">
+		update
+			tb_message
+		set
+			status=#{status}
+		where id=#{id}
+	</update>
+	<!-- 修改消息删除状态 -->
+	<update id="editMesDelete" parameterType="pd">
+		update
+			tb_message
+		set
+			flag=#{flag}
+		where id=#{id}
+	</update>
+	<!-- ***************************************************************************** -->
+	<!-- 根据登录人id和状态查询 -->
+	<select id="listPagefindByStatus" parameterType="page" resultType="pd">
+		select
+			u1.name as recv_name,
+			m1.*
+		from 
+			(
+				select 
+					u.name as send_name,
+					m.*
+				from 
+					tb_message m
+				left join
+					sys_user u
+				on
+					u.user_id=m.send_id
+			)m1
+		left join
+			sys_user u1
+		on
+			u1.user_id=m1.recv_id
+		<!-- where m1.recv_id=#{pd.user_id}  -->
+		where m1.recv_id LIKE CONCAT(CONCAT('%', #{pd.user_id}),'%')
+		and m1.status=#{pd.status} and #{pd.user_id}!=1
+		<if test="pd.search != null and pd.search != ''">
+			and (m1.title LIKE CONCAT(CONCAT('%', #{pd.search}),'%') or m1.mes_text LIKE CONCAT(CONCAT('%', #{pd.search}),'%') ) 
+		</if>
+	</select>
+	
+	<!-- 查询各状态的消息数量 -->
+	<select id="findStatusCount" parameterType="String" resultType="pd">
+		select ifnull(sum(sjx),0) as sjx,ifnull(sum(zy),0) as zy,ifnull(sum(cg),0) as cg,ifnull(sum(hsz),0) as hsz from(
+			select
+				case status when '0' then count end as 'sjx',
+				case status when '1' then count end as 'zy',
+				case status when '2' then count end as 'cg',
+				case status when '3' then count end as 'hsz'
+			from(
+				select status,count(*) as count from tb_message where recv_id LIKE CONCAT(CONCAT('%', #{user_id}),'%') and is_read=0 and #{user_id}!=1 group by status
+			)a
+		)b
+	</select>
+	
+	<update id="editRead" parameterType="pd">
+		update tb_message set is_read=#{is_read} where id=#{id}
+	</update>
+	
+	<update id="editStatus" parameterType="pd">
+		update tb_message set status=#{status} where id=#{id}
+	</update>
+	
+	<select id="findMailDetail" parameterType="String" resultType="pd">
+		select m.*,su.name as send_name from tb_message m left join sys_user su on su.user_id=m.send_id where m.id=#{id}
+	</select>
+	
+	<insert id="saveNewMail" parameterType="pd">
+		insert into tb_message(
+			title,
+			send_id,
+			recv_id,
+			mes_text,
+			send_date,
+			is_read,
+			status,
+			answ_id,
+			flag
+		)values(
+			#{title},
+			#{send_id},
+			#{recv_id},
+			#{mes_text},
+			now(),
+			#{is_read},
+			#{status},
+			#{answ_id},
+			#{flag}
+		)
+	</insert>
+	
+	<select id="listPagefindMailSend" parameterType="page" resultType="pd">
+		<!-- select m.*,su.name as recv_name from tb_message m left join sys_user su on m.recv_id=su.user_id where m.send_id=#{pd.user_id} and m.status!=2
+		<if test="pd.search != null and pd.search != ''">
+			and (m.title LIKE CONCAT(CONCAT('%', #{pd.search}),'%') or m.mes_text LIKE CONCAT(CONCAT('%', #{pd.search}),'%') ) 
+		</if> -->
+		select m.*,group_concat(su.name) as recv_name from tb_message m left join sys_user su
+		on m.recv_id like CONCAT(CONCAT('%',su.user_id),'%') where m.status!=2 and su.user_id!=1 and m.send_id=#{pd.user_id}
+		<if test="pd.search != null and pd.search != ''">
+			and (m.title LIKE CONCAT(CONCAT('%', #{pd.search}),'%') or m.mes_text LIKE CONCAT(CONCAT('%', #{pd.search}),'%') ) 
+		</if>
+		group by m.id
+	</select>
+	
+	<insert id="saveDraft" parameterType="pd">
+		insert into tb_message(
+			title,
+			send_id,
+			recv_id,
+			mes_text,
+			is_read,
+			status,
+			flag
+		)values(
+			#{title},
+			#{send_id},
+			#{recv_id},
+			#{mes_text},
+			#{is_read},
+			#{status},
+			#{flag}
+		)
+	</insert>
+	
+	<select id="listPagefindMailDraft" parameterType="page" resultType="pd">
+		select * from tb_message where status=#{pd.status} and send_id=#{pd.user_id}
+	</select>
+	
+	<select id="findMailEdit" parameterType="String" resultType="pd">
+		select * from tb_message where id=#{id}
+	</select>
+	
+	<update id="mailEdit" parameterType="pd">
+		update tb_message set
+			title=#{title},
+			recv_id=#{recv_id},
+			mes_text=#{mes_text}
+		where id=#{id}
+	</update>
+	
+	<update id="sendDraft" parameterType="pd">
+		update tb_message set
+			title=#{title},
+			recv_id=#{recv_id},
+			mes_text=#{mes_text},
+			send_date=now(),
+			status=#{status}
+		where id=#{id}
+	</update>
+	
+	<update id="setRead" parameterType="list">
+		update tb_message set is_read=1 where id in
+		<foreach collection="list"  item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+	</update>
+	<update id="setImpt" parameterType="list">
+		update tb_message set status=1 where id in
+		<foreach collection="list"  item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+	</update>
+	<update id="setDel" parameterType="list">
+		update tb_message set status=3 where id in
+		<foreach collection="list"  item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+	</update>
+	<delete id="mailDel" parameterType="list">
+		delete from tb_message where id in
+		<foreach collection="list"  item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+	</delete>
+	<select id="refreshMail" parameterType="String" resultType="String">
+		<!-- select count(*) as count from tb_message where recv_id=#{user_id} and is_read=0 and status=0 -->
+		select count(*) as count from tb_message where recv_id like CONCAT(CONCAT('%',#{user_id}),'%') and is_read=0 and status=0 and #{user_id}!=1
+	</select>
+	
+	<select id="findUserList" resultType="pd">
+		select user_id,name from sys_user where user_id!=1
+	</select>
+	
+	<update id="updateMailFlag" parameterType="String">
+		update tb_message set flag=1 where id=#{id}
+	</update>
+</mapper>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://activiti.org/bpmn20" id="review-definitions">
+  <process id="leave" name="请假审批流程" isExecutable="true">
+    <startEvent id="Start" name="开始"></startEvent>
+    <userTask id="Apply" name="提交申请" activiti:priority="0">
+      <documentation>录入数据，提交请假申请</documentation>
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="start" name="启动" sourceRef="Start" targetRef="Apply"></sequenceFlow>
+    <userTask id="DepartmentManagerApproval" name="部门经理审批" activiti:priority="1">
+      <documentation>部门经理审批</documentation>
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="HRApproval" name="人事部门审批" activiti:priority="1">
+      <documentation>人事部门审批</documentation>
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="DepatmentGateWay" name="部门经理审批">
+      <documentation>部门经理审批gateway</documentation>
+    </exclusiveGateway>
+    <endEvent id="End" name="结束">
+      <documentation>结束</documentation>
+    </endEvent>
+    <exclusiveGateway id="HRApprovalGateway" name="人事部门审批"></exclusiveGateway>
+    <sequenceFlow id="apply" name="提交" sourceRef="Apply" targetRef="DepartmentManagerApproval"></sequenceFlow>
+    <sequenceFlow id="dep_handle" name="审核" sourceRef="DepartmentManagerApproval" targetRef="DepatmentGateWay"></sequenceFlow>
+    <sequenceFlow id="dpt_approved" name="通过" sourceRef="DepatmentGateWay" targetRef="HRApproval">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved==true}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="hr_handle" name="审核" sourceRef="HRApproval" targetRef="HRApprovalGateway"></sequenceFlow>
+    <sequenceFlow id="hr_approved" name="通过" sourceRef="HRApprovalGateway" targetRef="End">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved==true}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="dpt_rejected" name="驳回" sourceRef="DepatmentGateWay" targetRef="Apply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved==false}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="hr_rejected" name="驳回" sourceRef="HRApprovalGateway" targetRef="Apply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved==false}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_leave">
+    <bpmndi:BPMNPlane bpmnElement="leave" id="BPMNPlane_leave">
+      <bpmndi:BPMNShape bpmnElement="Start" id="BPMNShape_Start">
+        <omgdc:Bounds height="35.0" width="35.0" x="30.0" y="250.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="Apply" id="BPMNShape_Apply">
+        <omgdc:Bounds height="55.0" width="105.0" x="120.0" y="240.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="DepartmentManagerApproval" id="BPMNShape_DepartmentManagerApproval">
+        <omgdc:Bounds height="55.0" width="105.0" x="300.0" y="240.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="HRApproval" id="BPMNShape_HRApproval">
+        <omgdc:Bounds height="55.0" width="105.0" x="590.0" y="240.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="DepatmentGateWay" id="BPMNShape_DepatmentGateWay">
+        <omgdc:Bounds height="40.0" width="40.0" x="480.0" y="247.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="End" id="BPMNShape_End">
+        <omgdc:Bounds height="35.0" width="35.0" x="880.0" y="250.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="HRApprovalGateway" id="BPMNShape_HRApprovalGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="770.0" y="248.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="start" id="BPMNEdge_start">
+        <omgdi:waypoint x="65.0" y="267.0"></omgdi:waypoint>
+        <omgdi:waypoint x="120.0" y="267.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="16.0" width="22.0" x="79.0" y="267.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="apply" id="BPMNEdge_apply">
+        <omgdi:waypoint x="225.0" y="267.0"></omgdi:waypoint>
+        <omgdi:waypoint x="300.0" y="267.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="16.0" width="22.0" x="239.0" y="267.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="dep_handle" id="BPMNEdge_dep_handle">
+        <omgdi:waypoint x="405.0" y="267.0"></omgdi:waypoint>
+        <omgdi:waypoint x="480.0" y="267.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="16.0" width="100.0" x="400.0" y="268.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="dpt_approved" id="BPMNEdge_dpt_approved">
+        <omgdi:waypoint x="520.0" y="267.0"></omgdi:waypoint>
+        <omgdi:waypoint x="590.0" y="267.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="16.0" width="100.0" x="529.0" y="267.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="hr_handle" id="BPMNEdge_hr_handle">
+        <omgdi:waypoint x="695.0" y="267.0"></omgdi:waypoint>
+        <omgdi:waypoint x="770.0" y="268.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="16.0" width="100.0" x="700.0" y="267.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="hr_approved" id="BPMNEdge_hr_approved">
+        <omgdi:waypoint x="810.0" y="268.0"></omgdi:waypoint>
+        <omgdi:waypoint x="880.0" y="267.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="16.0" width="100.0" x="826.0" y="268.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="dpt_rejected" id="BPMNEdge_dpt_rejected">
+        <omgdi:waypoint x="500.0" y="287.0"></omgdi:waypoint>
+        <omgdi:waypoint x="499.0" y="357.0"></omgdi:waypoint>
+        <omgdi:waypoint x="172.0" y="357.0"></omgdi:waypoint>
+        <omgdi:waypoint x="172.0" y="295.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="16.0" width="100.0" x="334.0" y="339.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="hr_rejected" id="BPMNEdge_hr_rejected">
+        <omgdi:waypoint x="790.0" y="248.0"></omgdi:waypoint>
+        <omgdi:waypoint x="789.0" y="184.0"></omgdi:waypoint>
+        <omgdi:waypoint x="523.0" y="184.0"></omgdi:waypoint>
+        <omgdi:waypoint x="172.0" y="184.0"></omgdi:waypoint>
+        <omgdi:waypoint x="172.0" y="240.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="16.0" width="100.0" x="483.0" y="192.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

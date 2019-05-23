@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ForecastMapper">
+
+	<select id="listPageAllForecast" resultType="pd" parameterType="page">
+		<!-- select * from tb_forecast -->
+		select
+			tf.*,
+			su.name as user_name
+		from 
+			tb_forecast tf
+		left join
+			sys_user su
+		on
+			tf.input_user=su.user_id
+		where
+			tf.input_user=#{pd.USER_ID}
+	</select>
+	
+	<insert id="saveForecast" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+		insert into tb_forecast
+		(
+			item_id,
+			report,
+			more_region,
+			now_count,
+			forecast_now,
+			forecast_next,
+			input_user,
+			input_date,
+			modified_by,
+			modified_date,
+			is_top,
+			is_important,
+			month_no,
+			month_quota,
+			status,
+			percent,
+			quota_next,
+			percent_next
+		)values(
+			#{item_id},
+			#{report},
+			#{more_region},
+			#{now_count},
+			#{forecast_now},
+			#{forecast_next},
+			#{input_user},
+			now(),
+			#{modified_by},
+			now(),
+			#{is_top},
+			#{is_important},
+			#{month_no},
+			#{month_quota},
+			#{status},
+			#{percent},
+			#{quota_next},
+			#{percent_next}
+		)
+	</insert>
+	
+	<delete id="delForecastById" parameterType="pd">
+		delete from tb_forecast where id=#{id}
+	</delete>
+	
+	<update id="editForecast" parameterType="pd">
+		update
+			tb_forecast
+		set
+			item_id=#{item_id},
+			more_region=#{more_region},
+			now_count=#{now_count},
+			forecast_now=#{forecast_now},
+			forecast_next=#{forecast_next},
+			modified_by=#{modified_by},
+			modified_date=now(),
+			forecast_instance_id=#{forecast_instance_id},
+			status=#{status},
+			percent=#{percent},
+		where 
+			id=#{id}
+	</update>
+	
+	<update id="editStatus" parameterType="pd">
+		update
+			tb_forecast
+		set
+			status=#{status}
+		where
+			id=#{id}
+	</update>
+	
+	<update id="editForecastInstanceId" parameterType="pd">
+		update
+			tb_forecast
+		set
+			forecast_instance_id=#{forecast_instance_id}
+		where
+			id=#{id}
+	</update>
+	
+	<select id="findForecastById" parameterType="pd" resultType="pd">
+		<!-- select * from tb_forecast where id=#{id} -->
+		select
+			tf.*,
+			su.name as user_name
+		from 
+			tb_forecast tf
+		left join
+			sys_user su
+		on
+			tf.input_user=su.user_id
+		where
+			tf.id=#{id}
+	</select>
+	
+	<select id="findItemIdsByInputUser" parameterType="pd" resultType="pd">
+		select item_id from tb_forecast where input_user=#{USER_ID}
+	</select>
+	
+	<!-- 根据月份编号查询项目列表 -->
+	<select id="findItemIdByMonthNo" parameterType="String" resultType="String">
+		select item_id from tb_forecast where month_no=#{month_no}
+	</select>
+	
+	<!-- 操作历史表插入记录 -->
+	<insert id="saveForecastLog" parameterType="pd">
+		insert into tb_forecast_log(forecast,type,user,date,descript)values(#{forecast},#{type},#{user},#{date},#{descript});
+	</insert>
+	
+	<!-- 根据登录人id查询预测列表 -->
+	<select id="findForecastListByInputUser" parameterType="String" resultType="pd">
+		select tf.*,su.name as user_name from tb_forecast tf left join sys_user su on su.user_id=tf.input_user where tf.input_user=#{input_user}
+	</select>
+	
+	<!-- 根据用户id和月份编号查询预测 -->
+	<select id="findForecastListByUserIdAndMonthNo" parameterType="pd" resultType="pd">
+		select tf.*,su.name as user_name from tb_forecast tf left join sys_user su on su.user_id=tf.input_user where 1=1
+		<if test="userList!=null and userList.size()>0">
+			and tf.input_user in
+			<foreach collection="userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            #{user_id}
+	        </foreach>
+        </if>
+        <if test="month_no!=null and month_no!=''">
+        	and tf.month_no=#{month_no}
+        </if>
+        <if test="status!=null and status!=''">
+        	and tf.status=#{status}
+        </if>
+	</select>
+	
+	<select id="findForecastCountByUserIdAndMonthNo" parameterType="pd"  resultType="pd">
+		select * from tb_forecast where input_user=#{USER_ID} and month_no=#{month_no}
+	</select>
+	
+	<select id="findQuotaList" parameterType="page" resultType="pd">
+		select * from tb_quota
+	</select>
+	<select id="findMonthQuotaByUserAndMonth" parameterType="pd" resultType="String">
+		select month_quota from tb_quota where user_id=#{USER_ID} and month_no=#{month_no}
+	</select>
+	
+	<select id="findQuotaTreeList" resultType="pd">
+		select id,name,orderNo,parentId,create_time,type from tb_department
+		union
+		select id,name,orderNo,parentId,create_time,type from tb_position
+		union
+		select user_id COLLATE utf8_general_ci as id,name,'0' as orderNo,position_id as parentId,'' as create_time, '0' as type from sys_user where user_id!='1' and position_id!=''
+	</select>
+	
+	<select id="findQuotaByUserId" parameterType="String" resultType="pd">
+		select * from tb_quota where user_id=#{USER_ID}
+	</select>
+	
+	<select id="findQuotaById" parameterType="String" resultType="pd">
+		select * from tb_quota where id=#{id}
+	</select>
+	
+	<insert id="saveQuota" parameterType="pd">
+		insert into tb_quota (user_id,month_no,month_quota)values(#{user_id},#{month_no},#{month_quota})
+	</insert>
+	
+	<update id="editQuota" parameterType="pd">
+		update tb_quota set user_id=#{user_id},month_no=#{month_no},month_quota=#{month_quota} where id=#{id}
+	</update>
+	
+	<delete id="delQuota" parameterType="String">
+		delete from tb_quota where id=#{id}
+	</delete>
+	
+	<select id="findMonthNoByYear" parameterType="pd" resultType="String">
+		select month_no from tb_quota where user_id=#{user_id} and month_no LIKE CONCAT( #{year},'%')
+	</select>
+	
+	
+</mapper>

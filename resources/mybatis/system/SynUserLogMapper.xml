@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SynUserLogMapper">
+	
+	<select id="listPageSynLog" resultType="pd" parameterType="page">
+		select l.ID,l.SynCode,l.SynStatus,l.SynType,l.SynDate,l.SynMsg,n.Name from sys_user_synlog AS l  JOIN sys_user_syn AS n ON l.SynCode=n.Code order by l.SynDate desc
+	</select>
+	
+	<select id="findById" resultType="pd" parameterType="pd">
+		select * from sys_user_synlog where Code=#{Code}
+	</select>
+	<select id="findByCode" resultType="pd" parameterType="pd">
+		select * from sys_user_synlog where SynCode=#{SynCode}
+	</select>
+	
+	<select id="findCodeBySynStatus" resultType="pd">
+		select SynCode from sys_user_synlog where SynStatus='toSyn'
+	</select>
+	
+	
+	
+	
+	<insert id="insertSynLog" parameterType="pd">
+		insert into 
+			sys_user_synlog
+			(
+				SynDate,
+				BeforeContent,
+				AfterContent,
+				SynCode,
+				SynType,
+				SynMsg,
+				USER_ID,
+				OPERATE_ID,
+				SynStatus
+			)values(
+				#{SynDate},
+				#{BeforeContent},
+				#{AfterContent},
+				#{SynCode},
+				#{SynType},
+				#{SynMsg},
+				#{USER_ID},
+				#{OPERATE_ID},
+				#{SynStatus}
+			)
+		
+	</insert>
+	
+	<update id="updateSynStatus" parameterType="pd">
+		update 	
+			sys_user_synlog
+		set
+			SynStatus='toLocal'
+		where 
+			SynStatus='toSyn' and 
+			OPERATE_ID=#{OPERATE_ID}
+	</update>
+	<update id="updateStatus" parameterType="pd">
+		update
+		sys_user_synlog
+		set
+		SynStatus=#{SynStatus},
+		USER_ID=#{USER_ID}
+		where
+		ID=#{ID}
+
+
+	</update>
+
+</mapper>

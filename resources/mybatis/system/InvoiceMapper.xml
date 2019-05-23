@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="InvoiceMapper">
+ <!-- 查询发票信息 -->
+  <select id="invoicelistPage" parameterType="page" resultType="pd">
+    SELECT * FROM tb_invoice where 1=1
+    <if test="pd.roleType!='4'">
+		<if test="pd.userList!=null and pd.userList.size()>0">
+			and input_user in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+	    </if>
+	</if>
+  </select>
+  <!-- 根据ID查询发票信息 -->
+	<select id="findInvoiceById" parameterType="pd" resultType="pd">
+		select * from tb_invoice where inv_no=#{inv_no}
+	</select>
+  <!-- 查询来款信息 -->
+  <select id="comeFundlistPage" parameterType="page" resultType="pd">
+    SELECT * FROM tb_come_fund
+  </select>
+   <!-- 根据ID查询来款信息 -->
+	<select id="findComeFundById" parameterType="pd" resultType="pd">
+		select * from tb_come_fund where com_no=#{com_no}
+	</select>
+	 <!-- 新增发票信息 -->
+	<insert id="saveS" parameterType="pd">
+		insert into tb_invoice(
+		inv_uuid,
+		inv_no,
+		inv_money,
+		inv_item_no,
+		inv_company,
+		inv_comp_address,
+	    inv_time,
+	    inv_remarks,
+	    inv_com_no,
+	    inv_states,
+	    input_user,
+	    input_time
+		)
+		values
+		(
+		#{inv_uuid},
+		#{inv_no},
+		#{inv_money},
+		#{inv_item_no},
+		#{inv_company},
+		#{inv_comp_address},
+	    #{inv_time},
+	    #{inv_remarks},
+	    #{inv_com_no},
+	    #{inv_states},
+	    #{input_user},
+	    #{input_time}
+		)
+	</insert>
+	<!-- 根据编号删除发票信息 -->
+	<delete id="delInvoice" parameterType="pd">
+		DELETE from tb_invoice where inv_no=#{inv_no}
+	</delete>
+	<!-- 修改 -->
+	<update id="editS" parameterType="pd">
+		UPDATE tb_invoice
+		SET
+		inv_money        =#{inv_money},
+		inv_item_no      =#{inv_item_no},
+		inv_company      =#{inv_company},
+		inv_comp_address =#{inv_comp_address},
+	    inv_time         =#{inv_time},
+	    inv_remarks      =#{inv_remarks},
+	    inv_com_no       =#{inv_com_no}
+		WHERE
+		inv_no   = #{inv_no}
+	</update>
+	<!-- 修改状态 -->
+	<update id="editStates" parameterType="pd">
+		UPDATE tb_invoice
+		SET
+		inv_states =#{inv_states}
+		WHERE
+		inv_no   = #{inv_no}
+	</update>
+	 <!-- 新增发票信息 -->
+	<insert id="AddCarriage" parameterType="pd">
+		insert into tb_carriage(
+		car_uuid,
+		inv_no,
+		car_no,
+		car_company,
+		car_money,
+		car_time,
+	    rec_company,
+	    rec_address,
+	    rec_consignee,
+	    rec_phone,
+	    remarks
+		)
+		values
+		(
+		#{car_uuid},
+		#{inv_no},
+		#{car_no},
+		#{car_company},
+		#{car_money},
+		#{car_time},
+	    #{rec_company},
+	    #{rec_address},
+	    #{rec_consignee},
+	    #{rec_phone},
+	    #{remarks}
+		)
+	</insert>
+	 <!-- 根据ID查询承运单信息 -->
+	<select id="findCarriageById" parameterType="pd" resultType="pd">
+		select * from tb_carriage where inv_no=#{inv_no}
+	</select>
+	<!-- 根据编号删除承运信息 -->
+	<delete id="delCarriage" parameterType="pd">
+		DELETE from tb_carriage where inv_no=#{inv_no}
+	</delete>
+	
+	<!-- 获取option集合 -->
+    <select id="findInvoiceList"  resultType="pd">
+    	SELECT *from tb_invoice
+    </select>
+</mapper>

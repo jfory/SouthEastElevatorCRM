@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ElevatorManageMapper">
+
+    <select id="findAllElevatorModels" resultType="pd">
+        select models_id as id, models_name as name, parent_id as parentId, level, orderNo
+        from tb_models
+    </select>
+
+    <insert id="insertModel" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_models (models_id, models_name, parent_id, level, orderNo)
+        values (#{id}, #{name}, #{parent_id}, #{level}, #{orderNo})
+    </insert>
+
+    <!-- 根据ID获取数据 -->
+    <select id="getElevatorModelById" parameterType="pd" resultType="pd">
+        select *
+        from tb_models
+        where models_id = #{id}
+    </select>
+
+    <!-- 查询该节点所有子节点 -->
+    <select id="findAllChildModels" parameterType="pd" resultType="pd">
+        select *
+        from tb_models
+        where parent_id = #{id}
+    </select>
+
+    <!-- 查询该节点父节点 -->
+    <select id="findParentModel" parameterType="pd" resultType="pd">
+        select *
+        from tb_models
+        where models_id = #{parent_id}
+    </select>
+
+    <!-- 查询除开该节点的所有其他节点 -->
+    <select id="findOtherModels" parameterType="pd" resultType="pd">
+        select models_id as id, models_name as name, parent_id as parentId, level, orderNo from tb_models
+        where models_id not in
+        <foreach collection="list" item="id" index="index"
+                 open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 根据ID更新节点 -->
+    <update id="updateModel" parameterType="pd">
+        update
+                tb_models
+        set models_name = #{name},
+            level       = #{level},
+            orderNo     = #{orderNo},
+            parent_id   = #{parent_id}
+        where models_id = #{id}
+    </update>
+
+    <delete id="deleteModel">
+        DELETE
+        FROM tb_models
+        WHERE models_id = #{id}
+    </delete>
+
+</mapper>

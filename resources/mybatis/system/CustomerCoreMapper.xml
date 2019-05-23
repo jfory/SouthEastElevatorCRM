@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="customerCoreMapper">
+	
+	<select id="listPageCustomerCoreByRole" parameterType="page" resultType="pd">
+		select 
+			cc.customer_id,
+			cc.customer_name,
+			cc.customer_no,
+			su.name as collector,
+			cc.collector_phone
+		from 
+			tb_customer_core cc 
+		left join 
+			sys_user su
+		on su.user_id=cc.collector
+		where 1=1
+		<if test="pd.roleType!='4'">
+			<if test="pd.userList!=null and pd.userList.size()>0">
+				and cc.input_user in
+				<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+		            ${user_id}
+		        </foreach>
+	        </if>
+        </if>
+	</select>
+	
+	<select id="listPageCustomerCore" resultType="pd">
+		select 
+			cc.customer_id,
+			cc.customer_no,
+			cc.customer_name,
+			su.USERNAME as collector,
+			cc.collector_phone
+		from 
+		tb_customer_core cc,
+		sys_user su
+		where su.USER_ID=cc.collector
+	</select>
+
+    <insert id="saveCustomerCore" parameterType="pd">
+    	insert into tb_customer_core(
+    		customer_id,
+    		customer_no,
+			customer_name,
+			customer_type,
+			collector,
+			collector_phone,
+			collector_time,
+			keyperson_name1,
+			keyperson_duty1,
+			keyperson_phone1,
+			keyperson_name2,
+			keyperson_duty2,
+			keyperson_phone2,
+			has_cooperate_pro,
+			now_cooperate_pro,
+			cooperate_pro_id,
+			pro_status,
+			is_core_cooperate,
+			core_cooperate_agre,
+			core_cooperate_date,
+			core_cooperate_num,
+			core_cooperate_money,
+			customer_company,
+			input_date,
+			input_user,
+			customer_level
+    	)values(
+    		#{customer_id},
+    		#{customer_no},
+			#{customer_name},
+			#{customer_type},
+			#{collector},
+			#{collector_phone},
+			#{collector_time},
+			#{keyperson_name1},
+			#{keyperson_duty1},
+			#{keyperson_phone1},
+			#{keyperson_name2},
+			#{keyperson_duty2},
+			#{keyperson_phone2},
+			#{has_cooperate_pro},
+			#{now_cooperate_pro},
+			#{cooperate_pro_id},
+			#{pro_status},
+			#{is_core_cooperate},
+			#{core_cooperate_agre},
+			#{core_cooperate_date},
+			#{core_cooperate_num},
+			#{core_cooperate_money},
+			#{customer_company},
+			now(),
+			#{input_user},
+			#{customer_level}
+    	)
+    </insert>
+    
+    <update id="editCustomerCore" parameterType="pd">
+		update  tb_customer_core
+			set 
+				customer_no     =     #{customer_no},
+				customer_name     =     #{customer_name},
+				customer_type     =     #{customer_type},
+				collector     =     #{collector},
+				collector_phone     =     #{collector_phone},
+				collector_time     =     #{collector_time},
+				keyperson_name1     =     #{keyperson_name1},
+				keyperson_duty1     =     #{keyperson_duty1},
+				keyperson_phone1     =     #{keyperson_phone1},
+				keyperson_name2     =     #{keyperson_name2},
+				keyperson_duty2     =     #{keyperson_duty2},
+				keyperson_phone2     =     #{keyperson_phone2},
+				has_cooperate_pro     =     #{has_cooperate_pro},
+				now_cooperate_pro     =     #{now_cooperate_pro},
+				cooperate_pro_id     =     #{cooperate_pro_id},
+				pro_status     =     #{pro_status},
+				is_core_cooperate     =     #{is_core_cooperate},
+				core_cooperate_agre     =     #{core_cooperate_agre},
+				core_cooperate_date     =     #{core_cooperate_date},
+				core_cooperate_num     =     #{core_cooperate_num},
+				core_cooperate_money     =     #{core_cooperate_money},
+				customer_company     =     #{customer_company},
+				modified_by     =     #{modified_by},
+				modified_date     =     now(),
+				customer_level     =     #{customer_level}
+			where 
+				customer_id         = #{customer_id}
+	</update>
+    
+    <delete id="deleteCustomerCore" parameterType="pd">
+		delete from 
+			tb_customer_core
+		where
+			customer_id=#{customer_id}
+	</delete>
+	
+	<select id="findCustomerCoreById" parameterType="pd" resultType="pd">
+		select * from tb_customer_core where customer_id=#{customer_id}
+	</select>
+	
+	
+	<select id="findCustomerCore" parameterType="pd" resultType="pd">
+		<!-- select cc.*,cy.name as customer_company_text from 
+			tb_customer_core cc,tb_customer_company cy
+		where cc.customer_id=#{customer_id} and cc.customer_company=cy.id -->
+		select * from tb_customer_core where customer_id=#{customer_id}
+	</select>
+	
+	<select id="findCoreCustomerId" resultType="pd">
+		select 
+			customer_id,
+			customer_name
+		from 
+			tb_customer_core
+	</select>
+	
+	<select id="findCustomerByNameCore" parameterType="pd" resultType="pd">
+		select * from tb_customer_core where customer_name=#{customer_name}
+	</select>
+	
+	<select id="findCustomerByOldNameCore" parameterType="pd" resultType="pd">
+		select * from tb_customer_core where customer_name!=#{old_customer_name} and customer_name =#{customer_name}
+	</select>
+	
+	<select id="findCustomerContactCore" resultType="pd">
+		select NAME,USER_ID from sys_user
+	</select>
+	
+	<!-- 客户拜访记录导入导出 -->
+	<select id="findCustomerVisitForExcel" parameterType="String" resultType="pd">
+		select * from tb_customer_visit where visit_customer_id=#{customer_id}
+	</select>
+	<insert id="saveCustomerVisitImportExcel" parameterType="pd">
+		insert into tb_customer_visit(
+			visit_aims,
+			visit_customer_id,
+			visit_customer_type,
+			visit_company,
+			visit_way,
+			visit_member,
+			visit_feedback,
+			visit_date,
+			input_date,
+			respond_plan
+		)values(
+			#{visit_aims},
+			#{visit_customer_id},
+			#{visit_customer_type},
+			#{visit_company},
+			#{visit_way},
+			#{visit_member},
+			#{visit_feedback},
+			#{visit_date},
+			now(),
+			#{respond_plan}
+		)
+	</insert>
+</mapper>

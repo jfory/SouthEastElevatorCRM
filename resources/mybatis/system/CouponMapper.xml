@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CouponMapper">
+    <!--
+    <select id="userNotYhjlistPage" resultType="pd" parameterType="page">
+        select a.user_id,a.phone,a.shop_id,c.assisCode,c.couponCode
+        from
+         sys_app_user a left join tb_coupon c
+         on a.user_id = c.user_id
+        where
+            c.assisCode is null
+    </select>
+    -->
+    <select id="userlistPage" resultType="pd" parameterType="page">
+        select a.user_id,a.phone,a.card_num,a.shop_id,s.shop_name
+        from
+        sys_app_user a left join bd_shop s
+        on a.shop_id = s.shop_num
+        where
+        a.phone is not null
+        <if test="pd.phone != null and pd.phone !=''">
+            and a.phone like CONCAT("%",CONCAT(#{pd.phone},"%"))
+        </if>
+        <if test="pd.card_num != null and pd.card_num !=''">
+            and a.card_num like CONCAT("%",CONCAT(#{pd.card_num},"%"))
+        </if>
+    </select>
+
+    <select id="allNotCouponUser" resultType="pd">
+		select a.user_id,a.phone,a.shop_id,c.assisCode,c.couponCode
+		from 
+		 sys_app_user a left join tb_coupon c
+		 on a.user_id = c.user_id
+		where 
+			c.assisCode is null
+		and
+			a.phone is not null
+	</select>
+
+    <select id="allAppUser" resultType="pd">
+		select a.user_id,a.phone
+		from 
+		 sys_app_user a
+		where 
+			a.phone is not null
+	</select>
+
+    <insert id="saveCoupon" parameterType="pd">
+		insert into tb_coupon(
+			couponid,
+			user_id,
+			couponName,
+			orderSn,
+			assisCode,
+			couponCode,
+			status,
+			startime,
+			endtime,
+			barCode,
+			template_type,
+			vendor_id
+		)values(
+			#{couponid},
+			#{user_id},
+			#{couponName},
+			#{orderSn},
+			#{assisCode},
+			#{couponCode},
+			#{status},
+			#{startime},
+			#{endtime},
+			#{barCode},
+			#{template_type},
+			#{vendor_id}
+		)
+	</insert>
+    <select id="findCouponByUserid" parameterType="page" resultType="pd">
+	select couponid,couponName,startime,endtime
+	       FROM tb_coupon 
+	       WHERE user_id = #{pd.user_id}
+	       AND endtime &gt; NOW() 
+	       ORDER BY STATUS,endtime DESC
+	</select>
+    <select id="findCouponStatusByassistCode" parameterType="String" resultType="String">
+	select status
+	       FROM tb_coupon 
+	       WHERE assisCode = #{assistCode} 
+	</select>
+    <select id="findCouponByCouponid" parameterType="page" resultType="pd">
+	select * ,    
+           	YEAR(startime) AS start_year,
+           	MONTH(startime)AS start_month,
+           	DAY(startime) AS start_day,
+  			YEAR(endtime) AS end_year,
+           	MONTH(endtime)AS end_month,
+           	DAY(endtime) AS end_day,
+           	template_type,
+           	vendor_id
+	       FROM tb_coupon 
+	       WHERE couponid = #{couponid} 
+	       ORDER BY endtime DESC
+	</select>
+    <update id="updateCouponByassisCode">
+		UPDATE tb_coupon 
+		   SET status =#{status}
+	     WHERE assisCode =#{assistCode}
+	</update>
+    <select id="findUserByPhone" resultType="pd">
+		select user_id,phone
+		from 
+		 	sys_app_user
+		 where
+		 	phone = #{phone}
+		 	
+	</select>
+    <select id="findTotalCoupon" resultType="int" parameterType="pd">
+		SELECT COUNT(1) 
+		  FROM tb_coupon
+		 WHERE user_id = #{user_id} 
+	</select>
+    <select id="findTotalUseableCoupon" resultType="int" parameterType="pd">
+		SELECT COUNT(1) 
+		  FROM tb_coupon
+		 WHERE user_id = #{user_id} AND status = 0
+	</select>
+    <select id="findUserByaccisCode" resultType="pd" parameterType="String">
+		SELECT couponName,couponid,wx_openid
+		  FROM tb_coupon a LEFT JOIN sys_app_user b ON a.user_id = b.user_id 
+		 WHERE assiscode = #{assiscode} 
+	</select>
+</mapper>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="ElevatorUnitMapper">
+
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- 单元分页列表 -->
+    <select id="elevatorUnitlistPage" parameterType="page" resultType="pd" useCache="false">
+        select *
+        	   from tb_elevator_unit a where 1=1
+        	 
+        <if test="pd.elevator_unit_name!=null and pd.elevator_unit_name !=''">
+        	 AND (elevator_unit_name LIKE CONCAT(CONCAT('%', #{pd.elevator_unit_name}),'%'))
+        </if>
+       
+    </select>
+    
+    
+     <!-- 根据ID查询单元对象 -->
+    <select id="findElevatorUnitById"  resultType="pd">
+		select * from tb_elevator_unit where 1=1
+		<if test="elevator_unit_id!=null and elevator_unit_id!=''">
+			and elevator_unit_id = #{elevator_unit_id}
+		</if>
+	</select>
+	
+	<!-- 根据ID查询单元集合 -->
+	<select id="findElevatorUnitListById" parameterType="pd" resultType="pd">
+		select * from tb_elevator_unit where 1=1
+		<if test="elevator_unit_id!=null and elevator_unit_id!=''">
+			and elevator_unit_id = #{elevator_unit_id}
+		</if>
+	</select>
+	
+	
+	<!-- 单元名称是否存在重复 -->
+    <select id="existsElevatorUnitName" parameterType="pd" resultType="pd">
+    	select * from tb_elevator_unit where elevator_unit_name=#{elevator_unit_name} 
+    	<if test="elevator_storey_id !=null and elevator_storey_id !=''">
+    		and elevator_unit_id not in (#{elevator_unit_id})
+    	</if>
+    </select>
+    
+    <!-- 单元添加 -->
+    <insert id="elevatorUnitAdd" parameterType="pd">
+    	insert into tb_elevator_unit(
+    		elevator_unit_name,
+    		elevator_unit_remark
+    	)values(
+    		#{elevator_unit_name},
+    		#{elevator_unit_remark}
+    	)
+    </insert>
+    
+    <!-- 单元更新 -->
+    <update id="elevatorUnitUpdate" parameterType="pd">
+    	update tb_elevator_unit
+    	<set>
+    		elevator_unit_name = #{elevator_unit_name},
+    		elevator_unit_remark = #{elevator_unit_remark},
+    	</set>
+    	where elevator_unit_id=#{elevator_unit_id}
+    </update>
+    
+     <!-- 单元删除 -->
+     <delete id="elevatorUnitDeleteById">
+		delete from tb_elevator_unit
+    	where elevator_unit_id = #{elevator_unit_id}
+	</delete>
+	
+	<!-- 单元批量删除-->
+    <delete id="elevatorUnitDeleteAll" parameterType="String">
+    	delete from tb_elevator_unit
+    	where elevator_unit_id in
+    	<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+</mapper>	

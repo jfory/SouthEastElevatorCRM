@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://activiti.org/bpmn20">
+  <process id="contractor" name="分包商审核流程" isExecutable="true">
+    <endEvent id="End" name="结束"></endEvent>
+    <startEvent id="Start" name="开始"></startEvent>
+    <userTask id="FactoryApply" name="工厂申请审核" activiti:priority="0">
+      <documentation>录入数据，提交工厂申请</documentation>
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="ChooseGateway" name="选择审核流程"></exclusiveGateway>
+    <sequenceFlow id="FactoryFlow" name="工厂流程启动" sourceRef="ChooseGateway" targetRef="FactoryApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==2}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="AreaApply" name="区域申请审核" activiti:priority="0">
+      <documentation>录入数据，提交区域商申请</documentation>
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="AreaFlow" name="区域流程启动" sourceRef="ChooseGateway" targetRef="AreaApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==1}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Chooseflow" name="启动" sourceRef="Start" targetRef="ChooseGateway"></sequenceFlow>
+    <userTask id="FactoryProjectManager" name="工厂项目经理审核" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="ChiledProjectCompany" name="分子公司项目经理审核" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="AreaEngineeringManager" name="区域工程经理审核" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="AreaGeneralManager" name="区域总经理审核" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="FactorySubmitFlow" name="提交" sourceRef="FactoryApply" targetRef="FactoryProjectManager"></sequenceFlow>
+    <sequenceFlow id="AreaSubmitFlow" name="提交" sourceRef="AreaApply" targetRef="ChiledProjectCompany"></sequenceFlow>
+    <exclusiveGateway id="ChiledProjectCompanyApprovalGateway" name="分子公司项目经理审核"></exclusiveGateway>
+    <exclusiveGateway id="AreaEngineeringManagerGateway" name="区域工程经理审核"></exclusiveGateway>
+    <sequenceFlow id="ChiledProjectCompanyHandle" name="审核" sourceRef="ChiledProjectCompany" targetRef="ChiledProjectCompanyApprovalGateway"></sequenceFlow>
+    <sequenceFlow id="ChiledProjectCompanyApproved" name="通过" sourceRef="ChiledProjectCompanyApprovalGateway" targetRef="AreaEngineeringManager">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==3}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="ChiledProjectCompanyRejected" name="驳回" sourceRef="ChiledProjectCompanyApprovalGateway" targetRef="AreaApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==1}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="AreaEngineeringManagerHandle" name="审核" sourceRef="AreaEngineeringManager" targetRef="AreaEngineeringManagerGateway"></sequenceFlow>
+    <sequenceFlow id="AreaEngineeringManagerApproved" name="通过" sourceRef="AreaEngineeringManagerGateway" targetRef="AreaGeneralManager">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==3}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="FactoryEngineeringManager" name="工厂工程经理审核" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="FactoryGeneralManager" name="工厂总经理审核" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="TransferStopGateway" name="中转站"></exclusiveGateway>
+    <sequenceFlow id="FactoryHandle" name="审核" sourceRef="FactoryProjectManager" targetRef="TransferStopGateway"></sequenceFlow>
+    <sequenceFlow id="AreaGeneralManagerHandle" name="审核" sourceRef="AreaGeneralManager" targetRef="TransferStopGateway"></sequenceFlow>
+    <sequenceFlow id="Approved" name="通过" sourceRef="TransferStopGateway" targetRef="FactoryEngineeringManager">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==3}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="AreaEngineeringManagerRejected" name="驳回" sourceRef="AreaEngineeringManagerGateway" targetRef="AreaApply">
+      <documentation>${approved==false}</documentation>
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==1}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="FactoryEngineeringManagerGateway" name="工厂工程经理审核"></exclusiveGateway>
+    <sequenceFlow id="FactoryEngineeringManagerHandle" name="审核" sourceRef="FactoryEngineeringManager" targetRef="FactoryEngineeringManagerGateway"></sequenceFlow>
+    <sequenceFlow id="FactoryEngineeringManagerApproved" name="通过" sourceRef="FactoryEngineeringManagerGateway" targetRef="FactoryGeneralManager">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==3}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="FactoryGeneralManagerGateway" name="工厂总经理审核"></exclusiveGateway>
+    <sequenceFlow id="FactoryGeneralManagerHandle" name="审核" sourceRef="FactoryGeneralManager" targetRef="FactoryGeneralManagerGateway"></sequenceFlow>
+    <sequenceFlow id="FactoryGeneralManagerApproved" name="通过" sourceRef="FactoryGeneralManagerGateway" targetRef="End">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==3}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="FactoryProjectManagerRejected" name="工厂驳回" sourceRef="TransferStopGateway" targetRef="FactoryApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==2}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="AreaGeneralManagerRejected" name="区域驳回" sourceRef="TransferStopGateway" targetRef="AreaApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==1}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="FactoryEngineeringManagerRejected" name="工厂驳回" sourceRef="FactoryEngineeringManagerGateway" targetRef="FactoryApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==2}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="FactoryEngineeringManagerAreaRejected" name="区域驳回" sourceRef="FactoryEngineeringManagerGateway" targetRef="AreaApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==1}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="FactoryGeneralManagerAreaRejected" name="区域驳回" sourceRef="FactoryGeneralManagerGateway" targetRef="AreaApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==1}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="FactoryGeneralManagerRejected" name="工厂驳回" sourceRef="FactoryGeneralManagerGateway" targetRef="FactoryApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${type==2}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_contractor">
+    <bpmndi:BPMNPlane bpmnElement="contractor" id="BPMNPlane_contractor">
+      <bpmndi:BPMNShape bpmnElement="End" id="BPMNShape_End">
+        <omgdc:Bounds height="35.0" width="35.0" x="1415.0" y="290.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="Start" id="BPMNShape_Start">
+        <omgdc:Bounds height="35.0" width="35.0" x="0.0" y="290.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="FactoryApply" id="BPMNShape_FactoryApply">
+        <omgdc:Bounds height="55.0" width="105.0" x="160.0" y="200.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="ChooseGateway" id="BPMNShape_ChooseGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="70.0" y="287.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="AreaApply" id="BPMNShape_AreaApply">
+        <omgdc:Bounds height="55.0" width="105.0" x="160.0" y="370.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="FactoryProjectManager" id="BPMNShape_FactoryProjectManager">
+        <omgdc:Bounds height="55.0" width="105.0" x="310.0" y="200.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="ChiledProjectCompany" id="BPMNShape_ChiledProjectCompany">
+        <omgdc:Bounds height="55.0" width="129.0" x="312.0" y="370.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="AreaEngineeringManager" id="BPMNShape_AreaEngineeringManager">
+        <omgdc:Bounds height="55.0" width="105.0" x="560.0" y="370.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="AreaGeneralManager" id="BPMNShape_AreaGeneralManager">
+        <omgdc:Bounds height="55.0" width="105.0" x="770.0" y="370.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="ChiledProjectCompanyApprovalGateway" id="BPMNShape_ChiledProjectCompanyApprovalGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="478.0" y="377.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="AreaEngineeringManagerGateway" id="BPMNShape_AreaEngineeringManagerGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="698.0" y="377.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="FactoryEngineeringManager" id="BPMNShape_FactoryEngineeringManager">
+        <omgdc:Bounds height="55.0" width="105.0" x="940.0" y="280.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="FactoryGeneralManager" id="BPMNShape_FactoryGeneralManager">
+        <omgdc:Bounds height="55.0" width="105.0" x="1190.0" y="280.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="TransferStopGateway" id="BPMNShape_TransferStopGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="870.0" y="287.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="FactoryEngineeringManagerGateway" id="BPMNShape_FactoryEngineeringManagerGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="1099.0" y="287.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="FactoryGeneralManagerGateway" id="BPMNShape_FactoryGeneralManagerGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="1330.0" y="287.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="FactoryFlow" id="BPMNEdge_FactoryFlow">
+        <omgdi:waypoint x="90.0" y="287.0"></omgdi:waypoint>
+        <omgdi:waypoint x="90.0" y="227.0"></omgdi:waypoint>
+        <omgdi:waypoint x="160.0" y="227.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="90.0" y="268.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="AreaFlow" id="BPMNEdge_AreaFlow">
+        <omgdi:waypoint x="90.0" y="327.0"></omgdi:waypoint>
+        <omgdi:waypoint x="90.0" y="397.0"></omgdi:waypoint>
+        <omgdi:waypoint x="160.0" y="397.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="90.0" y="339.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="Chooseflow" id="BPMNEdge_Chooseflow">
+        <omgdi:waypoint x="35.0" y="307.0"></omgdi:waypoint>
+        <omgdi:waypoint x="70.0" y="307.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="35.0" y="307.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FactorySubmitFlow" id="BPMNEdge_FactorySubmitFlow">
+        <omgdi:waypoint x="265.0" y="227.0"></omgdi:waypoint>
+        <omgdi:waypoint x="310.0" y="227.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="265.0" y="227.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="AreaSubmitFlow" id="BPMNEdge_AreaSubmitFlow">
+        <omgdi:waypoint x="265.0" y="397.0"></omgdi:waypoint>
+        <omgdi:waypoint x="312.0" y="397.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="265.0" y="397.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="ChiledProjectCompanyHandle" id="BPMNEdge_ChiledProjectCompanyHandle">
+        <omgdi:waypoint x="441.0" y="397.0"></omgdi:waypoint>
+        <omgdi:waypoint x="478.0" y="397.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="441.0" y="397.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="ChiledProjectCompanyApproved" id="BPMNEdge_ChiledProjectCompanyApproved">
+        <omgdi:waypoint x="518.0" y="397.0"></omgdi:waypoint>
+        <omgdi:waypoint x="560.0" y="397.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="518.0" y="397.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="ChiledProjectCompanyRejected" id="BPMNEdge_ChiledProjectCompanyRejected">
+        <omgdi:waypoint x="498.0" y="417.0"></omgdi:waypoint>
+        <omgdi:waypoint x="498.0" y="458.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="458.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="425.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="500.0" y="423.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="AreaEngineeringManagerHandle" id="BPMNEdge_AreaEngineeringManagerHandle">
+        <omgdi:waypoint x="665.0" y="397.0"></omgdi:waypoint>
+        <omgdi:waypoint x="698.0" y="397.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="665.0" y="397.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="AreaEngineeringManagerApproved" id="BPMNEdge_AreaEngineeringManagerApproved">
+        <omgdi:waypoint x="738.0" y="397.0"></omgdi:waypoint>
+        <omgdi:waypoint x="770.0" y="397.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="738.0" y="397.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FactoryHandle" id="BPMNEdge_FactoryHandle">
+        <omgdi:waypoint x="415.0" y="227.0"></omgdi:waypoint>
+        <omgdi:waypoint x="848.0" y="227.0"></omgdi:waypoint>
+        <omgdi:waypoint x="890.0" y="287.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="539.0" y="208.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="AreaGeneralManagerHandle" id="BPMNEdge_AreaGeneralManagerHandle">
+        <omgdi:waypoint x="822.0" y="370.0"></omgdi:waypoint>
+        <omgdi:waypoint x="890.0" y="327.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="798.0" y="354.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="Approved" id="BPMNEdge_Approved">
+        <omgdi:waypoint x="910.0" y="307.0"></omgdi:waypoint>
+        <omgdi:waypoint x="940.0" y="307.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="910.0" y="307.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="AreaEngineeringManagerRejected" id="BPMNEdge_AreaEngineeringManagerRejected">
+        <omgdi:waypoint x="718.0" y="377.0"></omgdi:waypoint>
+        <omgdi:waypoint x="717.0" y="333.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="333.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="370.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="721.0" y="364.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FactoryEngineeringManagerHandle" id="BPMNEdge_FactoryEngineeringManagerHandle">
+        <omgdi:waypoint x="1045.0" y="307.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1099.0" y="307.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="1045.0" y="307.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FactoryEngineeringManagerApproved" id="BPMNEdge_FactoryEngineeringManagerApproved">
+        <omgdi:waypoint x="1139.0" y="307.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1190.0" y="307.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="1139.0" y="307.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FactoryGeneralManagerHandle" id="BPMNEdge_FactoryGeneralManagerHandle">
+        <omgdi:waypoint x="1295.0" y="307.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1330.0" y="307.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="1295.0" y="307.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FactoryGeneralManagerApproved" id="BPMNEdge_FactoryGeneralManagerApproved">
+        <omgdi:waypoint x="1370.0" y="307.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1415.0" y="307.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="1370.0" y="307.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FactoryProjectManagerRejected" id="BPMNEdge_FactoryProjectManagerRejected">
+        <omgdi:waypoint x="890.0" y="287.0"></omgdi:waypoint>
+        <omgdi:waypoint x="889.0" y="153.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="153.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="200.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="890.0" y="222.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="AreaGeneralManagerRejected" id="BPMNEdge_AreaGeneralManagerRejected">
+        <omgdi:waypoint x="890.0" y="327.0"></omgdi:waypoint>
+        <omgdi:waypoint x="889.0" y="481.0"></omgdi:waypoint>
+        <omgdi:waypoint x="213.0" y="481.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="425.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="890.0" y="390.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FactoryEngineeringManagerRejected" id="BPMNEdge_FactoryEngineeringManagerRejected">
+        <omgdi:waypoint x="1119.0" y="287.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1119.0" y="111.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="111.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="200.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="1119.0" y="222.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FactoryEngineeringManagerAreaRejected" id="BPMNEdge_FactoryEngineeringManagerAreaRejected">
+        <omgdi:waypoint x="1119.0" y="327.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1119.0" y="511.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="511.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="425.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="1119.0" y="390.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FactoryGeneralManagerAreaRejected" id="BPMNEdge_FactoryGeneralManagerAreaRejected">
+        <omgdi:waypoint x="1350.0" y="327.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1350.0" y="539.0"></omgdi:waypoint>
+        <omgdi:waypoint x="213.0" y="539.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="425.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="1350.0" y="390.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FactoryGeneralManagerRejected" id="BPMNEdge_FactoryGeneralManagerRejected">
+        <omgdi:waypoint x="1350.0" y="287.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1349.0" y="76.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="76.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="200.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="1351.0" y="222.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

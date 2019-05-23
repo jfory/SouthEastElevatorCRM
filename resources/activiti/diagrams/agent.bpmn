@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://activiti.org/bpmn20">
+  <process id="agent" name="代理商审核流程" isExecutable="true">
+    <startEvent id="Start" name="开始"></startEvent>
+    <endEvent id="End" name="结束"></endEvent>
+    <userTask id="AgentApply" name="代理商申请审核" activiti:priority="0">
+      <documentation>录入数据，提交代理商申请</documentation>
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="sellManageApproval" name="营销管理部审核" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="SellApprovalGateway" name="营销管理部审核"></exclusiveGateway>
+    <sequenceFlow id="sellHandle" name="审核" sourceRef="sellManageApproval" targetRef="SellApprovalGateway"></sequenceFlow>
+    <sequenceFlow id="sellApproved" name="通过" sourceRef="SellApprovalGateway" targetRef="End">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved==true}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="SellRejected" name="驳回" sourceRef="SellApprovalGateway" targetRef="AgentApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved==false}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="start" name="启动" sourceRef="Start" targetRef="AgentApply"></sequenceFlow>
+    <sequenceFlow id="flow5" name="提交" sourceRef="AgentApply" targetRef="sellManageApproval"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_agent">
+    <bpmndi:BPMNPlane bpmnElement="agent" id="BPMNPlane_agent">
+      <bpmndi:BPMNShape bpmnElement="Start" id="BPMNShape_Start">
+        <omgdc:Bounds height="35.0" width="35.0" x="30.0" y="183.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="End" id="BPMNShape_End">
+        <omgdc:Bounds height="35.0" width="35.0" x="740.0" y="183.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="AgentApply" id="BPMNShape_AgentApply">
+        <omgdc:Bounds height="55.0" width="105.0" x="130.0" y="173.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sellManageApproval" id="BPMNShape_sellManageApproval">
+        <omgdc:Bounds height="55.0" width="105.0" x="311.0" y="174.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="SellApprovalGateway" id="BPMNShape_SellApprovalGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="590.0" y="181.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sellHandle" id="BPMNEdge_sellHandle">
+        <omgdi:waypoint x="416.0" y="201.0"></omgdi:waypoint>
+        <omgdi:waypoint x="590.0" y="201.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="416.0" y="201.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sellApproved" id="BPMNEdge_sellApproved">
+        <omgdi:waypoint x="630.0" y="201.0"></omgdi:waypoint>
+        <omgdi:waypoint x="740.0" y="200.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="630.0" y="201.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="SellRejected" id="BPMNEdge_SellRejected">
+        <omgdi:waypoint x="610.0" y="181.0"></omgdi:waypoint>
+        <omgdi:waypoint x="609.0" y="112.0"></omgdi:waypoint>
+        <omgdi:waypoint x="182.0" y="112.0"></omgdi:waypoint>
+        <omgdi:waypoint x="182.0" y="173.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="330.0" y="121.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="start" id="BPMNEdge_start">
+        <omgdi:waypoint x="65.0" y="200.0"></omgdi:waypoint>
+        <omgdi:waypoint x="130.0" y="200.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="65.0" y="200.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow5" id="BPMNEdge_flow5">
+        <omgdi:waypoint x="235.0" y="200.0"></omgdi:waypoint>
+        <omgdi:waypoint x="274.0" y="200.0"></omgdi:waypoint>
+        <omgdi:waypoint x="311.0" y="201.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="234.0" y="200.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

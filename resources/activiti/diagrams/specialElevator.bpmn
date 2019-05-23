@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/test">
+  <process id="specialElevator" name="特种梯审核流程" isExecutable="true">
+    <startEvent id="Start" name="开始"></startEvent>
+    <endEvent id="endevent1" name="End"></endEvent>
+    <userTask id="SaleApply" name="销售人员申请审核" activiti:priority="0">
+      <documentation>录入数据，提交家用梯申请</documentation>
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.ElevatorTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="SpecialElevatorTechnicalSupport" name="特种梯工厂技术支持审核" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.ElevatorTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="Finance" name="财务审核" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.ElevatorTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="SpecialElevatorTechnicalSupportGateway" name="特种梯工厂技术支持审核"></exclusiveGateway>
+    <exclusiveGateway id="FinanceGateway" name="财务审核"></exclusiveGateway>
+    <sequenceFlow id="SpecialElevatorTechnicalSupportRejected" name="驳回" sourceRef="SpecialElevatorTechnicalSupportGateway" targetRef="SaleApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved==false}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="FinanceRejected" name="驳回" sourceRef="FinanceGateway" targetRef="SaleApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved==false}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="SaleSubmitFlow" name="提交" sourceRef="SaleApply" targetRef="SpecialElevatorTechnicalSupport"></sequenceFlow>
+    <sequenceFlow id="start" name="启动" sourceRef="Start" targetRef="SaleApply"></sequenceFlow>
+    <sequenceFlow id="SpecialElevatorTechnicalSupportHandle" name="审核" sourceRef="SpecialElevatorTechnicalSupport" targetRef="SpecialElevatorTechnicalSupportGateway"></sequenceFlow>
+    <sequenceFlow id="SpecialElevatorTechnicalSupportApproved" name="通过" sourceRef="SpecialElevatorTechnicalSupportGateway" targetRef="Finance">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved==true}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="FinanceHandle" name="审核" sourceRef="Finance" targetRef="FinanceGateway"></sequenceFlow>
+    <sequenceFlow id="FinanceApproved" name="通过" sourceRef="FinanceGateway" targetRef="endevent1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved==true}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_specialElevator">
+    <bpmndi:BPMNPlane bpmnElement="specialElevator" id="BPMNPlane_specialElevator">
+      <bpmndi:BPMNShape bpmnElement="Start" id="BPMNShape_Start">
+        <omgdc:Bounds height="35.0" width="35.0" x="10.0" y="160.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="720.0" y="160.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="SaleApply" id="BPMNShape_SaleApply">
+        <omgdc:Bounds height="55.0" width="105.0" x="80.0" y="150.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="SpecialElevatorTechnicalSupport" id="BPMNShape_SpecialElevatorTechnicalSupport">
+        <omgdc:Bounds height="55.0" width="151.0" x="220.0" y="150.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="Finance" id="BPMNShape_Finance">
+        <omgdc:Bounds height="55.0" width="105.0" x="480.0" y="150.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="SpecialElevatorTechnicalSupportGateway" id="BPMNShape_SpecialElevatorTechnicalSupportGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="410.0" y="157.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="FinanceGateway" id="BPMNShape_FinanceGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="630.0" y="157.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="SpecialElevatorTechnicalSupportRejected" id="BPMNEdge_SpecialElevatorTechnicalSupportRejected">
+        <omgdi:waypoint x="430.0" y="157.0"></omgdi:waypoint>
+        <omgdi:waypoint x="429.0" y="118.0"></omgdi:waypoint>
+        <omgdi:waypoint x="133.0" y="118.0"></omgdi:waypoint>
+        <omgdi:waypoint x="132.0" y="150.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="247.0" y="121.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FinanceRejected" id="BPMNEdge_FinanceRejected">
+        <omgdi:waypoint x="650.0" y="157.0"></omgdi:waypoint>
+        <omgdi:waypoint x="649.0" y="96.0"></omgdi:waypoint>
+        <omgdi:waypoint x="132.0" y="96.0"></omgdi:waypoint>
+        <omgdi:waypoint x="132.0" y="150.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="373.0" y="101.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="SaleSubmitFlow" id="BPMNEdge_SaleSubmitFlow">
+        <omgdi:waypoint x="185.0" y="177.0"></omgdi:waypoint>
+        <omgdi:waypoint x="220.0" y="177.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="185.0" y="177.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="start" id="BPMNEdge_start">
+        <omgdi:waypoint x="45.0" y="177.0"></omgdi:waypoint>
+        <omgdi:waypoint x="80.0" y="177.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="45.0" y="177.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="SpecialElevatorTechnicalSupportHandle" id="BPMNEdge_SpecialElevatorTechnicalSupportHandle">
+        <omgdi:waypoint x="371.0" y="177.0"></omgdi:waypoint>
+        <omgdi:waypoint x="410.0" y="177.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="371.0" y="177.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="SpecialElevatorTechnicalSupportApproved" id="BPMNEdge_SpecialElevatorTechnicalSupportApproved">
+        <omgdi:waypoint x="450.0" y="177.0"></omgdi:waypoint>
+        <omgdi:waypoint x="480.0" y="177.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="450.0" y="177.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FinanceHandle" id="BPMNEdge_FinanceHandle">
+        <omgdi:waypoint x="585.0" y="177.0"></omgdi:waypoint>
+        <omgdi:waypoint x="630.0" y="177.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="585.0" y="177.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="FinanceApproved" id="BPMNEdge_FinanceApproved">
+        <omgdi:waypoint x="670.0" y="177.0"></omgdi:waypoint>
+        <omgdi:waypoint x="720.0" y="177.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="670.0" y="177.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SynUserMapper">
+	
+	<select id="findBySynStatus" resultType="pd">
+		select 
+			su.*,
+			sl.OPERATE_ID,
+			sl.SynType,
+			sl.SynStatus 
+		from 
+			sys_user_syn su,
+			sys_user_synlog sl
+		 where 
+		 	su.Code=sl.SynCode and 
+		 	sl.SynStatus = 'toSyn'
+	</select>
+	
+	<select id="findSysUserBySynCode" resultType="pd">
+		select * from sys_user_syn where Code not in(
+			select USERNAME from sys_user
+		)
+	</select>
+	<select id="findZlEmployee" resultType="pd">
+		select * from V_HR_Employee
+	</select>
+	<select id="findZlEmployeeById" resultType="pd" parameterType="pd">
+		select * from V_HR_Employee where ID=#{ID}
+	</select>
+	<select id="findZlEmployeeByIds" resultType="pd" parameterType="pd">
+		select * from 
+			V_HR_Employee 
+		where 
+			ID 
+		in
+		<foreach collection="list"  item="ID" index="index"
+            open="(" close=")" separator=",">
+            #{ID}
+        </foreach>
+	</select>
+	
+	<delete id="deleteByIds" parameterType="pd">
+		delete from sys_user_syn where ID in
+		<foreach collection="list"  item="ID" index="index"
+            open="(" close=")" separator=",">
+            #{ID}
+        </foreach>
+	</delete>
+	
+	<select id="findAllUser" resultType="pd">
+		select * from sys_user_syn
+	</select>
+	
+	<select id="findById" resultType="pd" parameterType="pd">
+		select * from sys_user_syn where ID=#{ID}
+	</select>
+	
+	<select id="getUserByNameAndPwd" parameterType="pd" resultType="pd">
+		select * from sys_user_syn
+        where  Code = #{USERNAME}
+    </select>
+	
+	<update id="editById" parameterType="pd">
+		update
+			sys_user_syn
+		set
+			Code=#{Code},
+			Name=#{Name},
+			Sex=#{Sex},
+			State=#{State},
+			PyDate=#{PyDate},
+			Dept=#{Dept},
+			ZhiWu=#{ZhiWu},
+			G_gzdd=#{G_gzdd},
+			BornDate=#{BornDate},
+			LzDate=#{LzDate},
+			G_bm1=#{G_bm1},
+			G_bm2=#{G_bm2},
+			G_bm3=#{G_bm3},
+			G_bm4=#{G_bm4}
+		where
+			ID=#{ID}
+	</update>
+	
+	<insert id="insertSynUser" parameterType="pd">
+		insert into 
+			sys_user_syn
+			(
+				ID,
+				Code,
+				Name,
+				Sex,
+				State,
+				PyDate,
+				Dept,
+				ZhiWu,
+				G_gzdd,
+				BornDate,
+				LzDate,
+				G_bm1,
+				G_bm2,
+				G_bm3,
+				G_bm4
+			)values(
+				#{ID},
+				#{Code},
+				#{Name},
+				#{Sex},
+				#{State},
+				#{PyDate},
+				#{Dept},
+				#{ZhiWu},
+				#{G_gzdd},
+				#{BornDate},
+				#{LzDate},
+				#{G_bm1},
+				#{G_bm2},
+				#{G_bm3},
+				#{G_bm4}
+			)
+	</insert>
+	
+	<update id="updateLastLogin" parameterType="pd">
+		update sys_user_syn set LAST_LOGIN=#{LAST_LOGIN} where ID=#{ID}
+	</update>
+	
+	<delete id="deleteById" parameterType="pd">
+		delete from sys_user_syn where ID=#{ID}
+	</delete>
+	
+	<!-- 	new通过userid查找user详细信息 -->
+	<select id="findUserByUserid" parameterType="pd" resultType="pd">
+		select * from sys_user where user_id = #{user_id}
+	</select>
+</mapper>

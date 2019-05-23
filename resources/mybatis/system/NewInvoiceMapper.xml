@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="NewInvoiceMapper">
+ 
+ 
+ 	<select id="list" resultType="pd">
+ 		SELECT
+		inv.id,
+		i.item_no,
+		i.item_name,
+		inv_no,
+		inv.type,
+		info.inv_price price,
+		inv.input_user,
+		inv.input_date,
+		inv.act_status,
+		inv.act_key,
+	  sys_user.`NAME` as USER_NAME,
+	  case when so.HT_UUID is not null then so.HT_NO
+		  else az.AZ_NO end  as ht_no
+	FROM
+		tb_invoice inv
+	LEFT JOIN tb_item i ON i.item_id = inv.item_id
+	LEFT JOIN sys_user ON inv.input_user=sys_user.USER_ID
+	left join tb_so_contract so on inv.ht_uuid=so.HT_UUID
+		left join tb_az_contract az on inv.ht_uuid=az.AZ_UUID
+	left join (SELECT inv_id,SUM(inv_price) as inv_price from tb_invoice_info GROUP BY inv_id) info on inv.id=info.inv_id
+ 	</select>
+ 	
+ 	
+ 	<!-- 查询合同信息列表 -->
+ 	<select id="findContractList" resultType="pd">
+ 		SELECT
+			i.item_id,
+			i.item_no,
+			i.item_name,
+			sc. NO,
+			sc.ht_uuid,
+			sc.customer_name,
+			sc.dt_num,
+			sc.total,
+			sc.input_user,
+		sys_user.`NAME` as USER_NAME
+		FROM
+			(
+				SELECT
+					az_item_id AS ht_item_id,
+					az_uuid AS ht_uuid,
+					az_no AS NO,
+					customer_name,
+					dt_num,
+					total,
+					input_user,
+		      ACT_STATUS
+				FROM
+					tb_az_contract
+				UNION
+					SELECT
+						ht_item_id,
+						ht_uuid,
+						ht_no AS NO,
+						customer_name,
+						dt_num,
+						total,
+		input_user,
+		 ACT_STATUS
+		FROM
+			tb_so_contract
+		) sc
+		LEFT JOIN tb_item i ON i.item_id = sc.ht_item_id
+		LEFT JOIN sys_user ON sc.input_user = sys_user.USER_ID
+		WHERE
+			sc.ACT_STATUS = '4'
+ 	</select>
+ 	
+ 	<!-- 根据合同id查询应收款 -->
+ 	<select id="findYskListByContract" parameterType="pd" resultType="pd">
+ 		<!-- select * from tb_so_ysk where ysk_ht_id=#{ht_uuid} -->
+ 		select y.*,i.YK_PRICE,c.price as COUNT_PRICE,(y.ysk_ysje-i.yk_price) as WK_PRICE ,
+(case when ysk_AZ_no like 'AZ%' and YSK_KX ='1' then d.AZ_QDRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='6' then d.AZ_YJKGRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='7' then d.AZ_YJYSRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='8' then d.AZ_YJZBJRQ 
+          when ysk_AZ_no like 'TO%' and YSK_KX ='1' then c.HT_QDRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='2' then c.HT_YJFHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='3' then c.HT_JHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='4' then c.HT_JHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='7' then c.HT_YJYSRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='8' then c.HT_YJZBJRQ
+            else  NULL end) KX_YSRQ
+from tb_so_ysk y 
+		left join(
+		select ysk_id,sum(inv_price) as yk_price from tb_invoice_info 
+		group by ysk_id)i
+		on y.ysk_uuid=i.ysk_id
+		left join tb_so_contract c
+		on y.YSK_HT_ID=c.HT_UUID
+    left join tb_az_contract d
+		on y.YSK_HT_ID=d.AZ_UUID
+		where ysk_ht_id=#{ht_uuid}
+ 	</select>
+ 	
+ 	<!-- 根据合同id查询电梯信息 -->
+ 	<select id="findDtInfoListByContract" parameterType="pd" resultType="pd">
+ 		select * from tb_so_dtinfo where dt_ht_id=#{ht_uuid}
+			union
+		select  * from tb_so_dtinfo where dt_ht_id in(select ht_uuid from tb_az_contract where az_uuid=#{ht_uuid} )
+ 	</select>
+ 	
+ 	<!-- 查询开票页面头信息 -->
+ 	<select id="findHeadInfo" parameterType="pd" resultType="pd">
+ 		select a.*,sc.dt_num,sc.price,sc.no,sc.ht_uuid
+		from
+		(
+ 		select az_item_id as ht_item_id,az_uuid as ht_uuid,az_no as no,customer_name,dt_num,price,input_user,az_offer_id as ht_offer_id from tb_az_contract
+			union
+		select ht_item_id,ht_uuid,ht_no as no,customer_name,dt_num,price,input_user,ht_offer_id as ht_offer_id from tb_so_contract
+		) sc
+		left join(
+		SELECT
+					i.offer_id,
+					i.item_id,
+				  i.item_no,
+				  i.item_name,
+				  customer.customer_name,
+				  address.*
+				FROM
+					tb_iteminoffer AS i
+				LEFT JOIN (
+					SELECT
+						customer_no,
+						customer_name
+					FROM
+						tb_customer_core
+					UNION
+						SELECT
+							customer_no,
+							customer_name
+						FROM
+							tb_customer_merchant
+						UNION
+							SELECT
+								customer_no,
+								customer_name
+							FROM
+								tb_customer_ordinary
+				) AS customer ON i.customer_no = customer.customer_no
+				LEFT JOIN
+				  (
+				    SELECT
+					tb_address.id,
+				  tb_loc_province.name as province_name,
+				  tb_loc_city.name as city_name,
+				  tb_loc_county.name as county_name,
+				  tb_address.address_info
+				FROM
+					tb_address
+				LEFT JOIN
+				  tb_loc_province
+				ON
+				  tb_address.province_id=tb_loc_province.id
+				LEFT JOIN
+				  tb_loc_city
+				ON
+				  tb_address.city_id=tb_loc_city.id
+				LEFT JOIN
+				  tb_loc_county
+				ON
+				  tb_address.county_id=tb_loc_county.id  
+				
+				  ) as address ON i.item_install_address=address.id)a
+			on a.offer_id=sc.ht_offer_id
+			where sc.ht_uuid=#{ht_uuid}
+ 	</select>
+ 	
+ 	<!-- 查询合同开票金额信息 -->
+ 	<select id="findKP" parameterType="pd" resultType="pd">
+ 		SELECT C.*,T.WK_PRICE,(C.PRICE-T.WK_PRICE) AS YK_PRICE FROM (
+		select az_item_id as ht_item_id,az_uuid as ht_uuid,az_no as no,customer_name,dt_num,price,input_user from tb_az_contract
+			union
+		select ht_item_id,ht_uuid,ht_no as no,customer_name,dt_num,price,input_user from tb_so_contract
+		) C LEFT JOIN(
+		SELECT A.YSK_HT_ID,SUM(A.WK_PRICE)AS WK_PRICE FROM(
+		select y.*,i.YK_PRICE,c.price as COUNT_PRICE,(y.ysk_ysje-i.yk_price) as WK_PRICE from tb_so_ysk y 
+		left join(
+		select ysk_id,sum(inv_price) as yk_price from tb_invoice_info 
+		group by ysk_id )i
+		on y.ysk_uuid=i.ysk_id
+		left join tb_so_contract c
+		on y.ysk_ht_id=c.ht_uuid
+		where ysk_ht_id=#{ht_uuid})A GROUP BY A.YSK_HT_ID
+		)T
+		ON C.HT_UUID=T.YSK_HT_ID 
+		WHERE C.HT_UUID=#{ht_uuid}
+ 	</select>
+ 	
+ 	<!-- 保存发票信息 -->
+ 	<insert id="saveInvoiceInfo" parameterType="pd">
+ 		insert into tb_invoice_info(
+ 			id,
+ 			inv_id,
+ 			ysk_id,
+ 			elev_models,
+ 			elev_num,
+ 			inv_type,
+ 			tax_rate,
+ 			inv_price,
+ 			unit_price,
+ 			proportion,
+ 			price_type
+ 		)values(
+ 			#{id},
+ 			#{inv_id},
+ 			#{ysk_id},
+ 			#{elev_models},
+ 			#{elev_num},
+ 			#{inv_type},
+ 			#{tax_rate},
+ 			#{inv_price},
+ 			#{unit_price},
+ 			#{proportion},
+ 			#{price_type}
+ 		)
+ 	</insert>
+ 	
+ 	<!-- 保存开票信息 -->
+ 	<insert id="saveInvoice" parameterType="pd">
+ 		insert into tb_invoice(
+ 			id,
+ 			inv_no,
+ 			inv_main,
+ 			customer,
+ 			duty_para,
+ 			inv_address,
+ 			bank,
+ 			bank_account,
+ 			postcode,
+ 			post_address,
+ 			addressee,
+ 			phone,
+ 			remark,
+ 			type,
+ 			ysk_id,
+ 			item_id,
+ 			ht_uuid,
+ 			price,
+ 			input_user,
+ 			input_date,
+ 			act_key,
+ 			act_status
+ 		)values(
+ 			#{id},
+ 			#{inv_no},
+ 			#{inv_main},
+ 			#{customer},
+ 			#{duty_para},
+ 			#{inv_address},
+ 			#{bank},
+ 			#{bank_account},
+ 			#{postcode},
+ 			#{post_address},
+ 			#{addressee},
+ 			#{phone},
+ 			#{remark},
+ 			#{type},
+ 			#{ysk_id},
+ 			#{item_id},
+ 			#{ht_uuid},
+ 			#{price},
+ 			#{input_user},
+ 			#{input_date},
+ 			#{act_key},
+ 			#{act_status}
+ 		)
+ 	</insert>
+ 	
+ 	<!-- 删除开票信息 -->
+ 	<delete id="deleteInvoice" parameterType="pd">
+ 		delete from tb_invoice where id=#{id}
+ 	</delete>
+ 	
+ 	<!-- 删除开票子信息 -->
+ 	<delete id="deleteInvoiceInfo" parameterType="pd">
+ 		delete from tb_invoice_info where inv_id=#{id}
+ 	</delete>
+ 	
+ 	<!-- 查询开票信息 -->
+ 	<select id="findInvoice" parameterType="pd" resultType="pd">
+ 		select inv.*,
+			i.item_no,
+			i.item_name,
+			sys_user.`NAME`,
+			case when so.HT_UUID is not null then so.HT_NO
+			else az.AZ_NO end  as ht_no
+		from tb_invoice inv
+			LEFT JOIN tb_item i ON i.item_id = inv.item_id
+			LEFT JOIN sys_user ON inv.input_user=sys_user.USER_ID
+			left join tb_so_contract so on inv.ht_uuid=so.HT_UUID
+			left join tb_az_contract az on inv.ht_uuid=az.AZ_UUID
+		where inv.id=#{id}
+		<if test="userList!=null and userList.size()>0">
+			and inv.input_user in
+			<foreach collection="userList"  item="user_id" index="index" open="(" close=")" separator=",">
+				${user_id}
+			</foreach>
+		</if>
+ 	</select>
+ 	
+ 	<!-- 查询发票信息 -->
+ 	<select id="findInvoiceInfo" parameterType="pd" resultType="pd">
+ 		select * from tb_invoice_info where inv_id=#{id}
+ 	</select>
+ 	
+ 	<!-- 修改开票信息 -->
+ 	<update id="editInvoice" parameterType="pd">
+ 		update tb_invoice set
+ 			inv_no=#{inv_no},
+ 			inv_main=#{inv_main},
+ 			customer=#{customer},
+ 			duty_para=#{duty_para},
+ 			inv_address=#{inv_address},
+ 			bank=#{bank},
+ 			bank_account=#{bank_account},
+ 			postcode=#{postcode},
+ 			post_address=#{post_address},
+ 			addressee=#{addressee},
+ 			phone=#{phone},
+ 			remark=#{remark},
+ 			type=#{type},
+ 			ysk_id=#{ysk_id},
+ 			item_id=#{item_id},
+ 			ht_uuid=#{ht_uuid},
+ 			price=#{price}
+ 		where
+ 			id=#{id}
+ 	</update>
+ 	
+ 	<!-- 修改发票信息 -->
+ 	<update id="editInvoiceInfo" parameterType="pd">
+ 		update tb_invoice_info set
+ 			inv_id=#{inv_id},
+ 			ysk_id=#{ysk_id},
+ 			elev_models=#{elev_models},
+ 			elev_num=#{elev_num},
+ 			inv_type=#{inv_type},
+ 			tax_rate=#{tax_rate},
+ 			inv_price=#{inv_price},
+ 			unit_price=#{unit_price},
+ 			proportion=#{proportion},
+ 			price_type=#{price_type}
+ 		where
+ 			id=#{id}
+ 	</update>
+ 	
+ 	<!-- 根据主键查询invoiceinfo -->
+ 	<select id="findInvoiceInfoById" parameterType="pd" resultType="pd">
+ 		select * from tb_invoice_info where id=#{id}
+ 	</select>
+ 	
+ 	
+ 	<!-- 编辑操作后删除多余数据 -->
+ 	<delete id="deleteInvoiceInfoAfterEdit" parameterType="pd">
+ 		delete from tb_invoice_info where inv_id=#{inv_id} and id not in
+ 		<foreach collection="list"  item="id" index="index" open="(" close=")" separator=",">
+           #{id}
+       	</foreach>
+ 	</delete>
+ 	
+ 	<!-- 根据主键修改流程key -->
+	<update id="editActKey" parameterType="pd">
+		update tb_invoice set act_key=#{act_key} where id=#{id}
+	</update>
+	
+	<!-- 根据主键修改流程status -->
+	<update id="editActStatus" parameterType="pd">
+		update tb_invoice set act_status=#{act_status} where id=#{id}
+	</update>
+	
+	
+	<!-- 修改发票号和快递单号-->
+	<update id="editFph" parameterType="pd">
+		update tb_invoice set FPH=#{FPH},KDDH=#{KDDH} where id=#{id}
+	</update>
+	
+	<!-- 查询流程是否存在 -->
+    <select id="SelAct_Key" parameterType="pd" resultType="pd">
+        SELECT
+          *
+        FROM
+          act_re_procdef
+        WHERE
+          KEY_ = #{KEY}
+    </select>
+    
+    <!-- 根据USERID判断所属是分子公司还是股份公司 -->
+    <select id="findCompanyType" parameterType="pd" resultType="pd">
+    	select *
+    </select>
+
+	<select id="findCustomerInfoByItemId" parameterType="pd" resultType="pd">
+		SELECT
+			b.customer_name as customer,
+			b.company_tax as duty_para,
+			b.company_address as inv_address,
+			b.company_bank as bank,
+			b.bank_no as bank_account
+		FROM tb_item a,tb_customer_ordinary b
+		where a.customer_no=b.customer_no AND a.item_id=#{item_id}
+	</select>
+	
+	<!-- 显示待我处理 -->
+	<select id="findAuditNewInvoicePage" parameterType="pd" resultType="pd">
+		select distinct inv.*,RES.NAME_ as task_name,RES.ID_ as task_id,(case when RES.ASSIGNEE_ is not null then 1 else 0 end) as `type`,inv.input_date as TASK_TIME,'9' as TASK_TYPE  from ACT_RU_TASK RES
+		left join ACT_RU_IDENTITYLINK I on I.TASK_ID_ = RES.ID_ left join act_re_procdef proc on proc.ID_ = RES.PROC_DEF_ID_ 
+		left join act_ru_execution exe on RES.PROC_INST_ID_=exe.PROC_INST_ID_ 
+		right join (
+			select a.*,
+				item.item_no,
+				item.item_name,
+				u.`NAME` as user_name,
+				case when so.HT_UUID is not null then so.HT_NO
+				else az.AZ_NO end  as ht_no
+			from tb_invoice a
+				LEFT JOIN tb_item item ON item.item_id = a.item_id
+				LEFT JOIN sys_user u ON a.input_user=u.USER_ID
+				left join tb_so_contract so on a.ht_uuid=so.HT_UUID
+				left join tb_az_contract az on a.ht_uuid=az.AZ_UUID
+			<where>
+				<if test="userList!=null and userList.size()>0">
+					and a.input_user in
+					<foreach collection="userList"  item="userId" index="index" open="(" close=")" separator=",">
+						${userId}
+					</foreach>
+				</if>
+			</where>
+		) inv on inv.id = substring_index(exe.BUSINESS_KEY_,'.', -1)
+		WHERE (
+		  RES.ASSIGNEE_ = #{user_id}
+		  or (
+			RES.ASSIGNEE_ is null
+			and (
+			  I.USER_ID_ = #{user_id}
+			  or
+			  I.GROUP_ID_ IN (
+				select g.GROUP_ID_ from ACT_ID_MEMBERSHIP g where g.USER_ID_ = #{user_id}
+			  )
+			)
+		  )
+		) and proc.KEY_ = 'SubInvoice' and exe.BUSINESS_KEY_  like 'tb_invoice.id.%' 
+        <if test="project_name != null and project_name != ''">
+			and inv.item_name like CONCAT('%',#{project_name},'%')
+		</if>
+		order by RES.CREATE_TIME_ desc
+		<if test="firstResult != null and firstResult != '' and maxResults!=null and maxResults != ''">
+			limit #{firstResult},#{maxResults}
+		</if>
+	</select>
+	
+</mapper>

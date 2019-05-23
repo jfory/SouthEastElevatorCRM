@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="AgentMapper">
+	
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+	<select id="agentlistPageByRole" parameterType="page" resultType="pd" useCache="false">
+		select *
+        	   from tb_agent a where 1=1
+        	   and agent_type = 1
+        <if test="pd.agent_name!=null and pd.agent_name !=''">
+        	 AND (agent_name LIKE CONCAT(CONCAT('%', #{pd.agent_name}),'%'))
+        </if>
+        <if test="pd.roleType!='4'">
+	        <if test="pd.userList!=null and pd.userList.size()>0">
+				and input_user in
+				<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+		            ${user_id}
+		        </foreach>
+	        </if>
+        </if>
+        order by create_time desc
+	</select>
+	
+	<!-- 代理商分页列表 -->
+    <select id="agentlistPage" parameterType="page" resultType="pd" useCache="false">
+        select *
+        	   from tb_agent a where 1=1
+        	   and agent_type = 1
+        <if test="pd.agent_name!=null and pd.agent_name !=''">
+        	 AND (agent_name LIKE CONCAT(CONCAT('%', #{pd.agent_name}),'%'))
+        </if>
+        <if test="pd.agent_area!=null and pd.agent_area !=''">
+        	 AND (area_id in (select id from tb_department where name LIKE CONCAT('%',#{pd.agent_area},'%')))
+        </if>
+        <if test="pd.agent_company!=null and pd.agent_company !=''">
+        	 AND (company_id in (select id from tb_department where name LIKE CONCAT('%',#{pd.agent_company},'%') AND type = '10'))
+        </if>
+        <if test="pd.agent_applyuser!=null and pd.agent_applyuser !=''">
+        	 AND (requester_id in (select user_id from sys_user where name LIKE CONCAT('%',#{pd.agent_applyuser},'%')))
+        </if>
+        <if test="pd.agent_category!=null and pd.agent_category !=''">
+        	 AND (agent_category = #{pd.agent_category})
+        </if> 
+        <if test="pd.agent_constructor!=null and pd.agent_constructor !=''">
+        	 AND (is_constructor =#{pd.agent_constructor})
+        </if>
+        order by create_time desc
+    </select>
+    
+    <select id="findAgentList" resultType="pd" parameterType="pd">
+    	SELECT
+    	  a.*,
+    	  d.name as dname,
+    	  c.name as cname,
+    	  p.name as pname,
+    	  lci.name as lciname,
+    	  lco.name as lconame
+    	FROM
+    		tb_agent AS a
+    	LEFT JOIN tb_department AS d ON a.area_id = d.id 
+    	LEFT JOIN tb_department AS c ON a.company_id = c.id
+    	LEFT JOIN tb_loc_province AS p ON a.province_id = p.id
+    	LEFT JOIN tb_loc_city AS lci ON a.city_id = lci.id
+    	LEFT JOIN tb_loc_county AS lco ON a.county_id = lco.id
+    	where 1=1
+    	<if test="agent_type != null and agent_type != '' ">
+    		and agent_type = #{agent_type}
+    	</if>
+    	<if test="is_constructor != null and is_constructor != '' ">
+    		and is_constructor = #{is_constructor}
+    	</if>
+    </select>
+    
+    <select id="contractorlistPageByRole" parameterType="page" resultType="pd" useCache="false">
+    	select *
+        	   from tb_agent a where 1=1
+        	   and is_constructor = 1
+        <if test="pd.agent_name!=null and pd.agent_name !=''">
+        	 AND (agent_name LIKE CONCAT(CONCAT('%', #{pd.agent_name}),'%'))
+        </if>
+        <if test="pd.roleType!='4'">
+	        <if test="pd.userList!=null and pd.userList.size()>0">
+				and input_user in
+				<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+		            ${user_id}
+		        </foreach>
+	        </if>
+      	</if>
+    	<if test="pd.agent_area!=null and pd.agent_area !=''">
+        	 AND (area_id in (select id from tb_department where name LIKE CONCAT('%',#{pd.agent_area},'%')))
+        </if>
+        <if test="pd.agent_company!=null and pd.agent_company !=''">
+        	 AND (company_id in (select id from tb_department where name LIKE CONCAT('%',#{pd.agent_company},'%') AND type = '10'))
+        </if>
+        <if test="pd.agent_applyuser!=null and pd.agent_applyuser !=''">
+        	 AND (requester_id in (select user_id from sys_user where name LIKE CONCAT('%',#{pd.agent_applyuser},'%')))
+        </if>
+        <if test="pd.agent_category!=null and pd.agent_category !=''">
+        	 AND (agent_category = #{pd.agent_category})
+        </if> 
+        <if test="pd.agent_constructor!=null and pd.agent_constructor !=''">
+        	 AND (is_constructor =#{pd.agent_constructor})
+        </if>
+      	
+      	
+        order by create_time desc
+    </select>
+    
+    <!-- 分包商分页列表 -->
+    <select id="contractorlistPage" parameterType="page" resultType="pd" useCache="false">
+        select *
+        	   from tb_agent a where 1=1
+        	   and is_constructor = 1
+        <if test="pd.agent_name!=null and pd.agent_name !=''">
+        	 AND (agent_name LIKE CONCAT(CONCAT('%', #{pd.agent_name}),'%'))
+        </if>
+        order by create_time desc
+    </select>
+    
+    <select id="findAgentById" parameterType="String" resultType="pd">
+    	<!-- select * from tb_agent a left join tb_department d on a.area_id=d.id  where a.agent_id=#{agent_id} -->
+    	SELECT c.*,td.name AS company_name,u.`NAME` AS apply_user,
+    	p.`name` AS province,ct.`name` AS city,t.`name` AS county FROM (
+    	select
+    		a.*,
+    		d.name as area_name
+    	from
+    		tb_agent a
+    	left join
+    		tb_department d
+    	on d.id=a.area_id)c
+    	left join tb_department td
+    	on td.id=c.company_id
+ 	    LEFT JOIN sys_user u
+    	ON c.requester_id = u.`USER_ID`
+    	LEFT JOIN tb_loc_province p
+    	ON c.province_id = p.`id`
+    	LEFT JOIN tb_loc_city ct
+    	ON c.city_id = ct.`id`
+    	LEFT JOIN tb_loc_county t
+    	ON c.county_id = t.`id`
+    	where c.agent_id=#{agent_id}
+    	
+    </select>
+    
+    <!--获取用户职位和机构 -->
+    <select id="findUserPositionAndDepartment" parameterType="pd" resultType="pd">
+    	SELECT
+			d.type
+		FROM
+			sys_user u
+		LEFT JOIN tb_position p ON u.POSITION_ID = p.id
+		LEFT JOIN tb_department d ON p.parentId = d.id
+		WHERE
+			u.USER_ID = #{USER_ID}
+    </select>
+    
+    <select id="findByName" parameterType="pd" resultType="pd">
+    	SELECT
+			b.*, td. NAME AS company_name
+		FROM
+			(
+			SELECT
+				a.*, d. NAME AS area_name
+			FROM
+				tb_agent a
+			LEFT JOIN tb_department d ON a.area_id = d.id
+			) b
+		LEFT JOIN tb_department td ON b.company_id = td.id
+		WHERE
+			b.agent_name = #{agent_name}
+		
+    	<if test="agent_id !=null and agent_id !=''">
+    	and b.agent_id not in(#{agent_id})
+    	</if>
+    </select>
+    
+    <select id="findById" resultType="pd" parameterType="pd">
+		SELECT *
+		  FROM tb_agent
+		 WHERE agent_id=#{agent_id}
+	</select>
+	
+	<select id="findAById" resultType="pd" parameterType="pd">
+		SELECT a.*,
+			u.NAME AS USERNAME
+		  FROM tb_agent a
+		  LEFT JOIN sys_user AS u ON a.requester_id = u.USER_ID
+		 WHERE a.agent_id=#{agent_id}
+		 <if test="userList!=null and userList.size()>0">
+			and a.requester_id in
+			<foreach collection="userList"  item="user_id" index="index" open="(" close=")" separator=",">
+				${user_id}
+			</foreach>
+		</if>
+	</select>
+    
+    <!-- 判断代理商名字是否重复 -->
+	<select id="findAgentByName" parameterType="pd" resultType="pd">
+		select agent_name from tb_agent where agent_name=#{agent_name}
+	</select>
+    
+    <!-- 代理商添加 -->
+    <insert id="agentAdd" parameterType="pd">
+    	insert into tb_agent(
+    		agent_id,
+    		agent_no,
+    		area_id,
+    		company_id,
+    		agent_name,
+    		agent_address,
+    		agent_contact,
+    		contact_title,
+    		contact_phone,
+    		contact_email,
+    		protocol_index,
+    		agent_industry,
+    		agent_tel,
+    		agent_fax,
+    		agent_postcode,
+    		legal_representative,
+    		agent_bank_name,
+    		agent_bank_account,
+    		agent_license_no,
+    		tax_no,
+    		agent_email,
+    		employee_num,
+    		enterprise_property,
+    		content_and_scope,
+    		agent_type,
+    		is_constructor,
+    		credit_ratings,
+    		is_acvtivated,
+    		response_salesman,
+    		agent_remark,
+    		create_time,
+    		constructor_employee_no,
+    		constructor_qualification,
+    		constructor_certification,
+    		constructor_insurance,
+    		constructor_description,
+    		agent_approval,
+    		contractor_approval,
+    		requester_id,
+    		province_id,
+    		city_id,
+    		county_id,
+    		address_name,
+    		accessory,
+    		agent_category,
+    		start_time,
+    		end_time,
+    		id_card_name,
+    		id_card_no,
+    		operation_ent_time,
+    		insurance_ent_time,
+    		insurance_price,
+    		input_user
+    	)values(
+    		#{agent_id},
+    		#{agent_no},
+    		#{area_id},
+    		#{company_id},
+    		#{agent_name,jdbcType=VARCHAR},
+    		#{agent_address,jdbcType=VARCHAR},
+    		#{agent_contact,jdbcType=VARCHAR},
+    		#{contact_title,jdbcType=VARCHAR},
+    		#{contact_phone,jdbcType=VARCHAR},
+    		#{contact_email,jdbcType=VARCHAR},
+    		#{protocol_index,jdbcType=VARCHAR},
+    		#{agent_industry,jdbcType=VARCHAR},
+    		#{agent_tel,jdbcType=VARCHAR},
+    		#{agent_fax,jdbcType=VARCHAR},
+    		#{agent_postcode,jdbcType=VARCHAR},
+    		#{legal_representative,jdbcType=VARCHAR},
+    		#{agent_bank_name,jdbcType=VARCHAR},
+    		#{agent_bank_account,jdbcType=VARCHAR},
+    		#{agent_license_no,jdbcType=VARCHAR},
+    		#{tax_no,jdbcType=VARCHAR},
+    		#{agent_email,jdbcType=VARCHAR},
+    		#{employee_num},
+    		#{enterprise_property,jdbcType=VARCHAR},
+    		#{content_and_scope,jdbcType=VARCHAR},
+    		#{agent_type},
+    		#{is_constructor},
+    		#{credit_ratings,jdbcType=VARCHAR},
+    		#{is_acvtivated},
+    		#{response_salesman,jdbcType=VARCHAR},
+    		#{agent_remark,jdbcType=VARCHAR},
+    		now(),
+    		#{constructor_employee_no,jdbcType=VARCHAR},
+    		#{constructor_qualification,jdbcType=VARCHAR},
+    		#{constructor_certification,jdbcType=VARCHAR},
+    		#{constructor_insurance,jdbcType=VARCHAR},
+    		#{constructor_description,jdbcType=VARCHAR},
+    		0,
+    		0,
+    		#{requester_id},
+    		#{province_id},
+    		#{city_id},
+    		#{county_id},
+    		#{address_name,jdbcType=VARCHAR},
+    		#{accessory},
+    		#{agent_category},
+    		#{start_time},
+    		#{end_time},
+    		#{id_card_name},
+    		#{id_card_no},
+    		#{operation_ent_time},
+    		#{insurance_ent_time},
+    		#{insurance_price},
+    		#{input_user}
+    	)
+    </insert>
+    
+    <!-- 更新审核状态 -->
+    <update id="updateAgentApproval" parameterType="pd">
+    	update tb_agent
+    	<set>
+    		<if test="agent_approval != null and agent_approval !=''">
+    			agent_approval = #{agent_approval},
+    		</if>
+    		<if test="contractor_approval != null and contractor_approval !=''">
+    			contractor_approval = #{contractor_approval},
+    		</if>
+    	</set>
+    	where agent_id=#{agent_id}
+    </update>
+    
+    <!-- 代理商修改 -->
+    <update id="agentUpdate" parameterType="pd">
+    	update tb_agent 
+    	<set>
+    	agent_no=#{agent_no},
+    	area_id=#{area_id},
+    	company_id = #{company_id},
+    	agent_name = #{agent_name,jdbcType=VARCHAR},
+    	agent_address = #{agent_address,jdbcType=VARCHAR},
+    	agent_contact = #{agent_contact,jdbcType=VARCHAR},
+    	contact_title = #{contact_title,jdbcType=VARCHAR},
+    	contact_phone = #{contact_phone,jdbcType=VARCHAR},
+    	contact_email = #{contact_email,jdbcType=VARCHAR},
+    	protocol_index = #{protocol_index,jdbcType=VARCHAR},
+   		agent_industry = #{agent_industry,jdbcType=VARCHAR},
+   		agent_tel = #{agent_tel,jdbcType=VARCHAR},
+   		agent_fax = #{agent_fax,jdbcType=VARCHAR},
+   		agent_postcode = #{agent_postcode,jdbcType=VARCHAR},
+   		legal_representative = #{legal_representative,jdbcType=VARCHAR},
+   		agent_bank_name = #{agent_bank_name,jdbcType=VARCHAR},
+   		agent_bank_account = #{agent_bank_account,jdbcType=VARCHAR},
+   		agent_license_no = #{agent_license_no,jdbcType=VARCHAR},
+   		tax_no = #{tax_no,jdbcType=VARCHAR},
+   		agent_email = #{agent_email,jdbcType=VARCHAR},
+   		employee_num = #{employee_num},
+   		enterprise_property = #{enterprise_property,jdbcType=VARCHAR},
+   		content_and_scope = #{content_and_scope,jdbcType=VARCHAR},
+   		agent_type = #{agent_type},
+   		is_constructor = #{is_constructor},
+   		credit_ratings = #{credit_ratings,jdbcType=VARCHAR},
+   		is_acvtivated = #{is_acvtivated},
+   		response_salesman = #{response_salesman,jdbcType=VARCHAR},
+   		agent_remark = #{agent_remark,jdbcType=VARCHAR},
+   		constructor_employee_no	= #{constructor_employee_no,jdbcType=VARCHAR},
+    	constructor_qualification = #{constructor_qualification,jdbcType=VARCHAR},
+    	constructor_certification = #{constructor_certification,jdbcType=VARCHAR},
+    	constructor_insurance =  #{constructor_insurance,jdbcType=VARCHAR},
+    	constructor_description = #{constructor_description,jdbcType=VARCHAR},
+    	agent_instance_id = #{agent_instance_id},
+    	contractor_instance_id = #{contractor_instance_id},
+    	province_id = #{province_id},
+    	city_id = #{city_id},
+    	county_id = #{county_id},
+    	address_name = #{address_name},
+    	accessory = #{accessory},
+    	agent_category = #{agent_category},
+    	start_time = #{start_time},
+    	end_time = #{end_time},
+    	id_card_name = #{id_card_name},
+    	id_card_no = #{id_card_no},
+    	operation_ent_time = #{operation_ent_time},
+    	insurance_ent_time = #{insurance_ent_time},
+    	insurance_price = #{insurance_price},
+    	</set>
+    	where agent_id=#{agent_id}
+    </update>
+    
+    <!-- 营业执照号码是否存在重复 -->
+    <select id="existsLicenseNo" parameterType="pd" resultType="pd">
+    	select * from tb_agent where agent_license_no=#{agent_license_no} 
+    	<if test="agent_id !=null and agent_id !=''">
+    		and agent_id not in (#{agent_id})
+    	</if>
+    </select>
+    
+     <!-- 代理商删除 -->
+    <delete id="agentDeleteById" parameterType="String">
+    	delete from tb_agent
+    	where agent_id = #{agent_id}
+    </delete>
+    
+    <!-- 代理商批量删除 -->
+    <delete id="agentDeleteAll" parameterType="String">
+    	delete from tb_agent
+    	where agent_id in
+    	<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+    
+    <!-- 查询代理商报表年份 -->
+    <select id="findMinYearItem" resultType="String">
+		select min(year(create_time)) as date from tb_agent
+	</select>
+    
+    <!-- 代理商年份报表 -->
+    <select id="agentYearNum" resultType="pd" parameterType="pd">
+    	select COUNT(*) as num,year(create_time) AS date from tb_agent WHERE create_time is NOT NULL
+    	<if test="agent_type != null and agent_type != '' ">
+    		and agent_type = #{agent_type} 
+    	</if> 
+    	<if test="is_constructor != null and is_constructor != '' ">
+    		AND is_constructor = #{is_constructor} 
+    	</if>
+    	<if test="year != null and year != ''">
+            and year(create_time)=#{year}
+        </if>
+    	GROUP BY date
+    </select>
+    
+   <select id="agentMonthNum" parameterType="pd" resultType="pd">
+		select d.val as date,IFNULL(a.num, 0)as num from tb_date_std d left join(
+			select count(*) as num,month(create_time) as date from tb_agent where year(create_time)=#{year} 
+			<if test="agent_type != null and agent_type != ''">
+            and agent_type=#{agent_type}
+        	</if>
+        	<if test="is_constructor != null and is_constructor != '' ">
+    		AND is_constructor = #{is_constructor} 
+    		</if>
+			<if test="year != null and year != ''">
+	            and year(create_time)=#{year}
+	        </if>
+			group by date
+		)a on a.date=d.val where d.type='month'
+	</select>
+	
+	<select id="agentQuarterNum" parameterType="pd" resultType="pd">
+		select d.val as date,IFNULL(a.num, 0)as num from tb_date_std d left join(
+			select count(*) as num,quarter(create_time) as date from tb_agent where year(create_time)=#{year} 
+			<if test="agent_type != null and agent_type != ''">
+            and agent_type=#{agent_type}
+        	</if>
+        	<if test="is_constructor != null and is_constructor != '' ">
+    		AND is_constructor = #{is_constructor} 
+    		</if>
+			<if test="year != null and year != ''">
+	            and year(create_time)=#{year}
+	        </if>
+			group by date
+		)a on a.date=d.val where d.type='quarter'
+	</select>
+    
+  
+    
+    <!-- 查询代理商id和name列表 -arisu  -->
+    <select id="findAgentIdAndNameList" resultType="pd">
+    	select agent_id as id,agent_name as name from tb_agent
+    </select>
+    
+    <!-- 查询有安装资质的分包商的id和name列表 -arisu  -->
+    <select id="findAgentListWithInstall" resultType="pd">
+    	select * from tb_agent where is_constructor=1
+    </select>
+    <!-- 查询根据公司name获取id（导入）-->
+	<select id="findDepartmentByName" parameterType="pd" resultType="pd">
+		SELECT id FROM tb_department WHERE type='10' and name=#{Department_name}
+	</select>
+	
+	<select id="findAuditAgentPage" parameterType="pd" resultType="pd">
+		select distinct ag.*,RES.NAME_ as task_name,RES.ID_ as task_id,(case when RES.ASSIGNEE_ is not null then 1 else 0 end) as type,ag.agent_name as item_name,ag.create_time as TASK_TIME,'3' as TASK_TYPE  from ACT_RU_TASK RES
+		left join ACT_RU_IDENTITYLINK I on I.TASK_ID_ = RES.ID_ left join act_re_procdef proc on proc.ID_ = RES.PROC_DEF_ID_ 
+		left join act_ru_execution exe on RES.PROC_INST_ID_=exe.PROC_INST_ID_ 
+		right join (
+			SELECT
+			  a.*,
+			  u.`NAME` as user_name
+			FROM
+			  tb_agent a
+			LEFT JOIN sys_user u ON a.requester_id=u.USER_ID
+			<where>
+				<if test="userList!=null and userList.size()>0">
+					and a.requester_id in
+					<foreach collection="userList"  item="userId" index="index" open="(" close=")" separator=",">
+						${userId}
+					</foreach>
+				</if>
+			</where>
+		) ag on ag.agent_id = substring_index(exe.BUSINESS_KEY_,'.', -1)
+		WHERE (
+		  RES.ASSIGNEE_ = #{user_id}
+		  or (
+			RES.ASSIGNEE_ is null
+			and (
+			  I.USER_ID_ = #{user_id}
+			  or
+			  I.GROUP_ID_ IN (
+				select g.GROUP_ID_ from ACT_ID_MEMBERSHIP g where g.USER_ID_ = #{user_id}
+			  )
+			)
+		  )
+		) and proc.KEY_ = 'agent' and exe.BUSINESS_KEY_  like 'tb_agent.agent_id.%'
+		<if test="agent_name != null and agent_name != ''">
+			and ag.agent_name like CONCAT('%',#{agent_name},'%')
+		</if>
+		order by RES.CREATE_TIME_ desc
+		<if test="firstResult != null and firstResult != '' and maxResults!=null and maxResults != ''">
+			limit #{firstResult},#{maxResults}
+		</if>
+	</select>
+	
+</mapper>

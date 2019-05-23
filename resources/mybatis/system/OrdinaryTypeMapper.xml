@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ordinaryTypeMapper">
+	
+	<select id="findOrdinaryTypeList" resultType="pd">
+		select * from tb_ordinary_type
+	</select>
+	
+	<select id="findOrdinaryById" parameterType="pd" resultType="pd">
+		select * from tb_ordinary_type where id=#{id}
+	</select>
+	
+	<insert id="saveOrdinaryType" parameterType="pd">
+		insert into tb_ordinary_type
+		(
+			id,
+			type,
+			descript
+		)values(
+			#{id},
+			#{type},
+			#{descript}
+		)
+	</insert>
+	<update id="editOrdinaryType" parameterType="pd">
+		update tb_ordinary_type set
+			type=#{type},
+			descript=#{descript}
+			where
+			id=#{id}
+	</update>
+	
+	<delete id="delOrdinaryType" parameterType="pd">
+		delete from tb_ordinary_type where id=#{id}
+	</delete>
+	
+	<select id="findOrdinaryTypeByName" parameterType="pd" resultType="pd">
+		select * from tb_ordinary_type where type=#{type}
+	</select>
+	
+	<select id="findOrdinaryTypeByOldName" parameterType="pd" resultType="pd">
+		select * from tb_ordinary_type where type=#{type} and type!=#{old_type}
+	</select>
+	
+	<select id="findOrdinaryTypeForExcel" resultType="pd">
+		select * from tb_ordinary_type
+	</select>
+	
+	<insert id="saveOrdinaryTypeForExcel" parameterType="pd">
+		insert into tb_ordinary_type(
+			id,
+			type,
+			descript
+		)values(
+			#{id},
+			#{type},
+			#{descript}
+		)
+	</insert>
+</mapper>

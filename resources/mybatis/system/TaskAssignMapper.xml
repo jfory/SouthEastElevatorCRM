@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TaskAssignMapper">
+
+    <select id="getTaskAssignByKey" resultType="pd" parameterType="pd">
+        SELECT a.id,a.task_def_key,a.group_id,a.process_definition_id,r.ROLE_NAME AS group_name FROM
+        wf_task_assign AS a JOIN sys_role as r ON a.group_id = r.ROLE_ID WHERE a.task_def_key = #{task_def_key} AND a.process_definition_id = #{process_definition_id}
+    </select>
+    <select id="getUserInfoByGroupId" resultType="pd" parameterType="pd">
+        SELECT r.ROLE_ID AS group_id,r.ROLE_NAME AS group_name,u.USER_ID AS user_id,u.USERNAME AS user_name,u.NAME AS name,u.EMAIL AS  email,u.PASSWORD AS password FROM sys_role AS  r
+              JOIN sys_user AS u ON r.ROLE_ID = u.ROLE_ID WHERE u.ROLE_ID = #{group_id}
+    </select>
+    <!-- 新增一条记录，插入成功后返回主键 暂时未实现-->
+    <insert id="insertPosition" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            select LAST_INSERT_ID()
+        </selectKey>
+		insert into tb_position
+		(    id,
+		     parentId,
+		     name,
+		     orderNo,
+             is_manager,
+             create_time
+		)values(
+             #{id},
+			 #{parentId},
+		     #{name},
+		     #{orderNo},
+             #{is_manager},
+             now()
+		)
+
+	</insert>
+    <update id="updatePosition" parameterType="pd">
+		UPDATE tb_position 
+		   SET
+		   name =#{name},
+		   orderNo =#{orderNo},
+		   is_manager=#{is_manager}
+	     WHERE id =#{id}
+	</update>
+
+    <delete id="deletePosition">
+		DELETE FROM tb_position 
+			  WHERE id = #{id}
+	</delete>
+
+	<select id="getTaskAssignByRole" resultType="pd" parameterType="pd">
+		SELECT r.ROLE_ID AS id ,r.ROLE_NAME AS name ,r.PARENT_ID AS pId,(IF(a.id IS NOT NULL,true,false)) AS checked,(IF(a.id IS NOT NULL,a.id,"")) AS aId
+		FROM sys_role AS r Left JOIN wf_task_assign  AS a ON r.ROLE_ID = a.group_id
+		AND a.task_def_key =#{activityId} AND a.process_definition_id = #{pdid}
+	</select>
+	<select id="getContractTechTaskAssignByRole" resultType="pd" parameterType="pd">
+		SELECT r.ROLE_ID AS id ,r.ROLE_NAME AS name ,r.PARENT_ID AS pId,(IF(a.models_id IS NOT NULL,true,false)) AS checked,(IF(a.models_id IS NOT NULL,a.models_id,"")) AS aId
+		FROM sys_role AS r Left JOIN (
+			SELECT a.*,substring_index(substring_index(a.audit_group,',',b.help_topic_id+1),',',-1) as group_id
+			FROM 
+			tb_models a, mysql.help_topic b
+			WHERE b.help_topic_id &lt; ((length(a.audit_group) - length(replace(a.audit_group,',',''))+1))
+			AND a.models_id = #{models_id}
+		)  AS a ON r.ROLE_ID = a.group_id 
+	</select>
+	<!-- 更新电梯group -->
+	<update id="updateContractTechTaskAssignByRole" parameterType="pd">
+		UPDATE tb_models 
+		   SET
+		   audit_group =#{audit_group}
+	     WHERE models_id = #{models_id}
+	</update>
+    <!-- 新增一条记录-->
+    <insert id="save" parameterType="pd" >
+
+        insert into wf_task_assign
+        (
+        id,
+        task_def_key,
+        group_id,
+        process_definition_id
+        )values(
+        #{id},
+        #{task_def_key},
+        #{group_id},
+        #{process_definition_id}
+        )
+    </insert>
+    <!--  删除合作商-->
+    <delete id="delete" parameterType="pd">
+        delete from
+            wf_task_assign
+        where
+            id = #{id}
+    </delete>
+
+    <!-- 根据roleid获取对应用户信息 -->
+    <select id="findUsersByRoleIds" parameterType="pd" resultType="pd">
+        select a.* ,b.role_name,b.ROLE_ID as group_id
+        from sys_user a LEFT JOIN sys_role b on FIND_IN_SET(b.ROLE_ID,a.ROLE_ID)
+        where
+            a.ROLE_ID!='1'
+
+        <if  test="group_id != null and group_id != ''">
+            and
+            FIND_IN_SET(#{group_id},a.ROLE_ID)
+        </if>
+        <if  test="user_id != null and user_id != ''">
+            and
+            a.USER_ID=(#{user_id})
+        </if>
+
+    </select>
+
+    <select id="findAllTechAuditGroup" parameterType="pd" resultType="String">
+        <!-- SELECT  DISTINCT audit_group FROM tb_models a WHERE EXISTS(SELECT * FROM tb_bjc b WHERE a.models_id=b.BJC_MODELS  and EXISTS
+        (SELECT * FROM tb_so_contract c where c.HT_ITEM_ID=b.BJC_ITEM_ID AND  c.HT_UUID=#{HT_UUID})
+		飞尚一吨货梯，交由飞扬，飞越技术处理。
+        ) -->
+        SELECT  DISTINCT (CASE WHEN a.models_name like '%飞尚%' AND g.bjc_zz=1000 THEN 'ff07ff6036144b67a725b06d97eb31e0' else a.audit_group END) audit_group FROM tb_models a ,(
+		SELECT b.* FROM tb_so_contract c LEFT JOIN tb_iteminoffer eo on c.HT_OFFER_ID=eo.OFFER_ID
+		LEFT JOIN tb_bjc b on eo.item_id=b.bjc_item_id and eo.offer_version=b.offer_version and c.HT_ITEM_ID=b.BJC_ITEM_ID
+		 where c.HT_UUID=#{HT_UUID}
+		) g where a.models_id=g.BJC_MODELS
+    </select>
+</mapper>

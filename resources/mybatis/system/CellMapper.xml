@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CellMapper">
+	
+	<select id="celllistPageByRole" parameterType="page" resultType="pd">
+		select
+		cp.cell_id,
+		cp.cell_name,
+		h.houses_name,
+		w.well_name,
+		comp.comp_name,
+		comp.comp_address,
+		comp.comp_phone,
+		comp.comp_email,
+		cp.comp_price_from,
+		cp.comp_price_to,
+		cp.house_owner_info,
+		cp.house_type_img,
+		cp.comp_brand,
+		cp.comp_drive_mode
+		FROM
+		tb_comp_price as cp
+		LEFT JOIN 
+		tb_competitor as comp 
+		ON
+		cp.comp_id=comp.comp_id
+		LEFT JOIN 
+		tb_houses as h 
+		ON
+        cp.houses_no=h.houses_no
+        LEFT JOIN
+        tb_well as w
+        ON
+        cp.cell_well=w.well_id
+        where 1=1
+        <if test="pd.cell_name != null and pd.cell_name != ''">
+            and cp.cell_name LIKE CONCAT(CONCAT('%', #{pd.cell_name}),'%')
+        </if>
+        <if test="pd.houses_name != null and pd.houses_name != ''">
+            and h.houses_name LIKE CONCAT(CONCAT('%', #{pd.houses_name}),'%')
+        </if>
+        <if test="pd.comp_name != null and pd.comp_name != ''">
+            and comp.comp_name LIKE CONCAT(CONCAT('%', #{pd.comp_name}),'%')
+        </if>
+          <if test="pd.houses_no != null and pd.houses_no != ''">
+            and cp.houses_no LIKE CONCAT(CONCAT('%', #{pd.houses_no}),'%')
+        </if>
+        <if test="pd.userList!=null and pd.userList.size()>0">
+			and h.input_user in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+      	 </if>
+          ORDER BY cp.houses_no DESC,cp.modified_time DESC
+	</select>
+	<!-- 查询户型信息 -->
+	<select id="houseTypelistPage" parameterType="page" resultType="pd">
+		SELECT
+	      hou_id,
+          hou_name
+        FROM
+	      tb_housetype
+	</select>
+	<!-- 查询小业主信息 -->
+	<select id="MerchantlistPage" parameterType="page" resultType="pd">
+		SELECT
+	      customer_no,
+	      customer_name
+       FROM
+	     tb_customer_merchant
+	</select>
+	<!-- 查询单元基本信息 -->
+	<select id="celllistPage" parameterType="page" resultType="pd">
+		select
+		cp.cell_id,
+		cp.cell_name,
+		h.houses_name,
+		w.well_name,
+		comp.comp_name,
+		comp.comp_address,
+		comp.comp_phone,
+		comp.comp_email,
+		cp.comp_price_from,
+		cp.comp_price_to,
+		cp.house_owner_info,
+		cp.house_type_img,
+		cp.comp_brand,
+		cp.comp_drive_mode
+		FROM
+		tb_comp_price as cp
+		LEFT JOIN 
+		tb_competitor as comp 
+		ON
+		cp.comp_id=comp.comp_id
+		LEFT JOIN 
+		tb_houses as h 
+		ON
+        cp.houses_no=h.houses_no
+        LEFT JOIN
+        tb_well as w
+        ON
+        cp.cell_well=w.well_id
+        where 1=1
+        <if test="pd.cell_name != null and pd.cell_name != ''">
+            and cp.cell_name LIKE CONCAT(CONCAT('%', #{pd.cell_name}),'%')
+        </if>
+        <if test="pd.houses_name != null and pd.houses_name != ''">
+            and h.houses_name LIKE CONCAT(CONCAT('%', #{pd.houses_name}),'%')
+        </if>
+        <if test="pd.comp_name != null and pd.comp_name != ''">
+            and comp.comp_name LIKE CONCAT(CONCAT('%', #{pd.comp_name}),'%')
+        </if>
+          <if test="pd.houses_no != null and pd.houses_no != ''">
+            and cp.houses_no LIKE CONCAT(CONCAT('%', #{pd.houses_no}),'%')
+        </if>
+         ORDER BY cp.modified_time DESC
+    </select>
+    <!-- 根据楼盘 编号，查询户型信息 -->
+    <select id="findhouseTypeById" parameterType="page" resultType="pd">
+		SELECT * FROM tb_housetype WHERE houses_id=#{houses_id}
+	</select>
+	<!-- 根据楼盘 编号，查询楼盘信息  -->
+	<select id="findHousesById" parameterType="pd" resultType="pd">
+		SELECT villadom_num from tb_houses where houses_no=#{houses_name}
+	</select>
+	<!-- 根据楼盘 编号 统计属于该楼盘的单元数量  -->
+	<select id="findCellByHousesId" parameterType="pd" resultType="pd">
+	    SELECT COUNT(*) as cellNum  FROM tb_comp_price where houses_no=#{houses_name}
+	</select>
+	<!-- 根据单元 编号查询单元基本信息 -->
+	<select id="findCellById" parameterType="page" resultType="pd">
+		SELECT
+	     cp.*,
+         c.comp_name
+        FROM
+	      tb_comp_price as cp
+        LEFT JOIN
+	      tb_competitor as c
+        ON
+	      cp.comp_id = c.comp_id
+        WHERE
+          cell_id = #{cell_id}
+	</select>
+	<!-- 查询单元名称 -->
+	<select id="findCellByName" parameterType="page" resultType="pd">
+	     select 
+	     cell_name 
+	     from tb_comp_price 
+	     where 
+	     cell_name=#{cell_name} 
+	     <if test="houses_no!='' and houses_no!=null ">
+	     and houses_no =#{houses_no}
+	     </if>
+	</select>
+	<!-- 查询井道信息 -->
+	<select id="welllistPage" parameterType="page" resultType="pd">
+	    select 
+	      well_id,
+	      well_name
+	    from tb_well
+	</select>
+	<!-- 查询楼盘信息 -->
+	<select id="houseslistPage" parameterType="page" resultType="pd">
+	    select 
+	    houses_no,
+	    houses_name
+	    from tb_houses
+	</select>
+	 <!-- 查询属于该户型的解决方案 -->
+   <select id="solutionlistPage" parameterType="page" resultType="pd">
+	  SELECT
+	    s.so_id,
+	    s.so_name,
+	    s.so_drawing,
+	    s.so_describe,
+	    s.so_price,
+	    s.houseType_id,
+	    s.houses_no as houses_id,
+        ht.hou_name,
+        h.houses_name,
+        h.houses_no as houses_no
+      FROM
+	    tb_solution as s
+      LEFT JOIN
+        tb_housetype as ht
+      ON
+        s.houseType_id=ht.hou_id
+      LEFT JOIN
+        tb_houses as h
+      ON
+        s.houses_no=h.houses_no
+      WHERE
+        s.houseType_id=#{pd.hou_id}
+   </select>
+	
+	<!-- 根据单元编号删除单元信息 -->
+	<delete id="deleteCell" parameterType="pd">
+		DELETE from tb_comp_price where cell_id=#{cell_id}
+	</delete>
+	
+	 <!-- 查询竞争对手公司信息 -->
+	<select id="competitorList" parameterType="pd" resultType="pd">
+		select * from tb_competitor where comp_id!='dn001'
+	</select>
+	   <!-- 通过竞争对手编号获取数据 -->
+	<select id="findCompetitorById" parameterType="pd" resultType="pd">
+		select * from tb_competitor where comp_id=#{comp_id}
+	</select>
+	
+		<!-- 新增单元 信息 -->
+	<insert id="saveS" parameterType="pd">
+		insert into tb_comp_price(
+		cell_id,
+		cell_name,
+		houses_no,
+		cell_well,
+		comp_id,
+		comp_price_from,
+	    comp_price_to,
+		house_owner_info,
+		house_type_img,
+		modified_time,
+		comp_brand,
+		comp_drive_mode,
+		cell_decorate ,
+		cell_Reserved_well,
+        top_height ,
+        pit_deepness,
+        well_breadth,
+        well_deepness,
+        tiers,
+        well_structure,
+        comp_referral,
+        comp_model,
+        comp_deploy,
+        dn_drawing,
+        dn_referral,
+        dn_picture,
+        dn_solution,
+        house_id,
+        supplier,
+        customer_no,
+        solution_no
+		)
+		values
+		(
+		#{cell_id},
+		#{cell_name},
+		#{houses_name},
+		#{cell_well},
+		#{comp_name},
+		#{comp_price_from},
+	    #{comp_price_to},
+		#{house_owner_info},
+		#{house_type_json},
+		#{modified_time},
+		#{comp_brand},
+		#{comp_drive_mode},
+		#{cell_decorate },
+		#{cell_Reserved_well},
+        #{top_height},
+        #{pit_deepness},
+        #{well_breadth},
+        #{well_deepness},
+        #{tiers},
+        #{well_structure},
+        #{comp_referral},
+        #{comp_model},
+        #{comp_deploy},
+        #{dn_drawing_json},
+        #{dn_referral},
+        #{dn_picture_json},
+        #{dn_solution_json},
+        #{hou_id},
+        #{supplierJSON},
+        #{customer_no},
+        #{solution_no}
+		)
+	</insert>
+	<!-- 修改楼盘别墅数量 -->
+	<update id="editHouses" parameterType="pd">
+	  UPDATE tb_houses
+	  SET 
+	  villadom_num    =#{villadom_num}
+	  WHERE
+		houses_no   = #{houses_name}
+	</update>
+	<!-- 修改 -->
+	<update id="editS" parameterType="pd">
+		UPDATE tb_comp_price
+		SET
+		cell_name         =#{cell_name},
+		houses_no         =#{houses_name},
+		cell_well         =#{cell_well},
+		comp_id           =#{comp_name},
+		comp_price_from   =#{comp_price_from},
+	    comp_price_to     =#{comp_price_to},
+		house_owner_info  =#{house_owner_info},
+		house_type_img	  =#{house_type_json},
+		modified_time     =#{modified_time},
+		comp_brand        =#{comp_brand},
+		comp_drive_mode   =#{comp_drive_mode},
+	    cell_decorate     =#{cell_decorate},
+		cell_Reserved_well=#{cell_Reserved_well},
+        top_height        =#{top_height},
+        pit_deepness      =#{pit_deepness},
+        well_breadth      =#{well_breadth},
+        well_deepness     =#{well_deepness},
+        tiers             =#{tiers},
+        well_structure    =#{well_structure},
+        comp_referral     =#{comp_referral},
+        comp_model        =#{comp_model},
+        comp_deploy       =#{comp_deploy},
+        dn_drawing        =#{dn_drawing_json},
+        dn_referral       =#{dn_referral},
+        dn_picture        =#{dn_picture_json},
+        dn_solution       =#{dn_solution_json},
+        house_id          =#{hou_id},
+        supplier          =#{supplierJSON},
+        customer_no       =#{customer_no},
+        solution_no       =#{solution_no}
+		WHERE
+		cell_id   = #{cell_id}
+	</update>
+	<!-- 获取option集合 -->
+    <select id="findCellList"  resultType="pd">
+    	SELECT 
+    	cp.*,
+    	h.houses_name,
+    	w.well_name,
+    	c.comp_name,
+    	ht.hou_name,
+    	cm.customer_name,
+    	s.so_name
+    	from 
+    	tb_comp_price as cp 
+    	LEFT JOIN
+    	tb_houses as h
+    	ON
+    	cp.houses_no=h.houses_no
+    	LEFT JOIN
+    	tb_well as w
+    	ON
+    	cp.cell_well=w.well_id
+    	LEFT JOIN
+    	tb_competitor as c 
+    	ON
+    	cp.comp_id=c.comp_id
+    	LEFT JOIN
+    	tb_housetype as ht
+    	ON
+    	cp.house_id=ht.hou_id
+    	LEFT JOIN
+    	tb_customer_merchant as cm
+    	ON
+    	cp.customer_no=cm.customer_no
+    	LEFT JOIN
+    	tb_solution as s
+    	ON
+    	cp.solution_no=s.so_id
+    </select>
+    <!-- 根据楼盘name查询楼盘信息 -->
+    <select id="findHousesByName" parameterType="pd" resultType="pd">
+        SELECT * from tb_houses WHERE houses_name=#{houses_name}
+    </select>
+    <!-- 根据户型name查询户型信息 -->
+    <select id="findHouseTypeByName" parameterType="pd" resultType="pd">
+       SELECT * FROM tb_housetype WHERE houses_id=#{houses_id} AND hou_name=#{hou_name}
+    </select>
+    <!-- 根据业主name查询业主信息 -->
+    <select id="findCustomerByName" parameterType="pd" resultType="pd">
+       SELECT * from tb_customer_merchant WHERE customer_name=#{customer_name}
+    </select>
+    <!-- 根据解决方案name查询解决方案信息 -->
+    <select id="findSolutionByName" parameterType="pd" resultType="pd">
+       SELECT * FROM tb_solution WHERE so_name=#{so_name}
+    </select>
+    <!-- 根据竞争对手name查询竞争对手信息 -->
+    <select id="findCompetitorByName" parameterType="pd" resultType="pd">
+       SELECT * FROM tb_competitor WHERE comp_name=#{comp_name}
+    </select>
+    <!-- 根据井道类型name查询井道类型信息 -->
+    <select id="findWellByName" parameterType="pd" resultType="pd">
+       SELECT * FROM tb_well WHERE well_name=#{well_name}
+    </select>
+    <!-- 根据单元name查询单元信息 -->
+    <select id="findComp_priceByName" parameterType="pd" resultType="pd">
+       SELECT * from tb_comp_price 
+       WHERE 
+       houses_no=#{houses_no} 
+       AND house_id=#{hou_id} 
+       AND cell_name=#{cell_name}
+    </select>
+</mapper>

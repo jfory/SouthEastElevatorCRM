@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://activiti.org/bpmn20">
+  <process id="forecast" name="项目预测流程" isExecutable="true">
+    <startEvent id="Start" name="开始"></startEvent>
+    <userTask id="saleSubmit" name="销售人员录入信息" activiti:priority="0">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="start" name="启动" sourceRef="Start" targetRef="saleSubmit"></sequenceFlow>
+    <userTask id="branchTask" name="分公司经理审核" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="submit" name="提交" sourceRef="saleSubmit" targetRef="branchTask"></sequenceFlow>
+    <exclusiveGateway id="branchPass" name="分公司经理审核"></exclusiveGateway>
+    <sequenceFlow id="branchSp" name="审核" sourceRef="branchTask" targetRef="branchPass"></sequenceFlow>
+    <userTask id="areaTask" name="区域总经理审核" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="branchTaskPass" name="通过" sourceRef="branchPass" targetRef="areaTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${branchTaskStatus==true}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="areaPass" name="区域总经理审核"></exclusiveGateway>
+    <sequenceFlow id="areaSp" name="审核" sourceRef="areaTask" targetRef="areaPass"></sequenceFlow>
+    <userTask id="companyTask" name="股份公司" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.LeaveTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="areaTaskPass" name="通过" sourceRef="areaPass" targetRef="companyTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${areaTaskStatus==true}]]></conditionExpression>
+    </sequenceFlow>
+    <endEvent id="End" name="结束"></endEvent>
+    <sequenceFlow id="companyView" name="审阅" sourceRef="companyTask" targetRef="End"></sequenceFlow>
+    <sequenceFlow id="branchReject" name="驳回" sourceRef="branchPass" targetRef="saleSubmit">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${branchTaskStatus==false}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="areaReject" name="驳回" sourceRef="areaPass" targetRef="branchTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${areaTaskStatus==false}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_forecast">
+    <bpmndi:BPMNPlane bpmnElement="forecast" id="BPMNPlane_forecast">
+      <bpmndi:BPMNShape bpmnElement="Start" id="BPMNShape_Start">
+        <omgdc:Bounds height="35.0" width="35.0" x="80.0" y="170.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="saleSubmit" id="BPMNShape_saleSubmit">
+        <omgdc:Bounds height="55.0" width="105.0" x="160.0" y="160.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="branchTask" id="BPMNShape_branchTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="310.0" y="160.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="branchPass" id="BPMNShape_branchPass">
+        <omgdc:Bounds height="40.0" width="40.0" x="460.0" y="168.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="areaTask" id="BPMNShape_areaTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="545.0" y="161.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="areaPass" id="BPMNShape_areaPass">
+        <omgdc:Bounds height="40.0" width="40.0" x="695.0" y="169.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="companyTask" id="BPMNShape_companyTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="780.0" y="162.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="End" id="BPMNShape_End">
+        <omgdc:Bounds height="35.0" width="35.0" x="930.0" y="172.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="start" id="BPMNEdge_start">
+        <omgdi:waypoint x="115.0" y="187.0"></omgdi:waypoint>
+        <omgdi:waypoint x="160.0" y="187.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="115.0" y="187.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="submit" id="BPMNEdge_submit">
+        <omgdi:waypoint x="265.0" y="187.0"></omgdi:waypoint>
+        <omgdi:waypoint x="310.0" y="187.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="265.0" y="187.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="branchSp" id="BPMNEdge_branchSp">
+        <omgdi:waypoint x="415.0" y="187.0"></omgdi:waypoint>
+        <omgdi:waypoint x="460.0" y="188.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="419.0" y="187.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="branchTaskPass" id="BPMNEdge_branchTaskPass">
+        <omgdi:waypoint x="500.0" y="188.0"></omgdi:waypoint>
+        <omgdi:waypoint x="545.0" y="188.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="500.0" y="188.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="areaSp" id="BPMNEdge_areaSp">
+        <omgdi:waypoint x="650.0" y="188.0"></omgdi:waypoint>
+        <omgdi:waypoint x="695.0" y="189.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="659.0" y="188.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="areaTaskPass" id="BPMNEdge_areaTaskPass">
+        <omgdi:waypoint x="735.0" y="189.0"></omgdi:waypoint>
+        <omgdi:waypoint x="780.0" y="189.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="735.0" y="189.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="companyView" id="BPMNEdge_companyView">
+        <omgdi:waypoint x="885.0" y="189.0"></omgdi:waypoint>
+        <omgdi:waypoint x="930.0" y="189.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="885.0" y="189.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="branchReject" id="BPMNEdge_branchReject">
+        <omgdi:waypoint x="480.0" y="168.0"></omgdi:waypoint>
+        <omgdi:waypoint x="479.0" y="117.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="117.0"></omgdi:waypoint>
+        <omgdi:waypoint x="212.0" y="160.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="281.0" y="121.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="areaReject" id="BPMNEdge_areaReject">
+        <omgdi:waypoint x="715.0" y="169.0"></omgdi:waypoint>
+        <omgdi:waypoint x="715.0" y="98.0"></omgdi:waypoint>
+        <omgdi:waypoint x="362.0" y="98.0"></omgdi:waypoint>
+        <omgdi:waypoint x="362.0" y="160.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="511.0" y="131.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

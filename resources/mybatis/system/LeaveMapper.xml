@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="LeaveMapper">
+    <select id="leavelistPage" resultType="pd" parameterType="page">
+        SELECT * FROM 
+        wf_leave WHERE requester_id = #{pd.USER_ID}
+        ORDER BY create_time DESC
+
+    </select>
+    <insert id="insertLeave" parameterType="pd">
+		insert into wf_leave
+		(
+			 id,
+		     reason,
+		     start_time,
+		     end_time,
+		     create_time,
+		     requester_id,
+		     status,
+		     leave_type
+
+		)values(
+			 #{id},
+		     #{reason},
+		     #{start_time},
+		     #{end_time},
+		     now(),
+		     #{requester_id},
+		     0,
+		     #{leave_type}
+		)
+	
+	</insert>
+    <update id="updateLeave">
+		UPDATE wf_leave 
+		   SET reason =#{reason},
+  			   start_time=#{start_time},
+  			   end_time =#{end_time}
+	     WHERE id =#{id}
+	</update>
+	<update id="updateLeaveProcessInstanceId">
+		UPDATE wf_leave
+		SET
+		process_instance_id =#{process_instance_id}
+		WHERE id =#{id}
+	</update>
+	<update id="updateLeaveStatus">
+		UPDATE wf_leave
+		SET
+		status =#{status}
+		WHERE id =#{id}
+	</update>
+    <delete id="deleteLeave">
+		DELETE FROM wf_leave 
+			  WHERE id  = #{id}
+
+	</delete>
+
+    <select id="findAtegory" resultType="pd" parameterType="pd">
+		select 
+		       categoryId,
+		       categoryName
+		from
+			   wf_leave_category    
+	</select>
+    <select id="findById" resultType="pd" parameterType="pd">
+		SELECT *
+		  FROM wf_leave
+		 WHERE id=#{leaveId}
+	</select>
+    <!-- 批量删除 -->
+    <delete id="deleteAll" parameterType="String">
+        delete from wf_leave
+        where
+        id in
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+</mapper>

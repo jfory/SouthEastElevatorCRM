@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ProductionMapper">
+ <!-- 获取option集合 -->
+    <select id="findProductionOneList"  resultType="pd">
+    	SELECT
+    	  pone.*,
+    	  i.item_name as ItemName
+    	FROM
+    	  tb_production_onerow as pone
+    	LEFT JOIN
+    	  tb_item as i
+    	ON
+    	  pone.item_id=i.item_id
+
+    </select>
+    <!-- 根据项目name获取项目id和no -->
+    <select id="findItemByName" parameterType="pd" resultType="pd">
+      SELECT item_id,item_no from tb_item where item_name=#{item_name}
+    </select>
+    <!-- 根据电梯no获取电梯信息 -->
+    <select id="findElevatorDetailsByNO" parameterType="pd" resultType="pd">
+      SELECT * FROM tb_elevator_details WHERE no=#{elevator_no}
+    </select>
+     <!-- 根据电梯no查询排产信息 -->
+    <select id="findProductionOnerowByNO" parameterType="pd" resultType="pd">
+      SELECT * FROM tb_production_onerow WHERE elevator_no=#{elevator_no}
+    </select>
+    <!-- 获取option集合 -->
+    <select id="findProductionTowList"  resultType="pd">
+    	SELECT
+    	ptow.*,
+    	i.item_name as ItemName
+    	FROM
+    	tb_production_towrow as ptow
+    	LEFT JOIN
+    	tb_item as i
+    	ON
+    	ptow.item_id=i.item_id
+    </select>
+     <!-- 根据电梯no查询排产信息 -->
+    <select id="findProductionTowrowByNO" parameterType="pd" resultType="pd">
+      SELECT * FROM tb_production_towrow WHERE elevator_no=#{elevator_no}
+    </select>
+<!--查询所有一排单-->
+<select id="productionlistPage" parameterType="page" resultType="pd">
+   SELECT
+     i.item_id,
+	 c.con_item_no,
+     i.item_name,
+     ed.`no`,
+     e.elevator_id,
+     e.elevator_name,
+     p.product_name,
+     ed.total,
+     po.approval,
+     po.pro_no,
+     po.production_key
+   FROM
+	 tb_contract AS c
+   LEFT JOIN
+	 tb_item AS i
+   ON
+     c.con_item_no=i.item_no
+   LEFT JOIN
+     tb_elevator_details as ed
+   ON
+     ed.item_id=i.item_id
+   LEFT JOIN
+     tb_elevator as e
+   ON
+     e.elevator_id=ed.elevator_id
+   LEFT JOIN
+     tb_product as p
+   ON
+     ed.product_id=p.product_id
+   LEFT JOIN
+     tb_production_onerow as po
+   ON
+     po.elevator_no=ed.`no`
+   WHERE
+	 c.con_state = '1'
+     AND 1=1
+     <if test="pd.item_name != null and pd.item_name != ''">
+          and i.item_name LIKE CONCAT(CONCAT('%', #{pd.item_name}),'%')
+     </if>
+     <if test="pd.roleType!='4'">
+		<if test="pd.userList!=null and pd.userList.size()>0">
+			and i.input_user in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+	    </if>
+	</if>
+</select>
+<!-- 根据排产编号查询排产信息 -->
+<select id="findProById" parameterType="pd" resultType="pd">
+    SELECT * FROM tb_production_onerow WHERE pro_no=#{pro_no}
+</select>
+
+ <!-- 根据排产编号删除数据 -->
+  <delete id="delfindById" parameterType="pd">
+     DELETE from tb_production_onerow where pro_no=#{pro_no}
+  </delete>
+   <!-- 查询流程是否存在 -->
+	<select id="Production_key" parameterType="page" resultType="pd">
+	    SELECT
+	      *
+        FROM
+	      act_re_procdef
+        WHERE
+	      KEY_ = 'Production'
+	</select>
+	<select id="ProductionB_key" parameterType="page" resultType="pd">
+		SELECT
+			*
+		FROM
+			act_re_procdef
+		WHERE
+			KEY_ = 'ProductionB'
+	</select>
+	
+	 <!-- 查询一排排产流程是否存在 -->
+	<select id="OneProductionKEY" parameterType="pd" resultType="pd">
+	    SELECT
+	      *
+        FROM
+	      act_re_procdef
+        WHERE
+	      KEY_ = #{production_key}
+	</select>
+	<!-- 新增排产单 -->
+  <insert id="saveS" parameterType="pd">
+		insert into tb_production_onerow(
+		pro_uuid,
+		pro_no,
+		item_name,
+		is_subscription,
+		contract_text,
+		production_datum,
+		appraisal_datum,
+	    signedTime,
+		approval,
+		production_key,
+		requester_id,
+		elevator_no,
+		item_id,
+		plan_state,
+		special_state
+		)
+		values
+		(
+		#{pro_uuid},
+		#{pro_no},
+		#{item_no},
+		#{is_subscription},
+		#{contract_text},
+		#{production_datum},
+		#{appraisal_datum},
+	    #{signedTime},
+		#{approval},
+		#{production_key},
+		#{requester_id},
+		#{elevator_no},
+		#{item_id},
+		#{plan_state},
+		#{special_state}
+		)
+	</insert>
+	<!-- 根据ID修改排产信息 -->
+	<update id="upfindById" parameterType="pd">
+	    UPDATE tb_production_onerow
+		SET
+		is_subscription    =#{is_subscription},
+		contract_text      =#{contract_text},
+		production_datum   =#{production_datum},
+		appraisal_datum    =#{appraisal_datum},
+	    signedTime         =#{signedTime},
+	    production_key     =#{production_key}
+		Where
+		pro_no=#{pro_no}
+	</update>
+	<!-- 更新流程审核状态 -->
+    <update id="updateProApproval" parameterType="pd">
+    	UPDATE tb_production_onerow
+		SET
+    	  approval      =#{approval}
+    	WHERE
+	    pro_no= #{pro_no}
+    </update>
+     <!-- 根据uuid查询基本信息 （一排）-->
+	<select id="findByuuId" parameterType="page" resultType="pd">
+		SELECT
+	      po.pro_no,
+          i.item_name,
+          po.elevator_no,
+          e.elevator_name,
+          p.product_name,
+          ed.total,
+          po.approval,
+          po.production_key,
+          po.requester_id
+        FROM
+	      tb_production_onerow AS po
+        LEFT JOIN
+          tb_item as i
+        ON
+          po.item_name=i.item_no
+        LEFT JOIN
+          tb_elevator_details as ed
+        ON
+          po.elevator_no=ed.`no`
+        LEFT JOIN
+          tb_product as p
+        ON
+          ed.product_id=p.product_id
+        LEFT JOIN
+          tb_elevator as e
+        ON
+          ed.elevator_id=e.elevator_id
+        WHERE
+	      po.pro_uuid = #{pro_uuid}
+	</select>
+	<!--***************二排*****************-->
+	<!--查询所有二排单-->
+<select id="proTowlistPage" parameterType="page" resultType="pd">
+    SELECT
+	  pe.pro_plan_no,
+    i.item_no,
+    i.item_name,
+    ed.no,
+    e.elevator_name,
+    e.elevator_id,
+    p.product_name,
+    ed.total,
+    pt.approval,
+    i.item_id,
+    pt.production_key,
+    pt.pro_no,
+    pe.special_state
+   FROM
+	 tb_plan_elevator AS pe
+  LEFT JOIN
+    tb_elevator_details as ed
+  ON
+    pe.elevator_no=ed.no
+  LEFT JOIN
+    tb_product as p
+  ON
+   ed.product_id=p.product_id
+  LEFT JOIN
+    tb_item as i
+  ON
+   ed.item_id=i.item_id
+  LEFT JOIN 
+    tb_elevator as e
+  ON
+    ed.elevator_id=e.elevator_id
+LEFT JOIN
+    tb_production_towrow as pt
+ON
+pe.elevator_no=pt.elevator_no
+where pe.type='1'
+     AND 1=1
+     <if test="pd.item_name != null and pd.item_name != ''">
+          and i.item_name LIKE CONCAT(CONCAT('%', #{pd.item_name}),'%')
+     </if>
+     <if test="pd.roleType!='4'">
+		<if test="pd.userList!=null and pd.userList.size()>0">
+			and i.input_user in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+	    </if>
+	</if>
+</select>
+<!-- 新增排产单 -->
+  <insert id="saveSTow" parameterType="pd">
+		insert into tb_production_towrow(
+		pro_uuid,
+		pro_no,
+		item_id,
+		item_name,
+		is_subscription,
+		approval,
+		production_datum,
+		contract_text,
+		appraisal_datum,
+		customerName,
+		ultimatelyUserName,
+	    signedTime,
+		production_key,
+		requester_id,
+		elevator_no,
+		plan_state,
+		special_state
+		)
+		values
+		(
+		#{pro_uuid},
+		#{pro_no},
+		#{item_id},
+		#{item_no},
+		#{is_subscription},
+		#{approval},
+		#{production_datum},
+		#{contract_text},
+		#{appraisal_datum},
+		#{customerName},
+		#{ultimatelyUserName},
+	    #{signedTime},
+		#{production_key},
+		#{requester_id},
+		#{elevator_no},
+		#{plan_state},
+		#{special_state}
+		)
+	</insert>
+	<!-- 根据排产编号删除数据 -->
+  <delete id="delTowfindById" parameterType="pd">
+     DELETE from tb_production_towrow where pro_no=#{pro_no}
+  </delete>
+  <!-- 根据排产编号查询排产信息 -->
+<select id="findProtowById" parameterType="pd" resultType="pd">
+    SELECT * FROM tb_production_towrow WHERE pro_no=#{pro_no}
+</select>
+<!-- 更新流程审核状态 -->
+    <update id="upProTowApproval" parameterType="pd">
+    	UPDATE tb_production_towrow
+		SET
+    	  approval      =#{approval}
+    	WHERE
+	    pro_no= #{pro_no}
+    </update>
+     <!-- 根据ID修改协议信息 -->
+	<update id="upTowfindById" parameterType="pd">
+	    UPDATE tb_production_towrow
+		SET
+		is_subscription          =#{is_subscription},
+		production_datum         =#{production_datum},
+		contract_text            =#{contract_text},
+		appraisal_datum          =#{appraisal_datum},
+	    customerName             =#{customerName},
+	    ultimatelyUserName       =#{ultimatelyUserName},
+	    signedTime               =#{signedTime},
+	    production_key           =#{production_key}
+		WHERE
+		pro_no=#{pro_no}
+	</update>
+	<!-- 根据uuid查询基本信息 -->
+	<select id="findTowByuuId" parameterType="page" resultType="pd">
+		SELECT
+	      po.pro_no,
+          i.item_name,
+          po.elevator_no,
+          e.elevator_name,
+          p.product_name,
+          ed.total,
+          po.approval,
+          po.production_key,
+          po.requester_id
+        FROM
+	      tb_production_towrow AS po
+        LEFT JOIN
+          tb_item as i
+        ON
+          po.item_name=i.item_no
+        LEFT JOIN
+          tb_elevator_details as ed
+        ON
+          po.elevator_no=ed.`no`
+        LEFT JOIN
+          tb_product as p
+        ON
+          ed.product_id=p.product_id
+        LEFT JOIN
+          tb_elevator as e
+        ON
+          ed.elevator_id=e.elevator_id
+        WHERE
+	      po.pro_uuid = #{pro_uuid}
+	</select>
+	<!-- **************虚拟额度特批排产*************** -->
+	<!-- 查询全部报价完成的项目 -->
+	<select id="speciallistPage" parameterType="page" resultType="pd">
+	SELECT
+	  *
+    FROM
+	  tb_item AS i
+    WHERE
+	  i.item_status = '2'
+	</select>
+	<!-- 根据项目id查询属于这个项目的电梯信息 -->
+	<select id="elevatorlistPage" parameterType="page" resultType="pd">
+	 SELECT
+     i.item_id,
+	 c.con_item_no,
+     i.item_name,
+     ed.`no`,
+     e.elevator_id,
+     e.elevator_name,
+     p.product_name,
+     ed.total,
+     o.approval,
+     o.pro_no,
+     o.production_key
+   FROM
+	 tb_contract AS c
+   LEFT JOIN
+	 tb_item AS i
+   ON
+     c.con_item_no=i.item_no
+   LEFT JOIN
+     tb_elevator_details as ed
+   ON
+     ed.item_id=i.item_id
+   LEFT JOIN
+     tb_elevator as e
+   ON
+     e.elevator_id=ed.elevator_id
+   LEFT JOIN
+     tb_product as p
+   ON
+     ed.product_id=p.product_id
+   LEFT JOIN
+     tb_production_onerow as o
+   ON
+     o.elevator_no=ed.`no`
+WHERE ed.item_id=#{pd.item_id}
+	</select>
+	<!-- 新增排产单 -->
+  <insert id="saveOneSpecial" parameterType="pd">
+		insert into tb_onespecial(
+		special_uuid,
+		special_no,
+		item_id,
+		item_name,
+		contract_text,
+		production_datum,
+		appraisal_datum,
+		signedTime,
+		approval,
+		special_key,
+		requester_id,
+	    elevator_no,
+		special_state
+		)
+		values
+		(
+		#{special_uuid},
+		#{special_no},
+		#{item_id},
+		#{item_name},
+		#{contract_text},
+		#{production_datum},
+		#{appraisal_datum},
+		#{signedTime},
+		#{approval},
+		#{special_key},
+		#{requester_id},
+	    #{elevator_no},
+		#{special_state}
+		)
+	</insert>
+	<!-- 查询流程是否存在 -->
+	<select id="Special_key" parameterType="pd" resultType="pd">
+	    SELECT
+	      *
+        FROM
+	      act_re_procdef
+        WHERE
+	      KEY_ = #{production_key}
+	</select>
+	<!-- 根据特批排产编号删除数据 -->
+  <delete id="delSpecialfindById" parameterType="pd">
+     DELETE from tb_onespecial where special_no=#{special_no}
+  </delete>
+  <!-- 根据ID修改特批排产信息 -->
+	<update id="upSpecialfindById" parameterType="pd">
+	    UPDATE tb_onespecial
+		SET
+		contract_text      =#{contract_text},
+		production_datum   =#{production_datum},
+		appraisal_datum    =#{appraisal_datum},
+	    signedTime         =#{signedTime},
+	    special_key        =#{special_key}
+		Where
+		special_no=#{special_no}
+	</update>
+    <!-- 根据uuid查询基本信息 -->
+	<select id="findSpecialByuuId" parameterType="page" resultType="pd">
+		SELECT
+	       po.special_no,
+          i.item_name,
+          po.elevator_no,
+          e.elevator_name,
+          p.product_name,
+          ed.total,
+          po.approval,
+          po.special_key,
+          po.requester_id
+        FROM
+	      tb_onespecial AS po
+        LEFT JOIN
+          tb_item as i
+        ON
+          po.item_id=i.item_id
+        LEFT JOIN
+          tb_elevator_details as ed
+        ON
+          po.elevator_no=ed.`no`
+        LEFT JOIN
+          tb_product as p
+        ON
+          ed.product_id=p.product_id
+        LEFT JOIN
+          tb_elevator as e
+        ON
+          ed.elevator_id=e.elevator_id
+        WHERE
+	      po.special_uuid = #{special_uuid}
+	</select>
+	 <!-- 根据特批排产编号查询特批排产信息 -->
+<select id="findSpetowById" parameterType="pd" resultType="pd">
+    SELECT * FROM tb_onespecial WHERE special_no=#{special_no}
+</select>
+</mapper>

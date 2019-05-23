@@ -1,0 +1,77 @@
+@charset "utf-8";
+/* CSS Document */
+#top-pane, #buttom-pane{ background-color:#0072c6; color:#fff; line-height:30px; }
+#top-pane a, #buttom-pane a{color:#fff;}
+#top-pane div span, #buttom-pane div span{font-size:12px;}
+#top-pane div a:link{color:#fff;font-size:14px;}
+#top-pane .k-button{background:url(images/icon.gif) right -4px no-repeat;  padding-right:37px; color:#fff; border:none; font-size:18px; line-height:24px; padding-left:14px;}
+#top-pane .k-button:-moz-any(input){padding-top:0;}
+#top-pane .k-button:hover{background:url(images/icon.gif) right -43px no-repeat;}
+#deskMenuToolBar .k-button:hover{background-color:#0072c6;color:#fff;border-color:#0072c6}
+/* 
+.k-header, .k-grid-header-wrap, .k-grid .k-grouping-header, .k-grid-header, .k-pager-wrap, .k-pager-wrap .k-textbox, .k-pager-wrap .k-link, .k-grouping-header .k-group-indicator{ border:none}
+.k-state-hover,.k-state-hover:hover,.k-splitbar-horizontal-hover:hover,.k-splitbar-vertical-hover:hover,.k-list>.k-state-hover,.k-scheduler .k-scheduler-toolbar ul li.k-state-hover,.k-pager-wrap .k-link:hover,.k-dropdown .k-state-focused,.k-imagebrowser-dropzone{color:#fff;background-color:#0072c6;border-color:#0072c6}
+.k-state-hover>.k-select,.k-state-focused>.k-select{border-color:#0072c6}
+.k-block, .k-widget, .k-input, .k-textbox, .k-group, .k-content, .k-header, .k-editable-area, .k-separator, .k-colorpicker .k-i-arrow-s, .k-textbox > input, .k-autocomplete, .k-dropdown-wrap, .k-toolbar, .k-group-footer td, .k-grid-footer, .k-footer-template td, .k-state-default, .k-state-default .k-select, .k-state-disabled, .k-grid-header-wrap, .k-grid-header, .k-grid td, .k-grid td.k-state-selected, .k-grid-footer-wrap, .k-pager-wrap, .k-pager-wrap .k-link, .k-pager-refresh, .k-grouping-header, .k-grouping-header .k-group-indicator, .k-panelbar > .k-item > .k-link, .k-panel > .k-item > .k-link, .k-panelbar .k-panel, .k-panelbar .k-content, .k-calendar th, .k-slider-track, .k-splitbar, .k-dropzone-active, .k-tiles, .k-toolbar, .k-tooltip, .k-editor-button .k-tool-icon, .k-upload-files{border-color:#eee}
+.k-secondary .k-state-hover>.k-select{border-color:#0072c6}
+.k-state-focused,.k-list>.k-state-focused,.k-listview>.k-state-focused,.k-grid-header th.k-state-focused,td.k-state-focused,.k-button:focus,.k-button.k-state-focused{-webkit-box-shadow:inset 0 0 0 1px #0072c6;box-shadow:inset 0 0 0 1px #0072c6}
+.k-splitbar{background:#f7f7f7}
+
+#tabstrip .k-tabstrip-items .k-state-active{border:1px solid #eee;}
+#tabstrip .k-state-active,.k-state-active:hover,.k-active-filter,.k-tabstrip .k-state-active{border-color:#eee; border:none}
+*/
+body{font-family:Arial,"Microsoft Yahei",Verdana,Simsun,"Segoe UI","Segoe UI Web Regular","Segoe UI Symbol","Helvetica Neue","BBAlpha Sans","S60 Sans",sans-serif; color:#333;}
+#dragSource .k-tabstrip-items .k-state-default{border:1px solid #eee; background:#f7f7f7;margin:6px 7px; 0}
+#dragSource .k-tabstrip-items .k-state-default a:hover{background:#0072c6;}
+#dragSource .k-tabstrip-items .k-state-active{border:1px solid #eee; background:#0072c6;  margin:6px 7px; 0}
+#tabMenustrip_ts_active a{color:#fff;}
+.k-splitter .k-ghost-splitbar-horizontal, .k-splitter .k-splitbar-horizontal{width:8px;}
+.k-splitbar-horizontal .k-resize-handle{background:url(images/icon1.png) 0 -19px no-repeat; height:19px; width:4px; margin-left:2px}
+.k-splitbar-horizontal .k-collapse-next, .k-splitbar-horizontal .k-expand-prev{background:url(images/icon1.png) 0 -49px no-repeat; height:8px; width:4px; margin-left:2px; margin-bottom:4px}
+.k-splitbar-horizontal .k-collapse-prev, .k-splitbar-horizontal .k-expand-next{background:url(images/icon1.png) 0 0 no-repeat; height:8px; width:4px; margin-left:2px; margin-bottom:4px}
+.deskMenu{border:none}
+.imgDiv{cursor:pointer;}
+.imgDiv .deleteImg{margin-left:20px;}
+.dropTarget{color:#0072c6;  float:left;}
+
+.k-grid-header{background:#000; color:#fff}
+#tabMenustrip-1, #tabMenustrip-2, #tabMenustrip-3, #tabMenustrip-4{border:none}
+.k-link img{margin-left:9px}
+.beautifulTable{background-color:#ebf7ff; text-indent:4px;}
+#tabMenustrip .imgDiv{height:50px; width:108px}
+#tabMenustrip .imgDiv .deskImg{width:50px; height:50px; margin-left:29px;}
+#tabMenustrip .deskMenu{width:108px; margin-bottom:5px; }
+#tabMenustrip div span{ text-align:center; width:108px; display:block;}
+#deskMenuToolBar{right:10px; left:auto; top:10px;}
+#menu-pane{font-size:12px;}
+#menu-pane .deskMenu{height:70px;}
+.deskMenu{float:left}
+
+.dropTarget span{ text-align:center; float:left }
+
+.dropTarget{width:100px;}
+.dropTarget span{ width:100px;font-size:13px}
+#desk-pane .deskImg{width:70px; height:70px; margin-left:15px;}
+#desk-pane .deskMenu{height:100px;}
+#desk-pane .imgDiv{ height:70px;}
+
+.big .dropTarget{width:100px;}
+.big .dropTarget span{ width:100px;font-size:13px}
+.big #desk-pane .deskImg{width:70px; height:70px; margin-left:15px;}
+.big #desk-pane .deskMenu{height:100px;}
+.big #desk-pane .imgDiv{ height:70px;}
+
+.medium .dropTarget{width:90px;}
+.medium .dropTarget span{ width:90px; font-size:12px }
+.medium #desk-pane .deskImg{width:60px; height:60px; margin-left:15px;}
+.medium #desk-pane .deskMenu{height:90px;}
+.medium #desk-pane .imgDiv{ height:60px;}
+
+.small .dropTarget{width:80px;}
+.small .dropTarget span{ width:80px; font-size:11px }
+.small #desk-pane .deskImg{width:50px; height:50px; margin-left:15px;}
+.small #desk-pane .deskMenu{height:80px;}
+.small #desk-pane .imgDiv{ height:50px;}
+.step {height:59px; margin:10px auto 20px;}
+.step li{float:left; margin-right:10px; width:109px; height:59px; line-height:58px; color:#333; padding-left:5px;}
+.step .now{background:url(images/x1.gif) 0 0 no-repeat; color:#fff;}

@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="CityMapper">
+
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+	
+	
+	<!-- 省份分页列表 -->
+    <select id="provincelistPage" parameterType="page" resultType="pd" useCache="false">
+        select *
+        	   from tb_loc_province a where 1=1
+        	 
+        <if test="pd.province_name!=null and pd.province_name !=''">
+        	 AND (name LIKE CONCAT(CONCAT('%', #{pd.province_name}),'%'))
+        </if>
+    </select>
+    
+    <!-- 城市分页列表 -->
+    <select id="citylistPage" parameterType="page" resultType="pd" useCache="false">
+        select *
+        	   from tb_loc_city a where 1=1
+        	 
+        <if test="pd.city_name!=null and pd.city_name !=''">
+        	 AND (name LIKE CONCAT(CONCAT('%', #{pd.city_name}),'%'))
+        </if>
+    </select>
+    
+    <!-- 区县分页列表 -->
+    <select id="countylistPage" parameterType="page" resultType="pd" useCache="false">
+        select *
+        	   from tb_loc_county a where 1=1
+        	 
+        <if test="pd.county_name!=null and pd.county_name !=''">
+        	 AND (name LIKE CONCAT(CONCAT('%', #{pd.county_name}),'%'))
+        </if>
+    </select>
+    
+    <!-- 城市公司分页列表 -->
+    <select id="cityitemsubbranclistPage" parameterType="page" resultType="pd" useCache="false">
+        select c.id,a.`name` as cityname ,b.`name` as departmentname,
+               c.cityid,c.itemsubbranch 
+          from tb_loc_city  as  a,tb_department as b,
+               tb_city_itemsubbranch as c
+         where a.id=c.cityid 
+           and b.id=c.itemsubbranch
+        <if test="pd.departmentname!=null and pd.departmentname !=''">
+        	 AND (b.name LIKE CONCAT(CONCAT('%', #{pd.departmentname}),'%'))
+        </if>
+    </select>
+    
+    <!-- 根据ID查询公司 -->
+    <select id="findDeptById"  resultType="pd">
+		select * from tb_department where type=10 
+		<if test="id!=null and id!=''">
+			and id = #{id}
+		</if>
+	</select>
+    
+    <!-- 根据ID查询省份 -->
+    <select id="findProvinceById"  resultType="pd">
+		select * from tb_loc_province where 1=1
+		<if test="province_id!=null and province_id!=''">
+			and id = #{province_id}
+		</if>
+	</select>
+	
+	<!-- 根据ID查询城市 -->
+    <select id="findCityById"  resultType="pd">
+		select * from tb_loc_city where 1=1
+		<if test="city_id!=null and city_id!=''">
+			and id = #{city_id}
+		</if>
+	</select>
+	
+	<!-- 根据ID查询区县 -->
+    <select id="findCountyById"  resultType="pd">
+		select * from tb_loc_county where 1=1
+		<if test="county_id!=null and county_id!=''">
+			and id = #{county_id}
+		</if>
+	</select>
+    
+<!--     获取国家列表 -->
+	<select id="findAllCountry"  resultType="pd">
+		select * from tb_country where 1=1
+		
+	</select>
+	
+	
+	<select id="findAllProvince"  resultType="pd">
+		select * from tb_loc_province where 1=1
+		
+	</select>
+	
+	<select id="findAllCityByProvinceId" parameterType="pd" resultType="pd">
+		select * from tb_loc_city where 1=1
+		<if test="province_id!=null and province_id!=''">
+			and province_id = #{province_id}
+		</if>
+	</select>
+	
+	<select id="findAllCountyByCityId" parameterType="pd" resultType="pd">
+		select * from tb_loc_county where 1=1
+		<if test="city_id !=null and city_id !=''">
+			and city_id = #{city_id}
+		</if>
+	</select>
+	
+	<select id="findAllCityDeptId" parameterType="pd" resultType="pd">
+		select c.id,a.`name` as cityname ,b.`name` as departmentname,
+               c.cityid,c.itemsubbranch 
+          from tb_loc_city  as  a,tb_department as b,
+               tb_city_itemsubbranch as c
+         where a.id=c.cityid 
+           and b.id=c.itemsubbranch
+        <if test="departmentname!=null and departmentname !=''">
+        	 AND (b.name LIKE CONCAT(CONCAT('%', #{departmentname}),'%'))
+        </if>
+	</select>
+	
+	
+	<!-- 省份名称是否存在重复 -->
+    <select id="existsProvinceName" parameterType="pd" resultType="pd">
+    	select * from tb_loc_province where name=#{name} 
+    	<if test="province_id !=null and province_id !=''">
+    		and id not in (#{province_id})
+    	</if>
+    </select>
+    
+    <!-- 省份添加 -->
+    <insert id="provinceAdd" parameterType="pd">
+    	insert into tb_loc_province(
+    		name
+    		
+    	)values(
+    		#{name}
+    		
+    	)
+    </insert>
+    
+    <!-- 省份更新 -->
+    <update id="provinceUpdate" parameterType="pd">
+    	update tb_loc_province
+    	<set>
+    		name = #{name}
+    	</set>
+    	where id=#{province_id}
+    </update>
+    
+     <!-- 省份删除 -->
+     <delete id="provinceDeleteById">
+		delete from tb_loc_province
+    	where id = #{province_id}
+
+	</delete>
+	
+	
+	<!-- 城市名称是否存在重复 -->
+    <select id="existsCityName" parameterType="pd" resultType="pd">
+    	select * from tb_loc_city where name=#{name} 
+    	<if test="city_id !=null and city_id !=''">
+    		and id not in (#{city_id})
+    	</if>
+    </select>
+    
+    <!-- 城市添加 -->
+    <insert id="cityAdd" parameterType="pd">
+    	insert into tb_loc_city(
+    		province_id,
+    		name
+    		
+    	)values(
+    		#{province_id},
+    		#{name}
+    		
+    	)
+    </insert>
+    
+    <!-- 城市更新 -->
+    <update id="cityUpdate" parameterType="pd">
+    	update tb_loc_city
+    	<set>
+    		province_id = #{province_id},
+    		name = #{name},
+    	</set>
+    	where id=#{city_id}
+    </update>
+    
+     <!-- 城市删除 -->
+     <delete id="cityDeleteById">
+		delete from tb_loc_city
+    	where id = #{city_id}
+	</delete>
+	
+	
+	<!-- 区县名称是否存在重复 -->
+    <select id="existsCountyName" parameterType="pd" resultType="pd">
+    	select * from tb_loc_county where name=#{name} 
+    	<if test="city_id !=null and city_id !=''">
+    		and id not in (#{county_id})
+    	</if>
+    </select>
+    
+    <!-- 城市和地区名称是否存在重复 -->
+    <select id="existsCityDeptName" parameterType="pd" resultType="pd">
+    	select * 
+    	  from tb_loc_city  as  a,tb_department as b,tb_city_itemsubbranch as c
+         where a.id=c.cityid 
+           and b.id=c.itemsubbranch
+           and a.id=#{city_id} 
+           and b.id=#{dept_id};
+
+    </select>
+    
+    <!-- 区县添加 -->
+    <insert id="countyAdd" parameterType="pd">
+    	insert into tb_loc_county(
+    		city_id,
+    		name
+    		
+    	)values(
+    		#{city_id},
+    		#{name}
+    		
+    	)
+    </insert>
+    
+    <insert id="cityDeptAdd" parameterType="pd">
+    	insert into tb_city_itemsubbranch(
+    		cityid,
+            itemsubbranch    		
+    	)values(
+    		#{city_id} ,
+    		#{dept_id}
+    	)
+    </insert> 
+    
+    <!-- 区县更新 -->
+    <update id="countyUpdate" parameterType="pd">
+    	update tb_loc_county
+    	<set>
+    		city_id = #{city_id},
+    		name = #{name},
+    	</set>
+    	where id=#{county_id}
+    </update>
+    
+     <!-- 区县删除 -->
+     <delete id="countyDeleteById">
+		delete from tb_loc_county
+    	where id = #{county_id}
+	</delete>
+	 <!-- 区县城市对应公司关系 -->
+     <delete id="citydeptDeleteById">
+		delete from tb_city_itemsubbranch
+    	where id = #{county_id}
+	</delete>
+    <!-- 根据省份name获取省份信息 -->
+   <select id="findProvinceByName" parameterType="pd" resultType="pd">
+     SELECT * from tb_loc_province WHERE name=#{name}
+   </select>
+   <!-- 根据城市name和省份id获取城市信息 -->
+   <select id="findCityByName" parameterType="pd" resultType="pd">
+    SELECT * FROM tb_loc_city WHERE province_id=#{province_id} AND name=#{name}
+    </select>
+    <!-- 根据城市name获取城市信息 -->
+   <select id="findCityByName2" parameterType="pd" resultType="pd">
+     SELECT * FROM tb_loc_city where name=#{name}
+   </select>
+    <!-- 根据公司name获取公司信息 -->
+   <select id="findCityByName3" parameterType="pd" resultType="pd">
+     SELECT * FROM tb_department where name=#{countyName} and type=10
+   </select>
+    <!-- 根据区县name和城市id获取区县信息 -->
+   <select id="findCountyByName" parameterType="pd" resultType="pd">
+     SELECT * from tb_loc_county WHERE city_id=#{city_id} AND name=#{countyName}
+   </select>
+
+	<select id="findYSFProvince"  resultType="pd">
+		select * from tb_loc_province tlp where EXISTS(SELECT 1 FROM tb_loc_destination tld where tld.province_id=tlp.id )
+
+	</select>
+</mapper>	

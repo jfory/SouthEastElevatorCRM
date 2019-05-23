@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="customerOrdinaryMapper">
+	
+	<insert id="saveCustomerOrdinary" parameterType="pd">
+		insert into tb_customer_ordinary(
+			customer_id,
+			customer_no,
+			customer_name,
+			customer_type,
+			customer_ordinary_type,
+			customer_trade,
+			customer_status,
+			customer_area,
+			customer_company,
+			company_address,
+			company_property,
+			company_phone,
+			company_email,
+			company_fax,
+			company_postcode,
+			company_tax,
+			company_bank,
+			bank_no,
+			customer_contact,
+			contact_duty,
+			contact_phone,
+			contact_email,
+			business_license,
+			legal_represent,
+			employee_num,
+			found_source,
+			business_and_scope,
+			business_status,
+			decision_make1,
+			dm_name1,
+			dm_duty1,
+			dm_phone1,
+			dm_sex1,
+			dm_age1,
+			dm_edubg1,
+			dm_hobby1,
+			dm_birthday1,
+			decision_make2,
+			dm_name2,
+			dm_duty2,
+			dm_phone2,
+			dm_sex2,
+			dm_age2,
+			dm_edubg2,
+			dm_hobby2,
+			dm_birthday2,
+			decision_make3,
+			dm_name3,
+			dm_duty3,
+			dm_phone3,
+			dm_sex3,
+			dm_age3,
+			dm_edubg3,
+			dm_hobby3,
+			dm_birthday3,
+			relation_descript,
+			customer_ratings,
+			respond_salesman,
+			start_flag,
+			remark,
+			modified_by,
+			modified_date,
+			input_date,
+			input_user,
+			province_id,
+			city_id,
+			county_id,
+			is_core,
+			customer_branch
+		)values(
+			#{customer_id},
+			#{customer_no},
+			#{customer_name_ordinary},
+			#{customer_type_ordinary},
+			#{customer_ordinary_type_ordinary},
+			#{customer_trade_ordinary},
+			#{customer_status_ordinary},
+			#{customer_area_ordinary},
+			#{customer_company_ordinary},
+			#{company_address_ordinary},
+			#{company_property_ordinary},
+			#{company_phone_ordinary},
+			#{company_email_ordinary},
+			#{company_fax_ordinary},
+			#{company_postcode_ordinary},
+			#{company_tax_ordinary},
+			#{company_bank_ordinary},
+			#{bank_no_ordinary},
+			#{customer_contact_ordinary},
+			#{contact_duty_ordinary},
+			#{contact_phone_ordinary},
+			#{contact_email_ordinary},
+			#{business_license_ordinary},
+			#{legal_represent_ordinary},
+			#{employee_num_ordinary},
+			#{found_source_ordinary},
+			#{business_and_scope_ordinary},
+			#{business_status_ordinary},
+			#{decision_make1_ordinary},
+			#{dm_name1_ordinary},
+			#{dm_duty1_ordinary},
+			#{dm_phone1_ordinary},
+			#{dm_sex1_ordinary},
+			#{dm_age1_ordinary},
+			#{dm_edubg1_ordinary},
+			#{dm_hobby1_ordinary},
+			#{dm_birthday1_ordinary},
+			#{decision_make2_ordinary},
+			#{dm_name2_ordinary},
+			#{dm_duty2_ordinary},
+			#{dm_phone2_ordinary},
+			#{dm_sex2_ordinary},
+			#{dm_age2_ordinary},
+			#{dm_edubg2_ordinary},
+			#{dm_hobby2_ordinary},
+			#{dm_birthday2_ordinary},
+			#{decision_make3_ordinary},
+			#{dm_name3_ordinary},
+			#{dm_duty3_ordinary},
+			#{dm_phone3_ordinary},
+			#{dm_sex3_ordinary},
+			#{dm_age3_ordinary},
+			#{dm_edubg3_ordinary},
+			#{dm_hobby3_ordinary},
+			#{dm_birthday3_ordinary},
+			#{relation_descript_ordinary},
+			#{customer_ratings_ordinary},
+			#{respond_salesman_ordinary},
+			#{start_flag_ordinary},
+			#{remark_ordinary},
+			#{input_user_ordinary},
+			now(),
+			now(),
+			#{input_user},
+			#{province_id},
+			#{city_id},
+			#{county_id},
+			#{is_core_ordinary},
+			#{customer_branch_ordinary}
+		)
+	</insert>
+	
+	<update id="editCustomerOrdinary" parameterType="pd">
+		update  tb_customer_ordinary
+				set 
+					customer_no=#{customer_no},
+					customer_name=#{customer_name_ordinary},
+					customer_type=#{customer_type_ordinary},
+					customer_ordinary_type=#{customer_ordinary_type_ordinary},
+					customer_trade=#{customer_trade_ordinary},
+					customer_status=#{customer_status_ordinary},
+					customer_area=#{customer_area_ordinary},
+					customer_company=#{customer_company_ordinary},
+					company_address=#{company_address_ordinary},
+					company_property=#{company_property_ordinary},
+					company_phone=#{company_phone_ordinary},
+					company_email=#{company_email_ordinary},
+					company_fax=#{company_fax_ordinary},
+					company_postcode=#{company_postcode_ordinary},
+					company_tax=#{company_tax_ordinary},
+					company_bank=#{company_bank_ordinary},
+					bank_no=#{bank_no_ordinary},
+					customer_contact=#{customer_contact_ordinary},
+					contact_duty=#{contact_duty_ordinary},
+					contact_phone=#{contact_phone_ordinary},
+					contact_email=#{contact_email_ordinary},
+					business_license=#{business_license_ordinary},
+					legal_represent=#{legal_represent_ordinary},
+					employee_num=#{employee_num_ordinary},
+					found_source=#{found_source_ordinary},
+					business_and_scope=#{business_and_scope_ordinary},
+					business_status=#{business_status_ordinary},
+					decision_make1=#{decision_make1_ordinary},
+					dm_name1=#{dm_name1_ordinary},
+					dm_duty1=#{dm_duty1_ordinary},
+					dm_phone1=#{dm_phone1_ordinary},
+					dm_sex1=#{dm_sex1_ordinary},
+					dm_age1=#{dm_age1_ordinary},
+					dm_edubg1=#{dm_edubg1_ordinary},
+					dm_hobby1=#{dm_hobby1_ordinary},
+					dm_birthday1=#{dm_birthday1_ordinary},
+					decision_make2=#{decision_make2_ordinary},
+					dm_name2=#{dm_name2_ordinary},
+					dm_duty2=#{dm_duty2_ordinary},
+					dm_phone2=#{dm_phone2_ordinary},
+					dm_sex2=#{dm_sex2_ordinary},
+					dm_age2=#{dm_age2_ordinary},
+					dm_edubg2=#{dm_edubg2_ordinary},
+					dm_hobby2=#{dm_hobby2_ordinary},
+					dm_birthday2=#{dm_birthday2_ordinary},
+					decision_make3=#{decision_make3_ordinary},
+					dm_name3=#{dm_name3_ordinary},
+					dm_duty3=#{dm_duty3_ordinary},
+					dm_phone3=#{dm_phone3_ordinary},
+					dm_sex3=#{dm_sex3_ordinary},
+					dm_age3=#{dm_age3_ordinary},
+					dm_edubg3=#{dm_edubg3_ordinary},
+					dm_hobby3=#{dm_hobby3_ordinary},
+					dm_birthday3=#{dm_birthday3_ordinary},
+					relation_descript=#{relation_descript_ordinary},
+					customer_ratings=#{customer_ratings_ordinary},
+					respond_salesman=#{respond_salesman_ordinary},
+					start_flag=#{start_flag_ordinary},
+					remark=#{remark_ordinary},
+					modified_by=#{modified_by},
+					modified_date=now(),
+					province_id=#{province_id_ordinary},
+					city_id=#{city_id_ordinary},
+					county_id=#{city_id_ordinary},
+					is_core=#{is_core_ordinary},
+					customer_branch=#{customer_branch_ordinary}
+				where 
+					customer_id=#{customer_id_ordinary}
+	</update>
+	
+	<delete id="deleteCustomerOrdinary" parameterType="pd">
+		delete from 
+			tb_customer_ordinary
+		where
+			customer_id=#{customer_id}
+	</delete>
+    
+    <select id="findCustomerOrdinaryById" parameterType="pd" resultType="pd">
+    	select * from tb_customer_ordinary where customer_id=#{customer_id}
+    </select>
+    
+    
+    <select id="findCustomerOrdinary" parameterType="pd" resultType="pd">
+		<!-- select
+			td.name as customer_area_text,
+			cc.customer_name as customer_company,
+			co.*
+		from 
+			tb_customer_ordinary co
+		left join 
+			tb_department td
+		on 
+			co.customer_area=td.id
+		left join
+			tb_customer_core cc
+		on
+			co.customer_company=cc.customer_id
+		where co.customer_id=#{customer_id} -->
+			select 
+			td.name as customer_branch_text,
+        	u.`name` as user_name,
+			a.*
+			from(
+			select
+			td.name as customer_area_text,
+			cc.customer_id as customer_company,
+			co.customer_id,
+			co.customer_no,
+			co.customer_name,
+			co.customer_type,
+			co.customer_ordinary_type,
+			co.customer_trade,
+			co.customer_status,
+			co.customer_area,
+			co.company_address,
+			co.company_property,
+			co.company_phone,
+			co.company_email,
+			co.company_fax,
+			co.company_postcode,
+			co.company_tax,
+			co.company_bank,
+			co.bank_no,
+			co.customer_contact,
+			co.contact_duty,
+			co.contact_phone,
+			co.contact_email,
+			co.business_license,
+			co.legal_represent,
+			co.employee_num,
+			co.found_source,
+			co.business_and_scope,
+			co.business_status,
+			co.decision_make1,
+			co.dm_name1,
+			co.dm_duty1,
+			co.dm_phone1,
+			co.dm_sex1,
+			co.dm_age1,
+			co.dm_edubg1,
+			co.dm_hobby1,
+			co.dm_birthday1,
+			co.decision_make2,
+			co.dm_name2,
+			co.dm_duty2,
+			co.dm_phone2,
+			co.dm_sex2,
+			co.dm_age2,
+			co.dm_edubg2,
+			co.dm_hobby2,
+			co.dm_birthday2,
+			co.decision_make3,
+			co.dm_name3,
+			co.dm_duty3,
+			co.dm_phone3,
+			co.dm_sex3,
+			co.dm_age3,
+			co.dm_edubg3,
+			co.dm_hobby3,
+			co.dm_birthday3,
+			co.relation_descript,
+			co.customer_ratings,
+			co.credit_ratings,
+			co.respond_salesman,
+			co.start_flag,
+			co.remark,
+			co.modified_by,
+			co.modified_date,
+			co.input_user,
+			co.province_id,
+			co.city_id,
+			co.county_id,
+			co.is_core,
+			co.customer_branch,
+			co.input_date
+		from 
+			tb_customer_ordinary co
+		left join 
+			tb_department td
+		on 
+			co.customer_area=td.id
+		left join
+			tb_customer_core cc
+		on
+			co.customer_company=cc.customer_id
+		where co.customer_id=#{customer_id}
+		)a left join tb_department td
+		on td.id=a.customer_branch
+        LEFT JOIN sys_user u on a.input_user = u.user_id
+	</select>
+	<select id="isDecision2Null" resultType="String" parameterType="pd">
+		select 
+			count(*) 
+		from 
+			tb_customer_ordinary
+		where 
+			(decision_make2 is not null and decision_make2 !="") and 
+			(dm_name2 is not null and dm_name2 != "") and 
+			(dm_duty2 is not null and dm_duty2 != "") and 
+			(dm_phone2 is not null and dm_phone2 != "") and 
+			(dm_sex2 is not null and dm_sex2 != "") and 
+			(dm_age2 is not null and dm_age2 != "") and 
+			(dm_edubg2 is not null and dm_edubg2 != "") and 
+			(dm_hobby2 is not null and dm_hobby2 !="") and 
+			customer_id=#{customer_id};
+	</select>
+	
+	<select id="isDecision3Null" resultType="String" parameterType="pd">
+		select 
+			count(*) 
+		from 
+			tb_customer_ordinary
+		where 
+			(decision_make3 is not null and decision_make3 !="") and 
+			(dm_name3 is not null and dm_name3 != "") and 
+			(dm_duty3 is not null and dm_duty3 != "") and 
+			(dm_phone3 is not null and dm_phone3 != "") and 
+			(dm_sex3 is not null and dm_sex3 != "") and 
+			(dm_age3 is not null and dm_age3 != "") and 
+			(dm_edubg3 is not null and dm_edubg3 != "") and 
+			(dm_hobby3 is not null and dm_hobby3 !="") and 
+			customer_id=#{customer_id};
+	</select>
+	
+	<select id="findCustomerByNameOrdinary" parameterType="pd" resultType="pd">
+		select * from tb_customer_ordinary where customer_name=#{customer_name}
+	</select>
+	
+	<select id="findCustomerByOldNameOrdinary" parameterType="pd" resultType="pd">
+		select * from tb_customer_ordinary where customer_name!=#{old_customer_name} and customer_name=#{customer_name}
+	</select>
+	
+	<select id="findCustomerRespondOrdinary" resultType="pd">
+		select NAME,USER_ID from sys_user
+	</select>
+	
+	<select id="findOrdinaryCustomerId" resultType="pd">
+		select customer_id,customer_name from tb_customer_ordinary
+	</select>
+	
+	<select id="ifDelTradeType" parameterType="pd" resultType="pd">
+		select * from tb_customer_ordinary where customer_trade=#{id}
+	</select>
+	
+	<select id="ifDelOrdinaryType" parameterType="pd" resultType="pd">
+		select * from tb_customer_ordinary where customer_ordinary_type=#{id}
+	</select>
+	
+	
+</mapper>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ComeFundMapper">
+  <select id="comefundlistPage" parameterType="page" resultType="pd">
+    SELECT * FROM tb_come_fund where 1=1
+    <if test="pd.roleType!='4'">
+		<if test="pd.userList!=null and pd.userList.size()>0">
+			and input_user in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+	    </if>
+	</if>
+  </select>
+  <!-- 新增来款信息 -->
+	<insert id="saveS" parameterType="pd">
+		insert into tb_come_fund(
+		com_uuid,
+		com_no,
+		com_money,
+		com_account,
+		com_company,
+		com_time,
+	    com_remarks,
+	    com_states,
+	    com_type,
+	    input_user,
+	    input_time
+		)
+		values
+		(
+		#{com_uuid},
+		#{com_no},
+		#{com_money},
+		#{com_account},
+		#{com_company},
+		#{com_time},
+	    #{com_remarks},
+	    #{com_states},
+	    #{com_type},
+	    #{input_user},
+	    #{input_time}
+		)
+	</insert>
+	<!-- 根据编号查询信息 -->
+	<select id="findComeFundById" parameterType="page" resultType="pd">
+		SELECT * FROM tb_come_fund AS cf WHERE cf.com_no=#{com_no}
+	</select>
+	<!-- 修改 -->
+	<update id="editS" parameterType="pd">
+		UPDATE tb_come_fund
+		SET
+		com_money        =#{com_money},
+		com_account      =#{com_account},
+		com_company      =#{com_company},
+		com_time         =#{com_time},
+	    com_remarks      =#{com_remarks}
+		WHERE
+		com_no   = #{com_no}
+	</update>
+	<!-- 根据编号删除信息 -->
+	<delete id="delComeFund" parameterType="pd">
+		DELETE from tb_come_fund where com_no=#{com_no}
+	</delete>
+	<!-- 查询应收款项目信息 -->
+	<select id="collectSetlistPage" parameterType="page" resultType="pd">
+    SELECT
+      cs.*,
+	  i.item_name
+    FROM
+	  tb_collect_set as cs 
+    left join 
+      tb_item as i
+    ON 
+      cs.item_id=i.item_id
+  </select>
+  <!-- 根据编号查询应收款信息 -->
+	<select id="findCollectSetById" parameterType="page" resultType="pd">
+		SELECT
+	      cs.*,
+          i.item_name
+       FROM
+	     tb_collect_set AS cs
+       LEFT JOIN
+         tb_item as i
+       ON 
+         cs.item_id=i.item_id
+       Where
+         cs.item_id=#{item_id}
+	</select>
+	<!-- 新增分款信息 -->
+	<insert id="claimsaveS" parameterType="pd">
+		insert into tb_collect_info(
+		uuid,
+		item_id,
+		stage,
+		money,
+		time,
+		input_user,
+	    status,
+	    come_fund_id
+		)
+		values
+		(
+		#{uuid},
+		#{item_id},
+		#{stage},
+		#{money},
+		#{time},
+		#{input_user},
+	    #{status},
+	    #{come_fund_id}
+		)
+	</insert>
+	 <!-- 根据编号查询应收款电梯信息 -->
+	<select id="findCollectStageById" parameterType="pd" resultType="pd">
+		SELECT
+	      cs.details_id,
+          cs.total
+        FROM
+	      tb_elevator_details as ed
+        LEFT JOIN
+          tb_collect_stage as cs
+        ON
+          ed.id=cs.details_id
+        WHERE 
+          ed.item_id=#{item_id}
+        AND cs.stage=#{stage_no}
+	</select>
+	<!-- 新增分给电梯的钱 -->
+	<insert id="saveEle" parameterType="pd">
+		insert into tb_collect_ele(
+		id,
+		info_id,
+		details_id,
+		total
+		)
+		values
+		(
+		#{id},
+		#{info_id},
+		#{details_id},
+		#{total}
+		)
+	</insert>
+	<!-- 获取option集合 -->
+    <select id="findComFundList"  resultType="pd">
+    	SELECT * FROM tb_come_fund
+    </select>
+</mapper>

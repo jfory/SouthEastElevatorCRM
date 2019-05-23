@@ -1,0 +1,17 @@
+package com.dncrm.listener.workflow
+
+rule "FinanceRule"
+when
+$ct:CheckTerm(chargesstatus=="Y" || alldiscount<50)
+then
+$ct.setCheckfinance(true);
+System.out.println("the chargesstatus is"+$ct.getChargesstatus()+" and the alldiscount is"+ $ct.getAlldiscount());
+end
+
+rule "CompanyRule"
+when
+$ct:CheckTerm(profit=="0" || changguidiscount<50)
+then
+$ct.setCheckiscompany(true);
+System.out.println("the profit is"+$ct.getProfit()+" and the changguidiscount is "+ $ct.getChangguidiscount());
+end

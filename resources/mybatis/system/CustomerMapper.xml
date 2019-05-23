@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CustomerMapper">
+
+    <!-- <resultMap type="Customer" id="customerResultMap">
+        <id column="CUSTOMER_ID" property="CUSTOMER_ID"/>
+        <result column="CUSTOMER_NAME" property="CUSTOMER_NAME"/>
+        <result column="CUSTOMER_TYPE" property="CUSTOMER_TYPE"/>
+    </resultMap> -->
+    
+    <select id="listPageAllCustomerByRole" parameterType="page" resultType="pd">
+    	select 
+		c.customer_id,
+		c.customer_no,
+		c.customer_name,
+		c.customer_type,
+		c.customer_contact,
+		c.contact_phone,
+        da.`name` as customer_area_text,
+        db.`name` as customer_branch_text,
+        u.`name` as user_name
+		from tb_customer_ordinary c
+        LEFT JOIN tb_department da on c.customer_area = da.id
+        LEFT JOIN tb_department db on c.customer_branch = db.id 
+        LEFT JOIN sys_user u on c.input_user = u.user_id
+        where 1=1
+		<if test="pd.roleType!=4">
+			<if test="pd.userList!=null and pd.userList.size()>0">
+				and input_user in
+				<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+		            ${user_id}
+		        </foreach>
+	        </if>
+	        <if test="pd.userList==null or pd.userList.size()==0">
+				and input_user in ('')
+	        </if>
+		</if>
+		<if test="pd.search_customer_name != null and pd.search_customer_name != ''">
+            and c.customer_name LIKE CONCAT(CONCAT('%', #{pd.search_customer_name}),'%') 
+        </if>
+		<if test="pd.search_customer_type != null and pd.search_customer_type != '' and pd.search_customer_type=='Ordinary'">
+            and c.customer_type=#{pd.search_customer_type} 
+        </if>
+        <if test="pd.search_customer_area != null and pd.search_customer_area != '' ">
+            and da.`name` LIKE CONCAT(CONCAT('%', #{pd.search_customer_area}),'%') 
+        </if>
+        <if test="pd.search_customer_sub_company != null and pd.search_customer_sub_company != '' ">
+            and db.`name` LIKE CONCAT(CONCAT('%', #{pd.search_customer_sub_company}),'%') 
+        </if>
+        <if test="pd.search_user_name != null and pd.search_user_name != '' ">
+            and u.`name` LIKE CONCAT(CONCAT('%', #{pd.search_user_name}),'%') 
+        </if>
+        <if test="pd.search_customer_type != null and pd.search_customer_type != '' and pd.search_customer_type!='Ordinary'">
+            and 1=2 
+        </if>
+		union
+		select
+		customer_id,
+		customer_no,
+		customer_name,
+		customer_type,
+		customer_contact,
+		contact_phone,
+        '' as customer_area_text,
+        '' as customer_branch_text,
+        u.`name` as user_name
+		from tb_customer_merchant 
+        LEFT JOIN sys_user u on tb_customer_merchant.input_user = u.user_id
+		where 1=1
+		<if test="pd.roleType!=4">
+			<if test="pd.userList!=null and pd.userList.size()>0">
+				and input_user in
+				<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+		            ${user_id}
+		        </foreach>
+	        </if>
+	        <if test="pd.userList==null or pd.userList.size()==0">
+				and input_user in ('')
+	        </if>
+		</if>
+		<if test="pd.search_customer_name != null and pd.search_customer_name != ''">
+            and customer_name LIKE CONCAT(CONCAT('%', #{pd.search_customer_name}),'%')
+        </if>
+        <if test="pd.search_customer_type != null and pd.search_customer_type != '' and pd.search_customer_type=='Merchant'">
+            and customer_type=#{pd.search_customer_type} 
+        </if>
+        <if test="pd.search_customer_type != null and pd.search_customer_type != '' and pd.search_customer_type!='Merchant'">
+            and 1=2 
+        </if>
+    </select>
+
+    <select id="listPageAllCustomer"  parameterType="page" resultType="pd">
+		select 
+		customer_id,
+		customer_no,
+		customer_name,
+		customer_type,
+		customer_contact,
+		contact_phone
+		from tb_customer_ordinary where 1=1
+			and input_user=#{pd.input_user}
+		<if test="pd.search_customer_name != null and pd.search_customer_name != ''">
+            and customer_name LIKE CONCAT(CONCAT('%', #{pd.search_customer_name}),'%') 
+        </if>
+		<if test="pd.search_customer_type != null and pd.search_customer_type != '' and pd.search_customer_type=='Ordinary'">
+            and customer_type=#{pd.search_customer_type} 
+        </if>
+        <if test="pd.search_customer_type != null and pd.search_customer_type != '' and pd.search_customer_type!='Ordinary'">
+            and 1=2 
+        </if>
+		<!-- union
+		select
+		cc.customer_id,
+		cc.customer_no,
+		cc.customer_name,
+		cc.customer_type,
+		su.NAME as customer_contact,
+		cc.collector_phone as contact_phone
+		from tb_customer_core cc,sys_user su
+		where 1=1 
+			and cc.collector=su.USER_ID
+			and input_user=#{pd.input_user}
+		<if test="pd.search_customer_name != null and pd.search_customer_name != ''">
+            and customer_name LIKE CONCAT(CONCAT('%', #{pd.search_customer_name}),'%')
+        </if>
+        <if test="pd.search_customer_type != null and pd.search_customer_type != '' and pd.search_customer_type=='Core'">
+            and customer_type=#{pd.search_customer_type} 
+        </if>
+        <if test="pd.search_customer_type != null and pd.search_customer_type != '' and pd.search_customer_type!='Core'">
+            and 1=2 
+        </if> -->
+		union
+		select
+		customer_id,
+		customer_no,
+		customer_name,
+		customer_type,
+		customer_contact,
+		contact_phone
+		from tb_customer_merchant where 1=1
+			and input_user=#{pd.input_user}
+		<if test="pd.search_customer_name != null and pd.search_customer_name != ''">
+            and customer_name LIKE CONCAT(CONCAT('%', #{pd.search_customer_name}),'%')
+        </if>
+        <if test="pd.search_customer_type != null and pd.search_customer_type != '' and pd.search_customer_type=='Merchant'">
+            and customer_type=#{pd.search_customer_type} 
+        </if>
+        <if test="pd.search_customer_type != null and pd.search_customer_type != '' and pd.search_customer_type!='Merchant'">
+            and 1=2 
+        </if>
+	</select>
+	
+	<!-- 查询客户基本信息 -->
+	<select id="findCustomerInfo" resultType="pd">
+		select 
+			customer_id,
+			customer_no,
+			customer_name
+		from 
+			tb_customer_ordinary
+		union
+		select
+			customer_id,
+			customer_no,
+			customer_name
+		from
+			tb_customer_merchant
+		union
+		select
+			customer_id,
+			customer_no,
+			customer_name
+		from 
+			tb_customer_core
+		<!-- union
+		select
+			customer_id,
+			customer_no,
+			CONCAT(customer_name,'(个人)') as customer_name
+		from
+			tb_customer_person -->
+	</select>
+	<select id="findCustomerIdAndNameList" resultType="pd">
+		select 
+			customer_id as id,
+			customer_name as name
+		from 
+			tb_customer_ordinary
+		union
+		select
+			customer_id as id,
+			customer_name as name
+		from
+			tb_customer_merchant
+		union
+		select
+			customer_id as id,
+			customer_name as name
+		from 
+			tb_customer_core
+	</select>
+	
+	<select id="findMinYearCustomer" resultType="String">
+		select min(date) as date from(
+			select year(input_date) as date from tb_customer_ordinary union
+			select year(input_date) as date from tb_customer_merchant union
+			select year(input_date) as date from tb_customer_core
+		)a
+	</select>
+	
+	<select id="customerYearNum" parameterType="pd" resultType="pd">
+		select date,
+			max(case type when 'Core' then num else 0 end) as coreNum,
+			max(case type when 'Merchant' then num else 0 end) as merchantNum,
+			max(case type when 'Ordinary' then num else 0 end) as ordinaryNum
+		from (
+		select customer_type as type,count(*) as num,input_date as date from (
+		select customer_id,customer_no,customer_type,year(input_date)as input_date from tb_customer_ordinary 
+		<if test="year != null and year != ''">
+            where year(input_date)=#{year}
+        </if>
+		union select customer_id,customer_no,customer_type,year(input_date)as input_date from tb_customer_merchant
+		<if test="year != null and year != ''">
+            where year(input_date)=#{year}
+        </if> 
+		union select customer_id,customer_no,customer_type,year(input_date)as input_date from tb_customer_core
+		<if test="year != null and year != ''">
+            where year(input_date)=#{year}
+        </if>
+		)a group by type,date
+		)b group by date
+	</select>
+	
+	<select id="customerMonthNum"  parameterType="String" resultType="pd">
+		<!-- select date,
+			max(case type when 'Core' then num else 0 end) as coreNum,
+			max(case type when 'Merchant' then num else 0 end) as merchantNum,
+			max(case type when 'Ordinary' then num else 0 end) as ordinaryNum
+		from (
+		select customer_type as type,count(*) as num,input_date as date from (
+		select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_ordinary where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_merchant where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_core where year(input_date)=#{year}
+		)a group by type,date
+		)b group by date -->
+		
+		select ds.val as date,IFNULL(c.coreNum,0) as coreNum,IFNULL(c.merchantNum,0) as merchantNum,IFNULL(c.ordinaryNum,0) as ordinaryNum from tb_date_std ds 
+		left join
+		(
+		select date,
+			max(case type when 'Core' then num else 0 end) as coreNum,
+			max(case type when 'Merchant' then num else 0 end) as merchantNum,
+			max(case type when 'Ordinary' then num else 0 end) as ordinaryNum
+		from (
+		select customer_type as type,count(*) as num,input_date as date from (
+		select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_ordinary where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_merchant where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_core where year(input_date)=#{year}
+		)a group by type,date
+		)b group by date
+		)c on c.date=ds.val where ds.type='month'
+	</select>
+	
+	<select id="customerQuarterNum"  parameterType="String" resultType="pd">
+		select ds.val as date,IFNULL(c.coreNum,0) as coreNum,IFNULL(c.merchantNum,0) as merchantNum,IFNULL(c.ordinaryNum,0) as ordinaryNum from tb_date_std ds 
+		left join
+		(
+		select date,
+			max(case type when 'Core' then num else 0 end) as coreNum,
+			max(case type when 'Merchant' then num else 0 end) as merchantNum,
+			max(case type when 'Ordinary' then num else 0 end) as ordinaryNum
+		from (
+		select customer_type as type,count(*) as num,input_date as date from (
+		select customer_id,customer_no,customer_type,quarter(input_date)as input_date from tb_customer_ordinary where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,quarter(input_date)as input_date from tb_customer_merchant where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,quarter(input_date)as input_date from tb_customer_core where year(input_date)=#{year}
+		)a group by type,date
+		)b group by date
+		)c on c.date=ds.val where ds.type='quarter'
+	</select>
+	
+	
+	
+	<!-- 导出用sql -->
+	<select id="findCustomerOrdinaryList" resultType="pd">
+		select * from tb_customer_ordinary
+	</select>
+	<select id="findCustomerMerchantList" resultType="pd">
+		select * from tb_customer_merchant
+	</select>
+	<select id="findCustomerCoreList" resultType="pd">
+		select * from tb_customer_core
+	</select>
+	<!-- 导入用sql -->
+	<insert id="saveOrdinaryImportExcel" parameterType="pd">
+		insert into tb_customer_ordinary(
+			customer_id,
+			customer_no,
+			customer_name,
+			customer_type,
+			customer_ordinary_type,
+			customer_trade,
+			customer_status,
+			customer_area,
+			customer_company,
+			company_address,
+			company_property,
+			company_phone,
+			company_email,
+			company_fax,
+			company_postcode,
+			company_tax,
+			company_bank,
+			bank_no,
+			customer_contact,
+			contact_duty,
+			contact_phone,
+			contact_email,
+			business_license,
+			legal_represent,
+			employee_num,
+			found_source,
+			business_and_scope,
+			business_status,
+			decision_make1,
+			dm_name1,
+			dm_duty1,
+			dm_phone1,
+			dm_sex1,
+			dm_age1,
+			dm_edubg1,
+			dm_hobby1,
+			dm_birthday1,
+			decision_make2,
+			dm_name2,
+			dm_duty2,
+			dm_phone2,
+			dm_sex2,
+			dm_age2,
+			dm_edubg2,
+			dm_hobby2,
+			dm_birthday2,
+			decision_make3,
+			dm_name3,
+			dm_duty3,
+			dm_phone3,
+			dm_sex3,
+			dm_age3,
+			dm_edubg3,
+			dm_hobby3,
+			dm_birthday3,
+			relation_descript,
+			customer_ratings,
+			respond_salesman,
+			start_flag,
+			remark,
+			modified_by,
+			modified_date,
+			input_date,
+			input_user,
+			province_id,
+			city_id,
+			county_id,
+			is_core,
+			customer_branch
+		)values(
+			#{customer_id},
+			#{customer_no},
+			#{customer_name},
+			#{customer_type},
+			#{customer_ordinary_type},
+			#{customer_trade},
+			#{customer_status},
+			#{customer_area},
+			#{customer_company},
+			#{company_address},
+			#{company_property},
+			#{company_phone},
+			#{company_email},
+			#{company_fax},
+			#{company_postcode},
+			#{company_tax},
+			#{company_bank},
+			#{bank_no},
+			#{customer_contact},
+			#{contact_duty},
+			#{contact_phone},
+			#{contact_email},
+			#{business_license},
+			#{legal_represent},
+			#{employee_num},
+			#{found_source},
+			#{business_and_scope},
+			#{business_status},
+			#{decision_make1},
+			#{dm_name1},
+			#{dm_duty1},
+			#{dm_phone1},
+			#{dm_sex1},
+			#{dm_age1},
+			#{dm_edubg1},
+			#{dm_hobby1},
+			#{dm_birthday1},
+			#{decision_make2},
+			#{dm_name2},
+			#{dm_duty2},
+			#{dm_phone2},
+			#{dm_sex2},
+			#{dm_age2},
+			#{dm_edubg2},
+			#{dm_hobby2},
+			#{dm_birthday2},
+			#{decision_make3},
+			#{dm_name3},
+			#{dm_duty3},
+			#{dm_phone3},
+			#{dm_sex3},
+			#{dm_age3},
+			#{dm_edubg3},
+			#{dm_hobby3},
+			#{dm_birthday3},
+			#{relation_descript},
+			#{customer_ratings},
+			#{respond_salesman},
+			#{start_flag},
+			#{remark},
+			#{modify_by},
+			#{modify_date},
+			#{input_date},
+			#{input_user},
+			#{province_id},
+			#{city_id},
+			#{county_id},
+			#{is_core},
+			#{customer_branch}
+		)
+	</insert>
+	<insert id="saveMerchantImportExcel" parameterType="pd">
+		insert into tb_customer_merchant(
+    		customer_id,
+    		customer_no,
+    		customer_type,
+    		customer_name,
+    		customer_hobby,
+    		customer_birthday,
+    		customer_company,
+    		customer_ratings,
+    		customer_project,
+    		customer_contact,
+    		contact_phone,
+    		contact_way,
+    		contact_address,
+    		contact_emergency_one,
+    		em_one_phone,
+    		contact_emergency_two,
+    		em_two_phone,
+    		respond_salesman,
+    		service_man,
+    		project_source,
+    		type_specifiaction,
+    		config,
+    		design_sketch,
+    		price,
+    		agent_company,
+    		agent_name,
+    		agent_brand,
+    		agent_ratings,
+    		agent_property,
+    		remark,
+    		modified_by,
+    		modified_date,
+    		customer_status,
+    		input_date,
+    		input_user,
+    		is_core,
+    		customer_org,
+    		customer_email,
+    		house_no
+    	)values(
+    		#{customer_id},
+    		#{customer_no},
+    		#{customer_type},
+    		#{customer_name},
+    		#{customer_hobby},
+    		#{customer_birthday},
+    		#{customer_company},
+    		#{customer_ratings},
+    		#{customer_project},
+    		#{customer_contact},
+    		#{contact_phone},
+    		#{contact_way},
+    		#{contact_address},
+    		#{contact_emergency_one},
+    		#{em_one_phone},
+    		#{contact_emergency_two},
+    		#{em_two_phone},
+    		#{respond_salesman},
+    		#{service_man},
+    		#{project_source},
+    		#{type_specifiaction},
+    		#{config},
+    		#{design_sketch},
+    		#{price},
+    		#{agent_company},
+    		#{agent_name},
+    		#{agent_brand},
+    		#{agent_ratings},
+    		#{agent_property},
+    		#{remark},
+    		#{modified_by},
+    		#{modified_date},
+    		#{customer_status},
+    		#{input_date},
+    		#{input_user},
+    		#{is_core},
+    		#{customer_org},
+    		#{customer_email},
+    		#{house_no}
+    	)
+	</insert>
+	<insert id="saveCoreImportExcel" parameterType="pd">
+		insert into tb_customer_core(
+    		customer_id,
+    		customer_no,
+			customer_name,
+			customer_type,
+			collector,
+			collector_phone,
+			collector_time,
+			keyperson_name1,
+			keyperson_duty1,
+			keyperson_phone1,
+			keyperson_name2,
+			keyperson_duty2,
+			keyperson_phone2,
+			has_cooperate_pro,
+			now_cooperate_pro,
+			cooperate_pro_id,
+			pro_status,
+			is_core_cooperate,
+			core_cooperate_agre,
+			core_cooperate_date,
+			core_cooperate_num,
+			core_cooperate_money,
+			customer_company,
+			input_date,
+			input_user,
+			customer_level
+    	)values(
+    		#{customer_id},
+    		#{customer_no},
+			#{customer_name},
+			#{customer_type},
+			#{collector},
+			#{collector_phone},
+			#{collector_time},
+			#{keyperson_name1},
+			#{keyperson_duty1},
+			#{keyperson_phone1},
+			#{keyperson_name2},
+			#{keyperson_duty2},
+			#{keyperson_phone2},
+			#{has_cooperate_pro},
+			#{now_cooperate_pro},
+			#{cooperate_pro_id},
+			#{pro_status},
+			#{is_core_cooperate},
+			#{core_cooperate_agre},
+			#{core_cooperate_date},
+			#{core_cooperate_num},
+			#{core_cooperate_money},
+			#{customer_company},
+			#{input_date},
+			#{input_user},
+			#{customer_level}
+    	)
+	</insert>
+	
+	
+	<!-- 普通客户导出 -->
+	<select id="findCustomerOrdinaryToExcel" resultType="pd">
+		select 
+		ct.name as customer_trade_excel,
+		cda.name as customer_area_excel,
+		cdc.name as customer_company_excel,
+		cdb.name as customer_branch_excel,
+		sui.name as input_user_excel,
+		sur.name as respond_salesman_excel,
+		sum.name as modified_by_excel,
+		co.* from tb_customer_ordinary co
+		left join tb_trade_type ct on ct.id = co.customer_trade
+		left join tb_department cda on cda.id = co.customer_area
+		left join tb_department cdc on cdc.id = co.customer_company
+		left join tb_department cdb on cdb.id = co.customer_branch
+		left join sys_user sui on sui.user_id = co.input_user
+		left join sys_user sur on sur.user_id = co.respond_salesman
+		left join sys_user sum on sum.user_id = co.modified_by
+	</select>
+	
+	<!--小业主导出 -->
+	<select id="findCustomerMerchantToExcel" resultType="pd">
+		select 
+		ch.houses_name as houses_no_excel,
+		cdc.name as customer_company_excel,
+		sur.name as respond_salesman_excel,
+		sus.name as service_man_excel,
+		sum.name as modify_by_excel,
+		cm.* from tb_customer_merchant cm
+		left join tb_houses ch on ch.houses_no = cm.house_no
+		left join tb_department cdc on cdc.id = cm.customer_company
+		left join sys_user sur on sur.user_id = cm.respond_salesman
+		left join sys_user sus on sus.user_id = cm.service_man
+		left join sys_user sum on sum.user_id = cm.modify_by
+	</select>
+	
+	<!-- 战略客户导出 -->
+	<select id="findCustomerCoreToExcel" resultType="pd">
+		select
+		ci.item_name as cooperate_pro_id_excel,
+		sui.name as input_user,
+		sum.name as modified_by,
+		suc.name as collector_excel,
+		cc.* from tb_customer_core cc
+		left join tb_item ci on ci.item_id = cc.cooperate_pro_id
+		left join tb_department cdc on cdc.id = cc.customer_company
+		left join sys_user sui on sui.user_id = cc.input_user
+		left join sys_user sum on sum.user_id = cc.modified_by
+		left join sys_user suc on suc.user_id = cc.collector
+	</select>
+	
+	<select id="findUserId" parameterType="String" resultType="String">
+		select user_id from sys_user where name=#{name}
+	</select>
+	
+	<select id="findTradeId" parameterType="String" resultType="String">
+		select id from tb_trade_type where name=#{name}
+	</select>
+	
+	<select id="findOrdinaryId" parameterType="String" resultType="String">
+		select id from tb_ordinary_type where type=#{type}
+	</select>
+	
+	<select id="findHousesNo" parameterType="String" resultType="String">
+		select houses_no from tb_houses where houses_name=#{name}
+	</select>
+	
+	<select id="findDepartmentId" parameterType="String" resultType="String">
+		select id from tb_department where name=#{name}
+	</select>
+	
+	<select id="checkExistOname" parameterType="String" resultType="String">
+		select count(*) as num from tb_customer_ordinary where customer_name=#{customer_name}
+	</select>
+	
+	<select id="checkExistMname" parameterType="String" resultType="String">
+		select count(*) as num from tb_customer_merchant where customer_name=#{customer_name}
+	</select>
+	
+	<select id="checkExistCollector" parameterType="String" resultType="String">
+		select count(*) as num from sys_user where name=#{name}
+	</select>
+	
+	<select id="checkExistCname" parameterType="String" resultType="String">
+		select count(*) as num from tb_customer_core where customer_name=#{customer_name}
+	</select>
+	
+	<select id="checkTrade" parameterType="String" resultType="String">
+		select count(*) as num from tb_trade_type where name=#{name}
+	</select>
+	
+	<select id="checkOrdinary" parameterType="String"  resultType="String">
+		select count(*) as num from tb_ordinary_type where type=#{type}
+	</select>
+	
+	<select id="checkDepartment" parameterType="String" resultType="String">
+		select count(*) as num from tb_department wherer name=#{name}
+	</select>
+</mapper>

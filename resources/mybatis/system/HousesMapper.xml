@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="HousesMapper">
+
+    <select id="houseslistPageByRole" parameterType="page" resultType="pd">
+        select
+        h.houses_no,
+        h.houses_name,
+        td.name as customer_area_text,
+        h.houses_address,
+        h.houses_phone,
+        h.houses_contacts,
+        h.houses_con_phone,
+        h.houses_faxes,
+        h.houses_email,
+        h.houses_postcode,
+        ht.type_name,
+        h.houses_dev_name,
+        h.houses_dev_address,
+        h.houses_dev_phone,
+        h.houses_dev_email,
+        h.houses_dev_faxes,
+        h.houses_dev_contacts,
+        h.houses_dev_con_phone,
+        hs.status_name ,
+        h.houses_relevantProject,
+        h.remarks,
+        h.modified_by,
+        h.modified_time,
+        h.sales_point,
+        h.villadom_num,
+        h.delivery_id,
+        h.delivery,
+        province_id,
+        city_id,
+        county_id,
+        address_name,
+        h.house_type_img,
+        h.is_templet
+        from
+        tb_houses as h
+        LEFT JOIN
+        tb_houses_type as ht
+        ON
+        h.houses_type_id=ht.id
+        LEFT JOIN
+        tb_houses_status
+        as hs
+        ON
+        h.houses_status_id=hs.id
+        LEFT JOIN
+        tb_department as td
+        ON
+        h.houses_region_id=td.id
+        WHERE
+        1=1
+        <if test="pd.houses_name != null and pd.houses_name != ''">
+            and h.houses_name LIKE
+            CONCAT(CONCAT('%',#{pd.houses_name}),'%')
+        </if>
+        <if test="pd.houses_address != null and pd.houses_address != ''">
+            and h.houses_address LIKE
+            CONCAT(CONCAT('%',#{pd.houses_address}),'%')
+        </if>
+        <if test="pd.houses_contacts != null and pd.houses_contacts != ''">
+            and h.houses_contacts LIKE
+            CONCAT(CONCAT('%',#{pd.houses_contacts}),'%')
+        </if>
+        <if test="pd.roleType!=4">
+            <if test="pd.userList!=null and pd.userList.size()>0">
+                and h.input_user in
+                <foreach collection="pd.userList" item="user_id" index="index"
+                         open="(" close=")" separator=",">
+                    ${user_id}
+                </foreach>
+            </if>
+            <if test="pd.userList==null or pd.userList.size()==0">
+                and h.input_user in ('')
+            </if>
+        </if>
+        ORDER BY h.modified_time DESC
+    </select>
+    <!-- 查询属于该楼盘的户型信息 -->
+    <select id="houseTypelistPage" parameterType="page" resultType="pd">
+        SELECT ht.*, h.houses_name
+        FROM tb_housetype as ht
+                 LEFT JOIN tb_houses as h ON ht.houses_id = h.houses_no
+        WHERE ht.houses_id = #{pd.houses_id}
+    </select>
+    <!-- 查询楼盘基本信息 -->
+    <select id="houseslistPage" parameterType="page" resultType="pd">
+        select
+        h.houses_no,
+        h.houses_name,
+        td.name as customer_area_text,
+        h.houses_address,
+        h.houses_phone,
+        h.houses_contacts,
+        h.houses_con_phone,
+        h.houses_faxes,
+        h.houses_email,
+        h.houses_postcode,
+        ht.type_name,
+        h.houses_dev_name,
+        h.houses_dev_address,
+        h.houses_dev_phone,
+        h.houses_dev_email,
+        h.houses_dev_faxes,
+        h.houses_dev_contacts,
+        h.houses_dev_con_phone,
+        hs.status_name ,
+        h.houses_relevantProject,
+        h.remarks,
+        h.modified_by,
+        h.modified_time,
+        h.sales_point,
+        h.villadom_num,
+        province_id,
+        city_id,
+        county_id,
+        address_name,
+        h.house_type_img,
+        h.is_templet,
+        h.delivery,
+        from
+        tb_houses as h
+        LEFT JOIN
+        tb_houses_type as ht
+        ON
+        h.houses_type_id=ht.id
+        LEFT JOIN
+        tb_houses_status as hs
+        ON
+        h.houses_status_id=hs.id
+        LEFT JOIN
+        tb_department as td
+        ON
+        h.houses_region_id=td.id
+        WHERE
+        1=1
+        <if test="pd.houses_name != null and pd.houses_name != ''">
+            and h.houses_name LIKE
+            CONCAT(CONCAT('%',#{pd.houses_name}),'%')
+        </if>
+        <if test="pd.houses_address != null and pd.houses_address != ''">
+            and h.houses_address LIKE
+            CONCAT(CONCAT('%',#{pd.houses_address}),'%')
+        </if>
+        <if test="pd.houses_contacts != null and pd.houses_contacts != ''">
+            and h.houses_contacts LIKE
+            CONCAT(CONCAT('%',#{pd.houses_contacts}),'%')
+        </if>
+        ORDER BY h.modified_time DESC
+    </select>
+    <!-- 通过楼盘编号获取数据 -->
+    <select id="findHousesById" parameterType="pd" resultType="pd">
+        select h.houses_no,
+               h.houses_name,
+               td.name            as customer_area_text,
+               h.houses_region_id as customer_area,
+               h.houses_address,
+               h.houses_phone,
+               h.houses_contacts,
+               h.houses_con_phone,
+               h.houses_faxes,
+               h.houses_email,
+               h.houses_postcode,
+               h.houses_type_id,
+               h.houses_dev_name,
+               h.houses_dev_address,
+               h.houses_dev_phone,
+               h.houses_dev_email,
+               h.houses_dev_faxes,
+               h.houses_dev_contacts,
+               h.houses_dev_con_phone,
+               h.houses_status_id,
+               h.houses_relevantProject,
+               h.remarks,
+               h.modified_by,
+               h.sales_point,
+               h.province_id,
+               h.villadom_num,
+               h.city_id,
+               h.county_id,
+               address_name,
+               h.house_type_img,
+               h.modified_name,
+               h.entering_time,
+               h.households,
+               h.houses_style,
+               h.delivery_id,
+               h.delivery,
+               h.is_templet,
+               h.installation_status,
+               cust.customer_name
+        from tb_houses as h
+                 LEFT JOIN tb_department as td ON h.houses_region_id = td.id
+                 LEFT JOIN tb_customer_ordinary as cust ON h.houses_dev_name = cust.customer_id
+        where h.houses_no = #{houses_no}
+    </select>
+    <!-- 判断名字是否重复 -->
+    <select id="findHousesByName" parameterType="pd" resultType="pd">
+        select houses_name
+        from tb_houses
+        where houses_name = #{houses_name}
+    </select>
+    <!-- 判断地址是否重复 -->
+    <select id="findHousesByAddress" parameterType="pd" resultType="pd">
+        select houses_address
+        from tb_houses
+        where houses_address = #{houses_address}
+    </select>
+    <!-- 通过开发商ID获取数据 （普通客户）-->
+    <select id="findcustomerOrdinaryById" parameterType="pd" resultType="pd">
+        SELECT customer_id, company_address, company_phone, company_email, company_fax, customer_contact, contact_phone
+        FROM tb_customer_ordinary
+        where customer_id = #{customer_id}
+    </select>
+    <!-- 根据楼盘id查询单元信息 -->
+    <select id="celllistPage" parameterType="page" resultType="pd">
+        select cp.cell_id,
+               cp.cell_name,
+               h.houses_name,
+               w.well_name,
+               comp.comp_name,
+               comp.comp_address,
+               comp.comp_phone,
+               comp.comp_email,
+               cp.comp_price_from,
+               cp.comp_price_to,
+               cp.house_owner_info,
+               cp.house_type_img,
+               cp.comp_brand,
+               cp.comp_drive_mode
+        FROM tb_comp_price as cp
+                 LEFT JOIN tb_competitor as comp ON cp.comp_id = comp.comp_id
+                 LEFT JOIN tb_houses as h ON cp.houses_no = h.houses_no
+                 LEFT JOIN tb_well as w ON cp.cell_well = w.well_id
+        where cp.houses_no = #{pd.houses_id}
+    </select>
+
+    <!-- 根据楼盘编号删除数据 -->
+    <delete id="deleteHouses" parameterType="pd">
+        delete
+        from tb_houses
+        where houses_no = #{houses_no}
+    </delete>
+
+    <!-- 查询楼盘类型 -->
+    <select id="housesTypeList" parameterType="pd" resultType="pd">
+        select *
+        from tb_houses_type
+    </select>
+
+    <!-- 查询楼盘状态 -->
+    <select id="housesStatusList" parameterType="pd" resultType="pd">
+        select *
+        from tb_houses_status
+    </select>
+
+    <!-- 查询所属区域 -->
+    <select id="housesRegionList" parameterType="pd" resultType="pd">
+        select *
+        from tb_region
+    </select>
+    <!-- 新增楼盘 -->
+    <insert id="saveS" parameterType="pd">
+        insert into tb_houses (houses_no,
+                               houses_region_id,
+                               houses_name,
+                               houses_address,
+                               houses_phone,
+                               houses_contacts,
+                               houses_con_phone,
+                               houses_faxes,
+                               houses_email,
+                               houses_postcode,
+                               houses_type_id,
+                               houses_dev_name,
+                               houses_dev_address,
+                               houses_dev_phone,
+                               houses_dev_email,
+                               houses_dev_faxes,
+                               houses_dev_contacts,
+                               houses_dev_con_phone,
+                               houses_status_id,
+                               houses_relevantProject,
+                               remarks,
+                               modified_by,
+                               modified_time,
+                               sales_point,
+                               province_id,
+                               city_id,
+                               county_id,
+                               address_name,
+                               house_type_img,
+                               villadom_num,
+                               modified_name,
+                               entering_time,
+                               households,
+                               input_user,
+                               houses_style,
+                               delivery_id,
+                               delivery,
+                               is_templet)
+        values (#{houses_no},
+                #{customer_area_ordinary},
+                #{houses_name},
+                #{houses_address},
+                #{houses_phone},
+                #{houses_contacts},
+                #{houses_con_phone},
+                #{houses_faxes},
+                #{houses_email},
+                #{houses_postcode},
+                #{type_name},
+                #{houses_dev_name},
+                #{houses_dev_address},
+                #{houses_dev_phone},
+                #{houses_dev_email},
+                #{houses_dev_faxes},
+                #{houses_dev_contacts},
+                #{houses_dev_con_phone},
+                #{status_name},
+                #{houses_relevantProject},
+                #{remarks},
+                #{modified_by},
+                #{modified_time},
+                #{sales_point},
+                #{province_id},
+                #{city_id},
+                #{county_id},
+                #{agent_address},
+                #{houses_img_json},
+                #{villadom_num},
+                #{modified_name},
+                #{entering_time},
+                #{households},
+                #{input_user},
+                #{houses_style},
+                #{delivery_id},
+                #{deliveryJSON},
+                #{is_templet})
+    </insert>
+    <!-- 修改 -->
+    <update id="editS" parameterType="pd">
+        UPDATE tb_houses
+        SET houses_region_id       = #{customer_area_ordinary},
+            houses_name            = #{houses_name},
+            houses_address         = #{houses_address},
+            houses_phone           = #{houses_phone},
+            houses_contacts        = #{houses_contacts},
+            houses_con_phone       = #{houses_con_phone},
+            houses_faxes           = #{houses_faxes},
+            houses_email           = #{houses_email},
+            houses_postcode        = #{houses_postcode},
+            houses_type_id         = #{type_name},
+            houses_dev_name        = #{houses_dev_name},
+            houses_dev_address     = #{houses_dev_address},
+            houses_dev_phone       = #{houses_dev_phone},
+            houses_dev_email       = #{houses_dev_email},
+            houses_dev_faxes       = #{houses_dev_faxes},
+            houses_dev_contacts    = #{houses_dev_contacts},
+            houses_dev_con_phone   = #{houses_dev_con_phone},
+            houses_status_id       = #{status_name},
+            houses_relevantProject = #{houses_relevantProject},
+            remarks                = #{remarks},
+            modified_name          = #{modified_name},
+            modified_time          = #{modified_time},
+            sales_point            = #{sales_point},
+            province_id            = #{province_id},
+            city_id                = #{city_id},
+            county_id              = #{county_id},
+            address_name           = #{agent_address},
+            house_type_img         = #{houses_img_json},
+            villadom_num           = #{villadom_num},
+            households             = #{households},
+            houses_style           = #{houses_style},
+            delivery_id            = #{delivery_id},
+            delivery               = #{deliveryJSON},
+            is_templet             = #{is_templet},
+            installation_status    = #{installation_status}
+        WHERE houses_no = #{houses_no}
+    </update>
+
+    <!-- 查询楼盘编号,和name arisu -->
+    <select id="findHouseNoAndName" resultType="pd">
+        select houses_no, houses_name
+        from tb_houses
+    </select>
+    <!-- *******************报表模块********************* -->
+    <!-- 年份 -->
+    <select id="housesNum" parameterType="String" resultType="pd">
+        select date,
+               ifnull(count(*), 0)as          housesNum,
+               ifnull(sum(cellNumDN001), 0)as cellNumDN001,
+               ifnull(sum(cellNum), 0) as     cellNum
+        from (select a.houses_no, a.cellNumDN001, b.cellNum, a.date
+              from (select h.houses_no, a.cellNumDN001, year(h.modified_time)as date
+                    from tb_houses
+                                 h
+                             left join (select houses_no, count(houses_no)as cellNumDN001, date
+                                        from (select h.houses_name,
+                                                     h.houses_no,
+                                                     year(h.modified_time)as date,
+                                                     c.cell_name,
+                                                     c.comp_id
+                                              from tb_houses h
+                                                       left join tb_comp_price c on c.houses_no = h.houses_no)a
+                                        where a.cell_name is not null
+                                          and a.comp_id = 'dn001'
+                                        group by houses_no)a on a.houses_no = h.houses_no)a
+                       left join (select h.houses_no, a.cellNum, year(h.modified_time)as date
+                                  from tb_houses h
+                                           left join (select houses_no, count(houses_no)as cellNum, date
+                                                      from (select h.houses_name,
+                                                                   h.houses_no,
+                                                                   year(h.modified_time)as date,
+                                                                   c.cell_name,
+                                                                   c.comp_id
+                                                            from tb_houses h
+                                                                     left join tb_comp_price c
+                                                                         on c.houses_no = h.houses_no)a
+                                                      where a.cell_name is not null
+                                                        and a.comp_id &lt;&gt; 'dn001'
+                                                      group by houses_no)a on a.houses_no = h.houses_no)b
+                           on a.houses_no = b.houses_no)b
+        group by date
+    </select>
+    <!-- 月份 -->
+    <select id="housesMonthNum" parameterType="String" resultType="pd">
+        select date, count(*)as housesNum, sum(cellNumDN001)as cellNumDN001, sum(cellNum) as cellNum
+        from (select a.houses_no, a.cellNumDN001, b.cellNum, month(a.date)as date
+              from (select h.houses_no, a.cellNumDN001, h.modified_time as date
+                    from tb_houses h
+                             left join (select houses_no, count(houses_no)as cellNumDN001, date
+                                        from (select h.houses_name,
+                                                     h.houses_no,
+                                                     h.modified_time as date,
+                                                     c.cell_name,
+                                                     c.comp_id
+                                              from tb_houses h
+                                                       left join tb_comp_price c on c.houses_no = h.houses_no)a
+                                        where a.cell_name is not null
+                                          and a.comp_id = 'dn001'
+                                        group by houses_no)a on a.houses_no = h.houses_no)a
+                       left join (select h.houses_no, a.cellNum, h.modified_time as date
+                                  from tb_houses h
+                                           left join (select houses_no, count(houses_no)as cellNum, date
+                                                      from (select h.houses_name,
+                                                                   h.houses_no,
+                                                                   h.modified_time as date,
+                                                                   c.cell_name,
+                                                                   c.comp_id
+                                                            from tb_houses h
+                                                                     left join tb_comp_price c
+                                                                         on c.houses_no = h.houses_no)a
+                                                      where a.cell_name is not null
+                                                        and a.comp_id &lt;&gt; 'dn001'
+                                                      group by houses_no)a on a.houses_no = h.houses_no)b
+                           on a.houses_no = b.houses_no
+              where year(a.date) = #{year})b
+        group by date
+    </select>
+    <!-- 季度 -->
+    <select id="housesQuarterNum" parameterType="String" resultType="pd">
+        select date, count(*)as housesNum, sum(cellNumDN001)as cellNumDN001, sum(cellNum) as cellNum
+        from (select a.houses_no, a.cellNumDN001, b.cellNum, quarter(a.date)as date
+              from (select h.houses_no, a.cellNumDN001, h.modified_time as date
+                    from tb_houses h
+                             left join (select houses_no, count(houses_no)as cellNumDN001, date
+                                        from (select h.houses_name,
+                                                     h.houses_no,
+                                                     h.modified_time as date,
+                                                     c.cell_name,
+                                                     c.comp_id
+                                              from tb_houses h
+                                                       left join tb_comp_price c on c.houses_no = h.houses_no)a
+                                        where a.cell_name is not null
+                                          and a.comp_id = 'dn001'
+                                        group by houses_no)a on a.houses_no = h.houses_no)a
+                       left join (select h.houses_no, a.cellNum, h.modified_time as date
+                                  from tb_houses h
+                                           left join (select houses_no, count(houses_no)as cellNum, date
+                                                      from (select h.houses_name,
+                                                                   h.houses_no,
+                                                                   h.modified_time as date,
+                                                                   c.cell_name,
+                                                                   c.comp_id
+                                                            from tb_houses h
+                                                                     left join tb_comp_price c
+                                                                         on c.houses_no = h.houses_no)a
+                                                      where a.cell_name is not null
+                                                        and a.comp_id &lt;&gt; 'dn001'
+                                                      group by houses_no)a on a.houses_no = h.houses_no)b
+                           on a.houses_no = b.houses_no
+              where year(a.date) = #{year})b
+        group by date
+    </select>
+
+
+    <!-- 获取option集合 -->
+    <select id="findHousesList" resultType="pd">
+        SELECT h.*,
+               d.NAME   as dname,
+               ht.type_name,
+               cor.customer_name,
+               p.NAME   AS pname,
+               lci.NAME AS lciname,
+               lco.NAME AS lconame,
+               hs.status_name
+        FROM tb_houses AS h
+                 LEFT JOIN tb_department AS d ON h.houses_region_id = d.id
+                 LEFT JOIN tb_houses_type AS ht ON h.houses_type_id = ht.id
+                 LEFT JOIN tb_customer_ordinary AS cor ON h.houses_dev_name = cor.customer_id
+                 LEFT JOIN tb_loc_province AS p ON h.province_id = p.id
+                 LEFT JOIN tb_loc_city AS lci ON h.city_id = lci.id
+                 LEFT JOIN tb_loc_county AS lco ON h.county_id = lco.id
+                 LEFT JOIN tb_houses_status as hs ON h.houses_status_id = hs.id
+    </select>
+    <!-- 查询开发商基本信息 （普通客户）-->
+    <select id="ordinarylist" parameterType="page" resultType="pd">
+        SELECT customer_id, customer_name
+        FROM tb_customer_ordinary
+    </select>
+    <!-- 查询根据区域name获取id（导入）-->
+    <select id="findDepartmentByName" parameterType="pd" resultType="pd">
+        SELECT id
+        FROM tb_department
+        WHERE type = '8'
+          and name = #{Department_name}
+    </select>
+    <!-- 查询根据楼盘类型name获取id（导入）-->
+    <select id="findHousesTypeByName" parameterType="pd" resultType="pd">
+        SELECT id
+        from tb_houses_type
+        WHERE type_name = #{houses_type}
+    </select>
+    <!-- 查询根据开发商name获取id（导入）-->
+    <select id="findOrdinaryByName" parameterType="pd" resultType="pd">
+        SELECT customer_id
+        FROM tb_customer_ordinary
+        WHERE customer_name = #{customer_name}
+    </select>
+    <!-- 查询根据楼盘状态name获取id（导入）-->
+    <select id="findHousesStatusByName" parameterType="pd" resultType="pd">
+        SELECT id
+        FROM tb_houses_status
+        where status_name = #{status_name}
+    </select>
+    <!-- 查询 根据省，市，区name获取id（导入）-->
+    <select id="findProvinceByName" parameterType="pd" resultType="pd">
+        SELECT lpr.id as lprId, lci.id as lciId, lco.id as lcoId
+        from tb_loc_province as lpr
+                 LEFT JOIN tb_loc_city as lci ON lpr.id = lci.province_id
+                 LEFT JOIN tb_loc_county as lco ON lci.id = lco.city_id
+        WHERE lpr.name = #{province_name}
+          AND lci.name = #{city_name}
+          AND lco.name = #{county_name}
+    </select>
+
+</mapper>
+
+
+
+
+
+
+

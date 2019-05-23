@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="customerDeveloperMapper">
+	
+	<insert id="saveCustomerDeveloper" parameterType="pd">
+		insert into tb_customer_developer(
+			customer_name,
+			respond_salesman,
+			customer_area,
+			customer_company,
+			customer_contact,
+			contact_duty,
+			contact_phone,
+			contact_email,
+			customer_trade,
+			company_phone,
+			company_fax,
+			company_email,
+			employee_num,
+			bank_no,
+			legal_represent,
+			customer_account,
+			tax_no,
+			customer_address,
+			enterprice_property,
+			found_source,
+			customer_type,
+			customer_ratings,
+			credit_ratings,
+			start_flag,
+			business_and_scope,
+			business_status,
+			decision_make1,
+			dm_name1,
+			dm_duty1,
+			dm_sex1,
+			dm_age1,
+			dm_edubg1,
+			dm_birthday1,
+			dm_phone1,
+			dm_hobby1,
+			decision_make2,
+			dm_name2,
+			dm_duty2,
+			dm_sex2,
+			dm_age2,
+			dm_edubg2,
+			dm_birthday2,
+			dm_phone2,
+			dm_hobby2,
+			decision_make3,
+			dm_name3,
+			dm_duty3,
+			dm_sex3,
+			dm_age3,
+			dm_edubg3,
+			dm_birthday3,
+			dm_phone3,
+			dm_hobby3,
+			relation_descript,
+			remark,
+			INPUT_USER
+		)values(
+			 #{customer_name_developer},
+			 #{respond_salesman_developer},
+			 #{customer_area_developer},
+			 #{customer_company_developer},
+			 #{customer_contact_developer},
+			 #{contact_duty_developer},
+			 #{contact_phone_developer},
+			 #{contact_email_developer},
+			 #{customer_trade_developer},
+			 #{company_phone_developer},
+			 #{company_fax_developer},
+			 #{company_email_developer},
+			 #{employee_num_developer},
+			 #{bank_no_developer},
+			 #{legal_represent_developer},
+			 #{customer_account_developer},
+			 #{tax_no_developer},
+			 #{customer_address_developer},
+			 #{enterprice_property_developer},
+			 #{found_source_developer},
+			 #{customer_type_developer},
+			 #{customer_ratings_developer},
+			 #{credit_ratings_developer},
+			 #{start_flag_developer},
+			 #{business_and_scope_developer},
+			 #{business_status_developer},
+			 #{decision_make1_developer},
+			 #{dm_name1_developer},
+			 #{dm_duty1_developer},
+			 #{dm_sex1_developer},
+			 #{dm_age1_developer},
+			 #{dm_edubg1_developer},
+			 #{dm_birthday1_developer},
+			 #{dm_phone1_developer},
+			 #{dm_hobby1_developer},
+			 #{decision_make2_developer},
+			 #{dm_name2_developer},
+			 #{dm_duty2_developer},
+			 #{dm_sex2_developer},
+			 #{dm_age2_developer},
+			 #{dm_edubg2_developer},
+			 #{dm_birthday2_developer},
+			 #{dm_phone2_developer},
+			 #{dm_hobby2_developer},
+			 #{decision_make3_developer},
+			 #{dm_name3_developer},
+			 #{dm_duty3_developer},
+			 #{dm_sex3_developer},
+			 #{dm_age3_developer},
+			 #{dm_edubg3_developer},
+			 #{dm_birthday3_developer},
+			 #{dm_phone3_developer},
+			 #{dm_hobby3_developer},
+			 #{relation_descript_developer},
+			 #{remark_developer},
+			 #{INPUT_USER}
+		)
+	</insert>
+	
+	<update id="editCustomerDeveloper" parameterType="pd">
+		update  tb_customer_developer
+				set 
+					customer_name     =     #{customer_name_developer},
+					respond_salesman     =     #{respond_salesman_developer},
+					customer_area     =     #{customer_area_developer},
+					customer_company = #{customer_company_developer},
+					customer_contact     =     #{customer_contact_developer},
+					contact_duty     =     #{contact_duty_developer},
+					contact_phone     =     #{contact_phone_developer},
+					contact_email     =     #{contact_email_developer},
+					customer_trade     =     #{customer_trade_developer},
+					company_phone     =     #{company_phone_developer},
+					company_fax     =     #{company_fax_developer},
+					company_email     =     #{company_email_developer},
+					employee_num     =     #{employee_num_developer},
+					bank_no     =     #{bank_no_developer},
+					legal_represent     =     #{legal_represent_developer},
+					customer_account     =     #{customer_account_developer},
+					tax_no     =     #{tax_no_developer},
+					customer_address     =     #{customer_address_developer},
+					enterprice_property     =     #{enterprice_property_developer},
+					found_source     =     #{found_source_developer},
+					customer_type     =     #{customer_type_developer},
+					customer_ratings     =     #{customer_ratings_developer},
+					credit_ratings     =     #{credit_ratings_developer},
+					start_flag     =     #{start_flag_developer},
+					business_and_scope     =     #{business_and_scope_developer},
+					business_status     =     #{business_status_developer},
+					decision_make1     =     #{decision_make1_developer},
+					dm_name1     =     #{dm_name1_developer},
+					dm_duty1     =     #{dm_duty1_developer},
+					dm_sex1     =     #{dm_sex1_developer},
+					dm_age1     =     #{dm_age1_developer},
+					dm_edubg1     =     #{dm_edubg1_developer},
+					dm_birthday1     =     #{dm_birthday1_developer},
+					dm_phone1     =     #{dm_phone1_developer},
+					dm_hobby1     =     #{dm_hobby1_developer},
+					decision_make2     =     #{decision_make2_developer},
+					dm_name2     =     #{dm_name2_developer},
+					dm_duty2     =     #{dm_duty2_developer},
+					dm_sex2     =     #{dm_sex2_developer},
+					dm_age2     =     #{dm_age2_developer},
+					dm_edubg2     =     #{dm_edubg2_developer},
+					dm_birthday2     =     #{dm_birthday2_developer},
+					dm_phone2     =     #{dm_phone2_developer},
+					dm_hobby2     =     #{dm_hobby2_developer},
+					decision_make3     =     #{decision_make3_developer},
+					dm_name3     =     #{dm_name3_developer},
+					dm_duty3     =     #{dm_duty3_developer},
+					dm_sex3     =     #{dm_sex3_developer},
+					dm_age3     =     #{dm_age3_developer},
+					dm_edubg3     =     #{dm_edubg3_developer},
+					dm_birthday3     =     #{dm_birthday3_developer},
+					dm_phone3     =     #{dm_phone3_developer},
+					dm_hobby3     =     #{dm_hobby3_developer},
+					relation_descript     =     #{relation_descript_developer},
+					remark     =     #{remark_developer},
+					INPUT_USER     =     #{INPUT_USER}
+				where 
+					customer_id         = #{customer_id_developer}
+	</update>
+	
+	<delete id="deleteCustomerDeveloper" parameterType="pd">
+		delete from 
+			tb_customer_developer
+		where
+			customer_id=#{customer_id}
+	</delete>
+    
+    <select id="findCustomerDeveloperById" parameterType="pd" resultType="pd">
+    	select * from tb_customer_developer where customer_id=#{customer_id}
+    </select>
+    
+    
+    <select id="findCustomerDeveloper" parameterType="pd" resultType="pd">
+		select 
+			cd.customer_id,
+			cd.customer_name,
+			cd.respond_salesman,
+			cd.customer_area,
+			cd.customer_contact,
+			cd.contact_duty,
+			cd.contact_phone,
+			cd.contact_email,
+			cd.customer_trade,
+			cd.company_phone,
+			cd.company_fax,
+			cd.company_email,
+			cd.employee_num,
+			cd.bank_no,
+			cd.legal_represent,
+			cd.customer_account,
+			cd.tax_no,
+			cd.customer_address,
+			cd.enterprice_property,
+			cd.found_source,
+			cd.customer_type,
+			cd.customer_ratings,
+			cd.credit_ratings,
+			cd.start_flag,
+			cd.business_and_scope,
+			cd.business_status,
+			cd.decision_make1,
+			cd.dm_name1,
+			cd.dm_duty1,
+			cd.dm_sex1,
+			cd.dm_age1,
+			cd.dm_edubg1,
+			cd.dm_birthday1,
+			cd.dm_phone1,
+			cd.dm_hobby1,
+			cd.decision_make2,
+			cd.dm_name2,
+			cd.dm_duty2,
+			cd.dm_sex2,
+			cd.dm_age2,
+			cd.dm_edubg2,
+			cd.dm_birthday2,
+			cd.dm_phone2,
+			cd.dm_hobby2,
+			cd.decision_make3,
+			cd.dm_name3,
+			cd.dm_duty3,
+			cd.dm_sex3,
+			cd.dm_age3,
+			cd.dm_edubg3,
+			cd.dm_birthday3,
+			cd.dm_phone3,
+			cd.dm_hobby3,
+			cd.relation_descript,
+			cd.remark,
+			cd.customer_company,
+			cd.INPUT_USER,
+			<if test="customer_area != null and customer_area != ''">
+			td.name as customer_area_text,
+			</if>
+			cy.name as customer_company_text
+		from 
+			tb_customer_developer cd,
+			<if test="customer_area != null and customer_area != ''">
+			tb_department td,
+			</if>
+			tb_customer_company cy
+		where 
+			<if test="customer_area != null and customer_area != ''">
+			td.id=cd.customer_area 
+			and 
+			</if>
+			cy.id=cd.customer_company
+			and 
+			customer_id=#{customer_id}
+	</select>
+	<select id="isDecision2Null" resultType="String" parameterType="pd">
+		select 
+			count(*) 
+		from 
+			tb_customer_developer
+		where 
+			(decision_make2 is not null and decision_make2 !="") and 
+			(dm_name2 is not null and dm_name2 != "") and 
+			(dm_duty2 is not null and dm_duty2 != "") and 
+			(dm_phone2 is not null and dm_phone2 != "") and 
+			(dm_sex2 is not null and dm_sex2 != "") and 
+			(dm_age2 is not null and dm_age2 != "") and 
+			(dm_edubg2 is not null and dm_edubg2 != "") and 
+			(dm_hobby2 is not null and dm_hobby2 !="") and 
+			customer_id=#{customer_id};
+	</select>
+	
+	<select id="isDecision3Null" resultType="String" parameterType="pd">
+		select 
+			count(*) 
+		from 
+			tb_customer_developer
+		where 
+			(decision_make3 is not null and decision_make3 !="") and 
+			(dm_name3 is not null and dm_name3 != "") and 
+			(dm_duty3 is not null and dm_duty3 != "") and 
+			(dm_phone3 is not null and dm_phone3 != "") and 
+			(dm_sex3 is not null and dm_sex3 != "") and 
+			(dm_age3 is not null and dm_age3 != "") and 
+			(dm_edubg3 is not null and dm_edubg3 != "") and 
+			(dm_hobby3 is not null and dm_hobby3 !="") and 
+			customer_id=#{customer_id};
+	</select>
+	
+	<select id="findCustomerByNameDeveloper" parameterType="pd" resultType="pd">
+		select * from tb_customer_developer where customer_name=#{customer_name}
+	</select>
+	
+	<select id="findCustomerByOldNameDeveloper" parameterType="pd" resultType="pd">
+		select * from tb_customer_developer where customer_name!=#{old_customer_name} and customer_name=#{customer_name}
+	</select>
+	
+	<select id="findCustomerRespondDeveloper" resultType="pd">
+		select NAME,USER_ID from sys_user
+	</select>
+	
+</mapper>

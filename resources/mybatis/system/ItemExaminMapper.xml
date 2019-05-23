@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="itemExaminMapper">
+
+	<select id="listPageItemExamin" parameterType="page" resultType="pd">
+		<!-- select * from tb_item_examin -->
+		select
+			ie.id,
+			ie.elevator_id,
+			ie.sale_role,
+			ie.examin_role,
+			ie.status,
+			te.elevator_name
+		from tb_item_examin ie, tb_elevator te
+			where ie.elevator_id=te.elevator_id
+	</select>
+	
+	<select id="findExaminById" parameterType="pd"  resultType="pd">
+		select * from tb_item_examin where id=#{id}
+	</select>
+	
+	<update id="updateExamin" parameterType="pd">
+		update
+			tb_item_examin
+		set
+			sale_role=#{sale_role},
+			examin_role=#{examin_role},
+			status=#{status}
+		where id=#{id}
+	</update>
+</mapper>

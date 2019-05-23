@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="LogMapper">
+	
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+	<!-- 日志分页列表 -->
+    <select id="loglistPage" parameterType="page" resultType="pd" useCache="false">
+        select * from sys_log a where 1=1
+        <if test="pd.log_title!=null and pd.log_title !=''">
+        	 AND (title LIKE CONCAT(CONCAT('%', #{pd.log_title}),'%'))
+        </if>
+        <if test="pd.log_type!=null and pd.log_type !=''">
+        	 AND type = #{pd.log_type}
+        </if>
+        <if test="pd.log_create_by!=null and pd.log_create_by !=''">
+        	 AND create_by = #{pd.log_create_by}
+        </if>
+        <if test="pd.log_create_role!=null and pd.log_create_role !=''">
+        	 AND create_role = #{pd.log_create_role}
+        </if>
+        order by create_date desc
+    </select>
+    
+    <select id="findLogById" parameterType="String" resultType="pd">
+    	select * from sys_log where id=#{id}
+    </select>
+    
+    <!-- 日志添加 -->
+    <insert id="logAdd" parameterType="pd">
+    	insert into sys_log(
+    		id,
+    		type,
+    		title,
+    		create_by,
+    		create_role,
+    		create_date,
+    		remote_addr,
+    		user_agent,
+    		request_uri,
+    		method,
+    		params,
+    		exception,
+    		logging,
+    		loggingId
+    	)values(
+    		#{id},
+    		#{type},
+    		#{title},
+    		#{create_by},
+    		#{create_role},
+    		#{create_date},
+    		#{remote_addr},
+    		#{user_agent},
+    		#{request_uri},
+    		#{method},
+    		#{params},
+    		#{exception},
+    		#{logging},
+    		#{loggingId}
+    	)
+    </insert>
+    
+    <!-- 日志修改 -->
+    <update id="logUpdate" parameterType="pd">
+    	update sys_log 
+    	<set>
+    	
+    	area_id=#{area_id},
+    	company_id = #{company_id},
+    	log_name = #{log_name,jdbcType=VARCHAR},
+    	log_address = #{log_address,jdbcType=VARCHAR},
+    	log_contact = #{log_contact,jdbcType=VARCHAR},
+    	contact_title = #{contact_title,jdbcType=VARCHAR},
+    	contact_phone = #{contact_phone,jdbcType=VARCHAR},
+    	contact_email = #{contact_email,jdbcType=VARCHAR},
+   		log_industry = #{log_industry,jdbcType=VARCHAR},
+   		log_tel = #{log_tel,jdbcType=VARCHAR},
+   		log_fax = #{log_fax,jdbcType=VARCHAR},
+   		log_postcode = #{log_postcode,jdbcType=VARCHAR},
+   		legal_representative = #{legal_representative,jdbcType=VARCHAR},
+   		log_bank_name = #{log_bank_name,jdbcType=VARCHAR},
+   		log_bank_account = #{log_bank_account,jdbcType=VARCHAR},
+   		log_license_no = #{log_license_no,jdbcType=VARCHAR},
+   		tax_no = #{tax_no,jdbcType=VARCHAR},
+   		log_email = #{log_email,jdbcType=VARCHAR},
+   		employee_num = #{employee_num},
+   		enterprise_property = #{enterprise_property,jdbcType=VARCHAR},
+   		content_and_scope = #{content_and_scope,jdbcType=VARCHAR},
+   		log_type = #{log_type},
+   		is_constructor = #{is_constructor},
+   		credit_ratings = #{credit_ratings,jdbcType=VARCHAR},
+   		is_acvtivated = #{is_acvtivated},
+   		response_salesman = #{response_salesman,jdbcType=VARCHAR},
+   		log_remark = #{log_remark,jdbcType=VARCHAR},
+   		constructor_employee_no	= #{constructor_employee_no,jdbcType=VARCHAR},
+    	constructor_qualification = #{constructor_qualification,jdbcType=VARCHAR},
+    	constructor_certification = #{constructor_certification,jdbcType=VARCHAR},
+    	constructor_insurance =  #{constructor_insurance,jdbcType=VARCHAR},
+    	constructor_description = #{constructor_description,jdbcType=VARCHAR},
+    	</set>
+    	where log_no=#{log_no}
+    </update>
+    
+    
+    
+     <!-- 日志删除 -->
+    <delete id="logDeleteById" parameterType="String">
+    	delete from sys_log
+    	where log_no = #{log_no}
+    </delete>
+    
+    <!-- 日志批量删除 -->
+    <delete id="logDeleteAll" parameterType="String">
+    	delete from sys_log
+    	where log_no in
+    	<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+</mapper>

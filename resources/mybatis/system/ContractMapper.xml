@@ -1,0 +1,595 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ContractMapper">
+
+<select id="listPageAllItemByRole" resultType="pd" parameterType="page">
+	SELECT 
+          DISTINCT i.*, 
+          c.*
+        FROM
+	      tb_item AS i
+        LEFT JOIN 
+          tb_contract AS c 
+        ON 
+          c.con_item_no = i.item_no
+	        where i.item_status='5'
+		   <if test="pd.search_item_name != null and pd.search_item_name != ''">
+               and item_name LIKE CONCAT(CONCAT('%', #{pd.search_item_name}),'%')
+           </if>
+           <if test="pd.roleType!='4'">
+	           <if test="pd.userList!=null and pd.userList.size()>0">
+					and i.input_user in
+					<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+			            ${user_id}
+			        </foreach>
+	       	 	</if>
+       	 	</if>
+          order by
+        	input_date
+          desc
+</select>
+
+<select id="listPageAllItem" resultType="pd" parameterType="page">
+		SELECT 
+          DISTINCT i.*, 
+          c.*
+        FROM
+	      tb_item AS i
+        LEFT JOIN 
+          tb_contract AS c 
+        ON 
+          c.con_item_no = i.item_no
+	        where i.item_status='5'
+		   <if test="pd.search_item_name != null and pd.search_item_name != ''">
+               and item_name LIKE CONCAT(CONCAT('%', #{pd.search_item_name}),'%')
+           </if>
+          order by
+        	input_date
+          desc
+	</select>
+    <!-- 根据合同编号查询合同基本信息 -->
+	<select id="findById" parameterType="page" resultType="pd">
+		select * from tb_contract,tb_item where tb_contract.con_item_no=tb_item.item_no and con_id=#{con_id}
+	</select>
+	<!-- 根据设备合同编号查询设备合同基本信息 -->
+	<select id="findSoContractById" parameterType="page" resultType="pd">
+		   select * 
+		     from tb_so_contract as a
+		LEFT JOIN
+		          tb_item as b on a.HT_ITEM_ID=b.item_id 
+		LEFT JOIN (
+		   SELECT
+				  tb_address.id address_id,
+				  tb_loc_province.name as province_name,
+				  tb_loc_city.name as city_name,
+				  tb_loc_county.name as county_name,
+				  tb_address.address_info,
+				  tb_address.province_id,
+				  tb_address.city_id,
+				  tb_address.county_id
+			 FROM
+				  tb_address
+		LEFT JOIN
+				  tb_loc_province
+			   ON
+				  tb_address.province_id=tb_loc_province.id
+		LEFT JOIN
+				  tb_loc_city
+			   ON
+				  tb_address.city_id=tb_loc_city.id
+		LEFT JOIN
+				  tb_loc_county
+			   ON
+				  tb_address.county_id=tb_loc_county.id  
+		          ) as c on c.address_id=b.item_install_address
+		LEFT JOIN tb_iteminoffer AS eo
+               ON eo.offer_id=a.`HT_OFFER_ID`
+		    where HT_NO=#{con_id}
+	</select>
+	<!-- 根据安装合同编号查询安装合同基本信息 -->
+	<select id="findAzContractById" parameterType="page" resultType="pd">
+		select * 
+		     from tb_az_contract as a
+		LEFT JOIN
+		          tb_item as b on a.AZ_ITEM_ID=b.item_id 
+		LEFT JOIN (
+		   SELECT
+				  tb_address.id address_id,
+				  tb_loc_province.name as province_name,
+				  tb_loc_city.name as city_name,
+				  tb_loc_county.name as county_name,
+				  tb_address.address_info,
+				  tb_address.province_id,
+				  tb_address.city_id,
+				  tb_address.county_id
+			 FROM
+				  tb_address
+		LEFT JOIN
+				  tb_loc_province
+			   ON
+				  tb_address.province_id=tb_loc_province.id
+		LEFT JOIN
+				  tb_loc_city
+			   ON
+				  tb_address.city_id=tb_loc_city.id
+		LEFT JOIN
+				  tb_loc_county
+			   ON
+				  tb_address.county_id=tb_loc_county.id  
+		          ) as c on c.address_id=b.item_install_address
+		LEFT JOIN tb_iteminoffer as eo
+               on eo.offer_id=a.AZ_OFFER_ID
+		    where AZ_NO=#{con_id}
+	</select>
+	
+	<!-- 根据合同uuid查询合同基本信息 -->
+	<select id="findByuuId" parameterType="page" resultType="pd">
+		select * from tb_contract as c,tb_item as i where c.con_item_no=i.item_no and con_uuid=#{con_uuid}
+	</select>
+    <!-- 根据合同编号删除合同信息 -->
+    <delete id="delContract" parameterType="pd">
+		DELETE from tb_contract where con_id=#{con_id}
+	</delete>
+	<!-- 查询项目名称-->
+	<select id="offerlistPage" parameterType="page" resultType="pd">
+	    select 
+	     offer_id,
+	     item_name
+	    from tb_offer
+	</select>
+	<!-- 根据项目name 查询项目id （导入）-->
+	<select id="findItemByName" parameterType="pd" resultType="pd">
+	    SELECT 
+	    i.item_no,
+	    c.con_item_no
+	    FROM 
+	    tb_item as i
+	    LEFT JOIN
+	    tb_contract as c
+	    ON
+	    c.con_item_no=i.item_no
+	    where item_name=#{item_name}
+	</select>
+	
+	<!--根据项目编号查询项目信息  -->
+	<select id="findItemById" parameterType="pd" resultType="pd">
+		SELECT
+	      elevator_info
+        FROM
+	      tb_item
+       WHERE
+         item_no=#{item_no}
+	</select>
+	<!-- 新增合同 -->
+	<insert id="saveS" parameterType="pd">
+		insert into tb_contract(
+		 con_uuid,
+		con_id,
+		con_name,
+		con_is_contained,
+		con_item_no,
+		item_content,
+		item_money,
+	    con_Payment,
+		con_Duration,
+		con_type,
+		con_status,
+		con_adjunct,
+		con_remarks,
+		con_EndTime,
+		owner,
+		ow_address,
+		ow_representative,
+		ow_entrusted,
+		ow_phone,
+		ow_faxes,
+		ow_bank,
+		ow_accounts,
+		ow_SignedTime,
+		second,
+		se_address,
+		se_representative,
+		se_entrusted,
+		se_phone,
+		se_faxes,
+		se_bank,
+		se_accounts,
+		modified_time,
+		con_bidding,
+        con_tariff,
+        con_standard,
+        con_build,
+        con_technology,
+        con_process_key,
+        requester_id,
+        con_approval,
+        con_special_key,
+        is_subscription,
+        con_state,
+        facility_contract,
+        install_contract,
+        install_price,
+        install_clause
+		)
+		values
+		(
+		 #{con_uuid},
+		#{con_id},
+		#{con_name},
+		#{con_is_contained},
+		#{item_no},
+		#{item_content},
+		#{item_total},
+	    #{con_Payment},
+		#{con_Duration},
+		#{con_type},
+		#{con_status},
+		#{con_adjunct},
+		#{con_remarks},
+		#{con_EndTime},
+		#{owner},
+		#{ow_address},
+		#{ow_representative},
+		#{ow_entrusted},
+		#{ow_phone},
+		#{ow_faxes},
+		#{ow_bank},
+		#{ow_accounts},
+		#{ow_SignedTime},
+		#{second},
+		#{se_address},
+		#{se_representative},
+		#{se_entrusted},
+		#{se_phone},
+		#{se_faxes},
+		#{se_bank},
+		#{se_accounts},
+		#{modified_time},
+		#{con_bidding},
+        #{con_tariff},
+        #{con_standard},
+        #{con_build},
+        #{con_technology},
+        #{con_process_key},
+        #{requester_id},
+        #{con_approval},
+        #{con_special_key},
+        #{is_subscription},
+        #{con_state},
+        #{facility_contract},
+        #{install_contract},
+        #{install_price},
+        #{install_clause}
+		)
+	</insert>
+	<!-- 修改合同 -->
+	<update id="editS" parameterType="pd">
+		UPDATE tb_contract
+		SET
+		con_name                       =#{con_name},
+		con_is_contained               =#{con_is_contained},  
+		item_content                   =#{item_content},
+	    con_Payment                    =#{con_Payment},
+		con_Duration                   =#{con_Duration},
+		con_type                       =#{con_type},
+		con_adjunct                    =#{con_adjunct},
+		con_remarks                    =#{con_remarks},
+		con_EndTime                    =#{con_EndTime},
+		owner                          =#{owner},
+		ow_address                     =#{ow_address},
+		ow_representative              =#{ow_representative},
+		ow_entrusted                   =#{ow_entrusted},
+		ow_phone                       =#{ow_phone},
+		ow_faxes                       =#{ow_faxes},
+		ow_bank                        =#{ow_bank},
+		ow_accounts                    =#{ow_accounts},
+		ow_SignedTime                  =#{ow_SignedTime},
+		second                         =#{second},
+		se_address                     =#{se_address},
+		se_representative              =#{se_representative},
+		se_entrusted                   =#{se_entrusted},
+		se_phone                       =#{se_phone},
+		se_faxes                       =#{se_faxes},
+		se_bank                        =#{se_bank},
+		se_accounts                    =#{se_accounts},
+		modified_time                  =#{modified_time},
+		con_bidding                    =#{con_bidding},
+        con_tariff                     =#{con_tariff},
+        con_standard                   =#{con_standard},
+        con_build                      =#{con_build},
+        con_technology                 =#{con_technology},
+        con_process_key                =#{con_process_key},
+        con_special_key                =#{con_special_key},
+        facility_contract              =#{facility_contract},
+        install_contract               =#{install_contract},
+        install_price                  =#{install_price},
+        install_clause                 =#{install_clause}
+		WHERE
+	    con_id= #{con_id}
+	</update>
+	<!-- 查询常规梯流程是否存在 -->
+	<select id="ConProcessKey" parameterType="page" resultType="pd">
+		SELECT * from act_re_procdef where KEY_='GeneralContract'
+	</select>
+	<!-- 查询特种梯流程是否存在 -->
+	<select id="SpecialKey" parameterType="page" resultType="pd">
+		SELECT * from act_re_procdef where KEY_='SpecialContract'
+	</select>
+	 <!-- 更新审核状态 -->
+    <update id="updateConApproval" parameterType="pd">
+    	UPDATE tb_contract
+		SET
+    	  con_approval      =#{con_approval}
+    	WHERE
+	    con_id= #{con_id}
+    </update>
+     <!-- 更新审核状态 -->
+    <update id="updateConApproval2" parameterType="pd">
+    	UPDATE tb_contract
+		SET
+    	  special_approval  =#{special_approval}
+    	WHERE
+	    con_id= #{con_id}
+    </update>
+	<!-- 查询流程实例ID -->
+	<select id="specialID" parameterType="pd" resultType="pd">
+		select * FROM tb_contract where con_special_key=(SELECT PROC_inst_id_ from act_ru_task where ID_=#{task_id})
+	</select>
+	
+	<!-- 根据项目编号 查询出属于这个项目的所有电梯 -->
+	<select id="elevatorList" parameterType="pd" resultType="pd">
+		SELECT
+	ed.id
+  <!-- ed.`no`,
+  ed.item_id,
+  p.product_name,
+  e.elevator_name -->
+FROM
+	tb_elevator_details AS ed
+LEFT JOIN
+  tb_product as p
+ON
+  ed.product_id=p.product_id
+LEFT JOIN
+  tb_elevator as e
+ON
+  ed.elevator_id=e.elevator_id
+WHERE
+	ed.item_id = (SELECT
+		i.item_id
+	FROM
+		tb_item AS i
+	WHERE
+		i.item_no = #{con_item_no})
+	</select>
+	
+	 <!-- 绑定电梯工号 -->
+    <update id="updateBinding" parameterType="pd">
+    	UPDATE tb_elevator_details SET no=#{no} WHERE id=#{id.id} 
+    </update>
+	<!-- ***************************报表*********************** -->
+	<!-- 统计方式为            总数 -->
+	<!-- 年份 -->
+	<select id="ContractYearNum" parameterType="String" resultType="pd">
+       SELECT
+	     YEAR (c.ow_SignedTime) as date,
+         count(c.con_id) as conNum
+       FROM
+	     tb_contract AS c
+       group by YEAR (c.ow_SignedTime)
+	</select>
+	<!-- 月份 -->
+	 <select id="ContractMonthNum" parameterType="String" resultType="pd">
+	   SELECT
+	     month(c.ow_SignedTime) as date,
+         count(c.con_id) as conNum
+       FROM
+	     tb_contract AS c
+       WHERE
+         year(c.ow_SignedTime)=#{year}
+         group by month (c.ow_SignedTime)
+     </select>
+     <!-- 季度 -->
+	 <select id="ContractQuarterNum" parameterType="String" resultType="pd">
+	   SELECT
+	     quarter(c.ow_SignedTime) as date,
+         count(c.con_id) as conNum
+       FROM
+	     tb_contract AS c
+       WHERE
+         year(c.ow_SignedTime)=#{year}
+         group by quarter(c.ow_SignedTime)
+     </select>
+     <!-- 统计方式为            状态 -->
+	<!-- 年份 -->
+	<select id="ContractYearStatusNum" parameterType="String" resultType="pd">
+       SELECT
+	     YEAR (c.ow_SignedTime) as date,
+         COUNT(IF(c.con_approval ='2',c.con_approval,NULL)) as StatusPass,
+         COUNT(IF(c.con_approval !='2',c.con_approval,NULL)) as StatusUnderway
+       FROM
+	     tb_contract AS c
+         group by YEAR (c.ow_SignedTime)
+	</select>
+	<!-- 月份 -->
+	 <select id="ContractMonthStatusNum" parameterType="String" resultType="pd">
+	  SELECT
+	     month (c.ow_SignedTime) as date,
+         COUNT(IF(c.con_approval ='2',c.con_approval,NULL)) as StatusPass,
+         COUNT(IF(c.con_approval !='2',c.con_approval,NULL)) as StatusUnderway
+       FROM
+	     tb_contract AS c
+	   WHERE 
+         YEAR (c.ow_SignedTime)=#{year}
+         group by YEAR (c.ow_SignedTime)
+     </select>
+     <!-- 季度 -->
+	 <select id="ContractQuarterStatusNum" parameterType="String" resultType="pd">
+	   SELECT
+	     quarter (c.ow_SignedTime) as date,
+         COUNT(IF(c.con_approval ='2',c.con_approval,NULL)) as StatusPass,
+         COUNT(IF(c.con_approval !='2',c.con_approval,NULL)) as StatusUnderway
+       FROM
+	     tb_contract AS c
+	   WHERE 
+         YEAR (c.ow_SignedTime)=#{year}
+         group by YEAR (c.ow_SignedTime)
+     </select>
+     
+      <!-- 获取option集合 -->
+    <select id="findContractList"  resultType="pd">
+    	SELECT 
+    	c.*,
+    	i.item_name 
+    	FROM 
+    	tb_contract as c
+    	LEFT JOIN
+    	tb_item as i
+    	ON
+    	c.con_item_no=i.item_no
+    </select>
+    
+    
+     <!-- 根据项目编号获取客户信息 -->
+	<select id="findByItem_Id" parameterType="page" resultType="pd">
+		select * from (
+        select customer_id, customer_no ,customer_type,customer_name from tb_customer_ordinary
+        union
+        select customer_id, customer_no ,customer_type,customer_name from tb_customer_merchant
+        union
+        select customer_id, customer_no ,customer_type,customer_name from tb_customer_core
+        )a where customer_id=(
+	    select end_user from tb_item where item_id=#{item_id}
+        )
+	</select>
+	 <!-- 根据项目编号获取客户信息 -->
+	<select id="findByoffer_Id" parameterType="page" resultType="pd">
+		select * from (
+        select customer_id, customer_no ,customer_type,customer_name from tb_customer_ordinary
+        union
+        select customer_id, customer_no ,customer_type,customer_name from tb_customer_merchant
+        union
+        select customer_id, customer_no ,customer_type,customer_name from tb_customer_core
+        )a where customer_id=(
+	    select end_user from tb_iteminoffer where offer_id=#{offer_id}
+        )
+	</select>
+    <!-- 根据客户编号获取客户信息 (Ordinary)-->
+	<select id="findByOrdinary" parameterType="page" resultType="pd">
+		SELECT
+	      cuo.customer_name as name,
+          cuo.company_address as address,
+          cuo.company_phone as phone,
+          cuo.company_fax as fax,
+          cuo.company_postcode as postcode,
+          cuo.company_tax as tax,
+          cuo.company_bank as bank,
+          cuo.bank_no as bank_no,
+          cuo.customer_contact as contact,
+          cuo.contact_phone as contact_phone
+        FROM
+	      tb_customer_ordinary as cuo
+        WHERE
+	       customer_id=#{kehu_id}
+	</select>
+	<!-- 根据客户编号获取客户信息 (Merchant)-->
+	<select id="findByMerchant" parameterType="page" resultType="pd">
+		SELECT * FROM tb_customer_merchant WHERE customer_id=#{kehu_id}
+	</select>
+	<!-- 根据客户编号获取客户信息 (Core)-->
+	<select id="findByCore" parameterType="page" resultType="pd">
+		SELECT * FROM tb_customer_core WHERE customer_id=#{kehu_id}
+	</select>
+    
+    <!-- 根据项目id获取电梯信息-->
+	<select id="findByElev" resultType="pd" parameterType="page">
+		select a.*,count(*) as 'num',sum(total) as 'xj' from(
+		SELECT
+		  CONCAT(bjc.BJC_C,'/',bjc.BJC_Z,'/',bjc.BJC_M) AS CZM,bjc.BJC_TSGD,
+		  p.product_name,
+		  m.models_name,
+		  e.elevator_name,
+		  ed.total
+		FROM
+			tb_elevator_details as ed
+		LEFT JOIN
+		  tb_elevator as e
+		ON
+		  ed.elevator_id=e.elevator_id
+		LEFT JOIN
+		  tb_product as p
+		ON
+		  ed.product_id=p.product_id
+		LEFT JOIN
+		(
+		  select m.*,'1' as flag from tb_models m
+		  union
+		  <!-- select mi.*,'2' as flag from tb_models_info mi -->
+		  select mi.models_id,mi.models_name,mi.elevator_id,mi.product_id,'' AS models_description,'' AS standard_id ,'2' as flag from tb_models_info mi
+		) m
+		ON
+		  ed.models_id=m.models_id AND ed.flag=m.flag
+		LEFT JOIN tb_bjc bjc
+		  ON bjc.BJC_ITEM_ID = ed.item_id AND bjc.BJC_MODELS = ed.models_id
+		WHERE
+	ed.item_id = #{item_id})a group by a.models_name
+
+	</select>
+	
+	
+	
+	<!-- 根据项目id获取电梯信息-->
+<!-- 	<select id="findByElevl" resultType="pd" parameterType="page"> -->
+<!-- 		SELECT substring_index(a.DT_TX,' ',1) AS DT,substring_index(a.DT_TX,' ',-1) as GD,a.*,d.BJC_TSGD -->
+<!-- 		  FROM -->
+<!-- 		       tb_so_dtinfo as a, -->
+<!--                tb_so_contract as b, -->
+<!--                tb_item as c, -->
+<!--                tb_bjc as d -->
+<!-- 	     where c.item_id=b.HT_ITEM_ID -->
+<!--            and b.HT_UUID=a.DT_HT_ID -->
+<!--            and d.BJC_ITEM_ID=c.item_id -->
+<!--            and c.item_id =#{item_id} -->
+<!--            and b.HT_UUID = #{HT_UUID} -->
+<!--       group by DT_UUID   -->
+<!-- 	</select> -->
+	
+	<!-- NEW根据项目id获取电梯信息-->
+	<select id="findByElevl" resultType="pd" parameterType="page">
+		SELECT SUBSTRING_INDEX(a.DT_TX,' ',1) AS DT,SUBSTRING_INDEX(a.DT_TX,' ',-1) AS GD,
+			a.*,d.BJC_TSGD,v.`OTHP_CJF`,v.`OTHP_TSF`,(v.`OTHP_CJF`*1.0/d.bjc_sl) AS 'CJF'
+		  FROM
+			tb_so_dtinfo AS a 
+			LEFT JOIN (SELECT * FROM tb_so_contract) b ON a.`DT_HT_ID` = b.`HT_UUID`
+			LEFT JOIN (SELECT * FROM tb_bjc) d ON d.bjc_id=a.`DT_BJC_ID`
+			LEFT JOIN (SELECT * FROM view_getdttsfcjf) v ON d.`BJC_COD_ID`=v.`cod_id`
+           	where b.HT_UUID = #{HT_UUID}
+	</select>
+	
+	<!-- 根据项目id获取付款方式-->
+	<select id="findByFkfs" resultType="pd" parameterType="page">
+		SELECT *
+	      FROM
+	           tb_so_fkfs as a,
+		       tb_so_contract as b,
+		       tb_item as c
+         WHERE c.item_id=b.HT_ITEM_ID
+           and b.HT_UUID=a.FKFS_HT_UUID
+           <!-- and c.item_id =#{item_id} -->
+           and b.HT_UUID = #{HT_UUID}
+	</select>
+	
+	<!-- 根据项目id获取AZ付款方式-->
+	<select id="findByAZFkfs" resultType="pd" parameterType="page">
+		SELECT *
+	      FROM
+	           tb_so_fkfs as a,
+		       tb_az_contract as b,
+		       tb_item as c
+         WHERE c.item_id=b.AZ_ITEM_ID
+           and b.AZ_UUID=a.FKFS_HT_UUID
+           <!-- and c.item_id =#{item_id} -->
+           and b.AZ_UUID = #{AZ_UUID}
+	</select>
+</mapper>

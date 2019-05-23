@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="ModelsInfoMapper">
+    
+    <!-- 型号信息分页列表 -->
+    <select id="modelsInfolistPage" resultType="pd" parameterType="page">
+    	SELECT * FROM tb_models_info WHERE 1=1 
+    	<if test="pd.models_name !=null and pd.models_name !=''">
+	    	 AND (models_name LIKE CONCAT(CONCAT('%',#{pd.models_name}),'%'))
+    	</if>
+    	<if test="pd.elevator_id !=null and pd.elevator_id !=''">
+	    	AND elevator_id = #{pd.elevator_id}
+    	</if>
+    </select>
+    
+    <!-- 根据ID查找型号信息 -->
+    <select id="findModelsInfoById" parameterType="pd" resultType="pd">
+    	select * from tb_models_info where 1=1
+    		and  models_id = #{models_id}
+    		and elevator_id = #{elevator_id}
+    </select>
+    
+    <!-- 根据类型查找型号信息列表 -->
+    <select id="findModelsInfoByTypeList" parameterType="pd" resultType="pd">
+    	select * from tb_models_info where 1=1
+    	<if test="models_id !=null and models_id !='' ">
+    		and  models_id = #{models_id}
+    	</if>
+    	<if test="elevator_id !=null and elevator_id !='' ">
+    		and elevator_id = #{elevator_id}
+    	</if>
+    </select>
+    
+     <!-- 型号信息添加 -->
+    <insert id="modelsInfoAdd" parameterType="pd" keyProperty="models_id" useGeneratedKeys="true">
+    	insert into tb_models_info(
+    		
+    		models_name,
+    		elevator_id,
+    		product_id,
+    		models_price,
+    		elevator_speed_id,
+    		elevator_weight_id,
+    		elevator_storey_id,
+    		elevator_standard_price,
+    		elevator_base_id,
+    		elevator_base_price,
+    		elevator_optional_json,
+    		elevator_nonstandard_json,
+    		elevator_optional_price,
+    		elevator_nonstandard_price,
+    		elevator_nonstandardform_json,
+    		elevator_height_add,
+    		elevator_height_money,
+    		rise,
+    		top_height,
+    		pit_depth,
+    		crbsp,
+    		rail_bracket_price,
+    		cable_height,
+    		cable_price
+    	)values(
+    		
+    		#{models_name},
+    		#{elevator_id},
+    		#{product_id},
+    		#{models_price},
+    		#{elevator_speed_id},
+    		#{elevator_weight_id},
+    		#{elevator_storey_id},
+    		#{elevator_standard_price},
+    		#{elevator_base_id},
+    		#{elevator_base_price},
+    		#{elevator_optional_json},
+    		#{elevator_nonstandard_json},
+    		#{elevator_optional_price},
+    		#{elevator_nonstandard_price},
+    		#{elevator_nonstandardform_json},
+    		#{elevator_height_add},
+    		#{elevator_height_money},
+    		#{rise},
+    		#{top_height},
+    		#{pit_depth},
+    		#{crbsp},
+    		#{rail_bracket_price},
+    		#{cable_height},
+    		#{cable_price}
+    	)
+    </insert>
+    
+     <!-- 型号信息编辑-->
+    <update id="modelsInfoUpdate" parameterType="pd">
+    	update  tb_models_info
+    	<set>
+    		models_name = #{models_name},
+    		elevator_id = #{elevator_id},
+    		product_id = #{product_id},
+    		models_price = #{models_price},
+    		elevator_speed_id = #{elevator_speed_id},
+    		elevator_weight_id = #{elevator_weight_id},
+    		elevator_storey_id = #{elevator_storey_id},
+    		elevator_standard_price = #{elevator_standard_price},
+    		elevator_base_id = #{elevator_base_id},
+    		elevator_base_price = #{elevator_base_price},
+    		elevator_optional_json = #{elevator_optional_json},
+    		elevator_nonstandard_json = #{elevator_nonstandard_json},
+    		elevator_optional_price = #{elevator_optional_price},
+    		elevator_nonstandard_price = #{elevator_nonstandard_price},
+    		elevator_nonstandardform_json = #{elevator_nonstandardform_json},
+    		elevator_height_add = #{elevator_height_add},
+    		elevator_height_money = #{elevator_height_money},
+    		rise = #{rise},
+    		top_height = #{top_height},
+    		pit_depth = #{pit_depth},
+    		crbsp = #{crbsp},
+    		rail_bracket_price = #{rail_bracket_price},
+    		cable_height = #{cable_height},
+    		cable_price = #{cable_price},
+    	</set>
+    	where models_id = #{models_id}
+    </update>
+    
+     <!-- 型号信息删除-->
+    <delete id="modelsInfoDelete" parameterType="pd">
+    	delete from tb_models_info 
+    	where models_id = #{models_id}
+    </delete>
+    
+    <!-- 型号信息批量删除-->
+    <delete id="modelsInfoDeleteAll" parameterType="String">
+    	delete from tb_models_info
+    	where models_id in
+    	<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+    
+    <!-- 根据ID查找电梯非标中心对象 -->
+    <select id="findNonstandardCentreById" parameterType="pd" resultType="pd">
+    	select * from tb_nonstandard_centre where 1=1
+    	<if test="centre_id != null and centre_id != '' ">
+    		and centre_id = #{centre_id}
+    	</if>
+    </select>
+    
+    <!-- 根据ID查找电梯非标中心集合 -->
+    <select id="findNonstandardCentreListById" parameterType="pd" resultType="pd">
+    	select * from tb_nonstandard_centre where 1=1
+    	<if test="id != null and id != '' ">
+    		and id = #{id}
+    	</if>
+    </select>
+    
+    
+   <!-- 非标中心添加 -->
+   <insert id="nonstandardCentreAdd" parameterType="pd" keyProperty="centre_id" useGeneratedKeys="true">
+	  	insert into tb_nonstandard_centre(
+	  		id,
+	  		elevator_no,
+	  		elevator_description,
+	  		elevator_nonstandard_id
+	  	)values(
+	  		#{id},
+	  		#{elevator_no},
+	  		#{elevator_description},
+	  		#{elevator_nonstandard_id}
+	  		
+	  	)
+   	
+   </insert>
+   
+   <!-- 非标中心更新-->
+   <update id="nonstandardCentreUpdate" parameterType="pd">
+   		update tb_nonstandard_centre 
+    	<set>
+    		<if test="elevator_nonstandard_id != null and elevator_nonstandard_id != '' ">
+    			elevator_nonstandard_id = #{elevator_nonstandard_id}
+    		</if>
+    	</set>
+    	where centre_id = #{centre_id}
+   </update>
+   
+   
+   <!-- 非标项配置中心删除 -->
+   <delete id="nonstandardCentreDelete" parameterType="pd">
+   		Delete from tb_nonstandard_centre 
+   		where id = #{id}
+   </delete>
+   
+  <!-- 根据ID查找非标审核 -->
+   <select id="findElevatorAuditById" parameterType="pd" resultType="pd">
+   		select * from  tb_elevator_audit where 1=1
+   		<if test="id != null and id != '' ">
+   			and id = #{id}
+   		</if>
+   </select>
+   
+   <!-- 电梯非标审核页面查询所有数据 -->
+   <select id="findElevatorAuditHandleAllById" parameterType="pd" resultType="pd">
+   		<!-- SELECT
+		b.*, a.elevator_approval,
+		a.elevator_instance_id,
+		a.requester_id,
+		c.elevator_name,
+		d.item_name
+		FROM
+			tb_elevator_audit a
+		LEFT JOIN tb_elevator_info b ON a.id = b.id
+		LEFT JOIN tb_elevator c ON b.elevator_id = c.elevator_id
+		LEFT JOIN tb_item d ON b.item_id = d.item_id
+		
+		WHERE a.id=#{id} -->
+		select
+		a.id,
+		a.elevator_instance_id,
+		d.item_name,
+		c.elevator_name,
+		a.elevator_approval,
+		a.requester_id,
+		b.item_id,
+		b.elevator_id,
+		b.models_id,
+		b.flag
+		from 
+		tb_elevator_audit a,
+		tb_elevator_info b,
+		tb_elevator c,
+		tb_item d,
+		tb_elevator_details e
+		where 
+		a.id=e.id and e.item_id=b.item_id and b.item_id=d.item_id and b.elevator_id=c.elevator_id and b.details_id=e.id
+		and a.id=#{id}
+   </select>
+    
+    <!-- 非标审核添加 -->
+   <insert id="elevatorAuditAdd" parameterType="pd">
+	  	insert into tb_elevator_audit(
+	  		id,
+	  		elevator_approval,
+	  		elevator_instance_id,
+	  		create_time,
+	  		requester_id
+	  	)values(
+	  		#{id},
+	  		0,
+	  		#{elevator_instance_id},
+	  		now(),
+	  		#{requester_id}
+	  		
+	  	)
+   	
+   </insert>
+    
+    <!-- 更新电梯非标审核状态 -->
+    <update id="updateElevatorApproval" parameterType="pd" >
+    	update tb_elevator_audit 
+    	<set>
+    		<if test="elevator_approval != null and elevator_approval != '' ">
+    			elevator_approval = #{elevator_approval}
+    		</if>
+    	</set>
+    	where id = #{id}
+    </update>
+    
+    <!-- 工厂配置之后修改非标项json -->
+    <update id="updateNonstandardJson" parameterType="pd">
+    	update tb_models_info set
+    	elevator_nonstandard_json=#{elevator_nonstandard_json},
+    	elevator_nonstandard_price=#{elevator_nonstandard_price}
+    	where models_id=#{models_id}
+    </update>
+   
+   
+   <!-- 编辑工厂配置时查询非标项json -->
+   <select id="findNonstandardJson" parameterType="String" resultType="String">
+   		select elevator_nonstandard_json from tb_models_info where models_id=(
+   			select models_id from tb_elevator_details where id=(
+   				select id from tb_nonstandard_centre where centre_id=#{centre_id}
+   			)
+   		)
+   </select>
+   
+   <!-- 根据id查询非标项json -->
+   <select id="findNonstandardJsonById" parameterType="String" resultType="String">
+   		select elevator_nonstandard_json from tb_models_info where models_id=#{models_id}
+   </select>
+</mapper>

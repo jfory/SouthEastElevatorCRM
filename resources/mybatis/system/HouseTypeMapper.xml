@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="HouseTypeMapper">
+<!-- 查询全部户型信息 -->
+   <select id="HouseTypelistPage" parameterType="page" resultType="pd">
+	  SELECT
+	    ht.*,
+        h.houses_name,
+        h.houses_no
+      FROM
+	    tb_houseType as ht
+      LEFT JOIN
+        tb_houses as h
+      ON
+        ht.houses_id=h.houses_no
+        where 1=1 
+        <if test="pd.hou_name != null and pd.hou_name != ''">
+			and ht.hou_name LIKE CONCAT(CONCAT('%',#{pd.hou_name}),'%')
+		</if>
+		<if test="pd.houses_name != null and pd.houses_name != ''">
+			and h.houses_name LIKE CONCAT(CONCAT('%',#{pd.houses_name}),'%')
+		</if>
+		ORDER BY ht.edtTime DESC,ht.houses_id DESC
+   </select>
+   <!-- 查询属于该户型的解决方案 -->
+   <select id="solutionlistPage" parameterType="page" resultType="pd">
+	  SELECT
+	    s.so_id,
+	    s.so_name,
+	    s.so_drawing,
+	    s.so_describe,
+	    s.so_price,
+	    s.houseType_id,
+	    s.houses_no as houses_id,
+        ht.hou_name,
+        h.houses_name,
+        h.houses_no as houses_no
+      FROM
+	    tb_solution as s
+      LEFT JOIN
+        tb_housetype as ht
+      ON
+        s.houseType_id=ht.hou_id
+      LEFT JOIN
+        tb_houses as h
+      ON
+        s.houses_no=h.houses_no
+      WHERE
+        s.houseType_id=#{pd.hou_id}
+   </select>
+    <!-- 查询属于该户型的单元信息 -->
+   <select id="celllistPage" parameterType="page" resultType="pd">
+	  select
+		cp.cell_id,
+		cp.cell_name,
+		h.houses_name,
+		w.well_name,
+		comp.comp_name,
+		comp.comp_address,
+		comp.comp_phone,
+		comp.comp_email,
+		cp.comp_price_from,
+		cp.comp_price_to,
+		cp.house_owner_info,
+		cp.house_type_img,
+		cp.comp_brand,
+		cp.comp_drive_mode
+		FROM
+		tb_comp_price as cp
+		LEFT JOIN 
+		tb_competitor as comp 
+		ON
+		cp.comp_id=comp.comp_id
+		LEFT JOIN 
+		tb_houses as h 
+		ON
+        cp.houses_no=h.houses_no
+        LEFT JOIN
+        tb_well as w
+        ON
+        cp.cell_well=w.well_id
+        where 
+        cp.house_id=#{pd.hou_id}
+        and cp.houses_no=#{pd.houses_no}
+   </select>
+   <!-- 根据户型ID删除户型信息 -->
+   <delete id="delHouseType" parameterType="pd">
+      DELETE FROM tb_housetype WHERE hou_id=#{id}
+   </delete>
+   <!-- 判断户型名字是否重复 -->
+	<select id="findHouseTypeByName" parameterType="pd" resultType="pd">
+		select hou_name from tb_housetype where hou_name=#{hou_name}
+	</select>
+   <!-- 查询楼盘ID和name -->
+   <select id="houseslistPage" parameterType="page" resultType="pd">
+	  SELECT
+	    houses_no,
+	    houses_name
+      FROM
+        tb_houses
+   </select>
+    <!-- 根据户型ID查询信息 -->
+	<select id="findHouseTypeById" parameterType="page" resultType="pd">
+		select * from tb_houseType where hou_id=#{hou_id}
+	</select>
+	<!-- 根据楼盘name查询id -->
+	<select id="findHousesByName" parameterType="pd" resultType="pd">
+		select 
+		houses_no 
+		from 
+		tb_houses 
+		where 
+		houses_name=#{houses_name}
+	</select>
+    <!-- 新增户型信息 -->
+	<insert id="saveS" parameterType="pd">
+	    insert into tb_houseType(
+		hou_id,
+		hou_name,
+		hou_explain,
+		hou_drawing,
+		edtTime,
+		houses_id
+		)
+		values
+		(
+		#{hou_id},
+		#{hou_name},
+		#{explain},
+		#{drawing_json},
+		#{edtTime},
+		#{houses_name}
+		)
+	</insert>
+	<!-- 修改 -->
+	<update id="editS" parameterType="pd">
+		UPDATE tb_houseType
+		SET
+		hou_name     =#{hou_name},
+		hou_explain  =#{explain},
+		hou_drawing  =#{drawing_json},
+		edtTime      =#{edtTime},
+		houses_id    =#{houses_name}
+		WHERE
+		hou_id   = #{hou_id}
+	</update>
+	<!-- 获取option集合 -->
+    <select id="findHouseTypeList"  resultType="pd">
+       select 
+         ht.*,
+         h.houses_name 
+       from 
+         tb_housetype as ht 
+       LEFT JOIN
+         tb_houses as h
+       ON
+         ht.houses_id=h.houses_no
+    </select>
+</mapper>

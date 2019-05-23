@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="ProductMapper">
+
+    <!-- 产品线分页列表 -->
+    <select id="productlistPage" resultType="pd" parameterType="page">
+    	SELECT * FROM tb_product WHERE 1=1 
+    	<if test="pd.product_name !=null and pd.product_name !=''">
+	    	 AND (product_name LIKE CONCAT(CONCAT('%',#{pd.product_name}),'%'))
+    	</if>
+    </select>
+    <!-- 查询所有产品线 -->
+    <select id="listAllProduct" resultType="pd">
+    	select * from tb_product
+    </select>
+    
+    <!-- 根据ID查找产品线 -->
+    <select id="findProductById" parameterType="pd" resultType="pd">
+    	select * from tb_product where 1=1
+    	<if test="product_id !=null and product_id !='' ">
+    		and  product_id = #{product_id}
+    	</if>
+    </select>
+    
+    <!-- 根据Id查找产品线列表 -->
+    <select id="findProductByIdList" parameterType="pd" resultType="pd">
+    	select * from tb_product where 1=1
+    	<if test="product_id !=null and product_id !='' ">
+    		and  product_id = #{product_id}
+    	</if>
+    </select>
+    
+     <!-- 产品线添加 -->
+    <insert id="productAdd" parameterType="pd">
+    	insert into tb_product(
+    		
+    		product_name,
+    		product_no,
+    		product_description,
+    		elevator_type
+    	)values(
+    		
+    		#{product_name},
+    		#{product_no},
+    		#{product_description},
+    		#{elevator_type}
+    	)
+    </insert>
+    
+     <!-- 产品线编辑-->
+    <update id="productUpdate" parameterType="pd">
+    	update  tb_product
+    	<set>
+    		product_name = #{product_name},
+    		product_no = #{product_no},
+    		product_description = #{product_description},
+    		elevator_type=#{elevator_type}
+    	</set>
+    	where product_id = #{product_id}
+    </update>
+    
+     <!-- 产品删除-->
+    <delete id="productDelete" parameterType="pd">
+    	delete from tb_product 
+    	where product_id = #{product_id}
+    </delete>
+    
+    <!-- 产品批量删除-->
+    <delete id="productDeleteAll" parameterType="String">
+    	delete from tb_product
+    	where product_id in
+    	<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+    <!-- 查询全部电梯类型 -->
+    <select id="elevatorList" parameterType="pd" resultType="pd">
+      SELECT * FROM tb_elevator
+    </select>
+</mapper>

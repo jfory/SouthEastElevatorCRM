@@ -1,0 +1,637 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="NonStandradMapper">
+	<!-- 查询全部报价信息 -->
+	<select id="listPagefindnonStandrad" parameterType="page" resultType="pd">
+        SELECT
+        a.non_standrad_id,
+        a.project_name,
+        project_address,
+        project_area,
+        subsidiary_company,
+        a.lift_name,
+        a.lift_num,
+        u.`NAME` operate_name,
+		a.operate_date,
+        SUM(b.nonstandrad_ZJ) nonstand_price,
+        a.instance_id,
+        a.instance_status,
+        a.operate_id
+        FROM
+        tb_non_standrad_master a
+        LEFT JOIN sys_user u ON a.operate_id = u.USER_ID,
+        tb_non_standrad_detail b
+        WHERE
+        a.non_standrad_id = b.master_id
+        <if  test="pd.master_id != null and pd.master_id != ''">
+            and a.non_standrad_id LIKE CONCAT('%',#{pd.master_id},'%')
+        </if>
+        <if  test="pd.item_name != null and pd.item_name != ''">
+            and a.project_name LIKE CONCAT('%',#{pd.item_name},'%')
+        </if>
+        <if  test="pd.project_area != null and pd.project_area != ''">
+			and a.project_area LIKE CONCAT('%',#{pd.project_area},'%')
+		</if>
+		<if  test="pd.subsidiary_company != null and pd.subsidiary_company != ''">
+			and a.subsidiary_company LIKE CONCAT('%',#{pd.subsidiary_company},'%')
+		</if>
+		<if  test="pd.user_name != null and pd.user_name != ''">
+			and u.name LIKE CONCAT('%',#{pd.user_name},'%')
+		</if>
+		<if  test="pd.operate_date != null and pd.operate_date != ''">
+			and a.operate_date LIKE CONCAT('%',#{pd.operate_date},'%')
+		</if>
+        <if  test="pd.instance_status != null and pd.instance_status != ''">
+			and a.instance_status LIKE CONCAT('%',#{pd.instance_status},'%')
+		</if>
+		<if  test="pd.MODELS_ID != null and pd.MODELS_ID != ''">
+			and a.MODELS_ID =#{pd.MODELS_ID}
+		</if>
+		<if  test="pd.item_id != null and pd.item_id != ''">
+			and a.item_id =#{pd.item_id}
+		</if>
+		<if  test="pd.lift_name != null and pd.lift_name != ''">
+			and a.lift_name LIKE CONCAT('%',#{pd.lift_name},'%')
+		</if>
+		<if  test="pd.operate_date_start != null and pd.operate_date_start != ''">
+			and a.operate_date &gt;= #{pd.operate_date_start}
+		</if>
+		<if  test="pd.operate_date_end != null and pd.operate_date_end != ''">
+			and a.operate_date &lt;= CONCAT(#{pd.operate_date_end},' 23:59:59')
+		</if>
+		<if test="pd.userList!=null and pd.userList.size()>0">
+			and a.operate_id in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+        </if>
+        GROUP BY
+        a.non_standrad_id,
+        a.project_name,
+        project_address,
+        project_area,
+        subsidiary_company,
+        a.lift_name,
+        a.lift_num,
+        u.`NAME`,
+        a.instance_id,
+        a.instance_status
+
+		order by  a.non_standrad_id desc
+	</select>
+
+	<select id="findItemMsg" parameterType="pd" resultType="pd">
+		SELECT a.item_name as project_name,b.project_address,c.`name` AS subsidiary_company ,d.`name` AS project_area FROM tb_item a LEFT JOIN (SELECT b.id,CONCAT(IFNULL(c.`name`,''),IFNULL(d.`name`,''),IFNULL(e.`name`,''),IFNULL(b.address_info,'')) project_address
+		FROM tb_address b LEFT JOIN tb_loc_province c ON b.province_id=c.id
+		LEFT JOIN tb_loc_city d on d.id=b.city_id AND c.id=d.province_id
+		LEFT JOIN tb_loc_county e ON e.id=b.county_id AND e.city_id=d.id)b ON a.item_install_address=b.id
+		LEFT JOIN tb_department c ON a.item_sub_branch=c.id
+		LEFT JOIN tb_department d ON a.item_area=d.id
+		where 1=1
+		<if  test="item_id != null and item_id != ''">
+			and item_id=#{item_id};
+		</if>
+	</select>
+
+	<insert id="saveMaster">
+		INSERT INTO `tb_non_standrad_master` (
+			`non_standrad_id`,
+			`project_name`,
+			`project_address`,
+			`project_area`,
+			`subsidiary_company`,
+			`operate_id`,
+			`operate_date`,
+			`lift_name`,
+			`lift_speed`,
+			`traveling_height`,
+			`opening_width`,
+			`rated_load`,
+			`pit_depth`,
+			`well_depth`,
+			`car_size`,
+			`lift_c`,
+			`lift_z`,
+			`lift_m`,
+			`headroom_height`,
+			`lift_num`,
+			`lift_nos`,
+			`lift_angle`,
+			`step_width`,
+			`instance_status`,
+			`instance_id`,
+			`NonUpload`,
+			`MODELS_ID`,
+			`item_id`,
+			`JDK`,
+			`JDS`,
+			`TJTTH`,
+			`NON_BZ`,
+			`kmxs`,
+			`sptj`,
+			`car_height`
+		)
+		VALUES
+			(
+				#{non_standrad_id},
+				#{project_name},
+				#{project_address},
+				#{project_area},
+				#{subsidiary_company},
+				#{operate_id},
+				#{operate_date},
+				#{lift_name},
+				#{lift_speed},
+				#{traveling_height},
+				#{opening_width},
+				#{rated_load},
+				#{pit_depth},
+				#{well_depth},
+				#{car_size},
+				#{lift_c},
+				#{lift_z},
+				#{lift_m},
+				#{headroom_height},
+				#{lift_num},
+				#{lift_nos},
+				#{lift_angle},
+				#{step_width},
+				#{instance_status},
+				#{instance_id},
+				#{NonUpload},
+				#{MODELS_ID},
+				#{item_id},
+				#{JDK},
+				#{JDS},
+				#{TJTTH},
+				#{NON_BZ},
+				#{BZ_KMXS},
+				#{BZ_SPTJ},
+				#{car_height}
+			);
+	</insert>
+
+    <insert id="saveDetail">
+        INSERT INTO `tb_non_standrad_detail` (
+            `master_id`,
+            `nonstandrad_describe`,
+            `nonstandrad_spec`,
+            `nonstandrad_price`,
+            `nonstandrad_date`,
+			`nonstandrad_cost`,
+			`nonstandrad_handle`,
+			`nonstandrad_cycle`,
+			`nonstandrad_CJ`,
+			`nonstandrad_JCB`,
+			`nonstandrad_JJ`,
+			`nonstandrad_JLDW`,
+			`nonstandrad_DTYL`,
+			`nonstandrad_DTBJ`,
+			`nonstandrad_ZJ`,
+			`nonstandrad_KDZ`,
+			`nonstandrad_BZ`,
+			`nonstandrad_valid`
+        ) VALUES (
+            #{master_id},
+            #{nonstandrad_describe},
+            #{nonstandrad_spec},
+            #{nonstandrad_price},
+            #{nonstandrad_date},
+			#{nonstandrad_cost},
+			#{nonstandrad_handle},
+			#{nonstandrad_cycle},
+			#{nonstandrad_CJ},
+			#{nonstandrad_JCB},
+			#{nonstandrad_JJ},
+			#{nonstandrad_JLDW},
+			#{nonstandrad_DTYL},
+			#{nonstandrad_DTBJ},
+			#{nonstandrad_ZJ},
+			#{nonstandrad_KDZ},
+			#{nonstandrad_BZ},
+			#{nonstandrad_valid}
+		);
+
+
+    </insert>
+
+	<select id="findNonStandradMasterById" parameterType="pd" resultType="pd">
+		SELECT a.*,u.`NAME` as operate_name
+            ,(select SUM(nonstandrad_ZJ) from tb_non_standrad_detail d where d.master_id=a.non_standrad_id) AS nonstand_price
+			,tm.ele_type
+        FROM tb_non_standrad_master a
+			LEFT JOIN sys_user u ON a.operate_id=u.USER_ID
+			LEFT JOIN tb_models tm ON tm.models_name=a.lift_name
+		WHERE a.non_standrad_id =#{non_standrad_id}
+		<if test="userList!=null and userList.size()>0">
+			and a.operate_id in
+			<foreach collection="userList"  item="user_id" index="index" open="(" close=")" separator=",">
+				${user_id}
+			</foreach>
+		</if>
+	</select>
+	<select id="listNonStandradDetailList" parameterType="pd" resultType="pd">
+		SELECT * FROM tb_non_standrad_detail WHERE master_id =#{non_standrad_id}
+	</select>
+	
+	<select id="findAuditNonstandradPage" parameterType="pd" resultType="pd">
+		select distinct nonsm.*,nonsm.project_name as item_name,nonsm.operate_name as user_name,RES.NAME_ as task_name,RES.ID_ as task_id,(case when RES.ASSIGNEE_ is not null then 1 else 0 end) as type,nonsm.operate_date as TASK_TIME,'7' as TASK_TYPE  from ACT_RU_TASK RES
+		left join ACT_RU_IDENTITYLINK I on I.TASK_ID_ = RES.ID_ left join act_re_procdef proc on proc.ID_ = RES.PROC_DEF_ID_ 
+		left join act_ru_execution exe on RES.PROC_INST_ID_=exe.PROC_INST_ID_ 
+		right join (
+			SELECT a.*,u.`NAME` as operate_name
+				,(select SUM(nonstandrad_price) from tb_non_standrad_detail d where d.master_id=a.non_standrad_id) AS nonstand_price
+				,tm.ele_type
+			FROM tb_non_standrad_master a
+				LEFT JOIN sys_user u ON a.operate_id=u.USER_ID
+				LEFT JOIN tb_models tm ON tm.models_name=a.lift_name
+			<where>
+				<if test="userList!=null and userList.size()>0">
+					and a.operate_id in
+					<foreach collection="userList"  item="userId" index="index" open="(" close=")" separator=",">
+						${userId}
+					</foreach>
+				</if>
+			</where>
+		) nonsm on nonsm.non_standrad_id = substring_index(exe.BUSINESS_KEY_,'.', -1)
+		WHERE (
+		  RES.ASSIGNEE_ = #{user_id}
+		  or (
+		    RES.ASSIGNEE_ is null
+		    and (
+		      I.USER_ID_ = #{user_id}
+		      or
+		      I.GROUP_ID_ IN (
+		        select g.GROUP_ID_ from ACT_ID_MEMBERSHIP g where g.USER_ID_ = #{user_id}
+		      )
+		    )
+		  )
+		) and proc.KEY_ = #{process_definition_key} and exe.BUSINESS_KEY_  like 'tb_non_standrad_master.non_standrad_id.%' 
+		<if test="project_name != null and project_name != ''">
+			and nonsm.project_name like CONCAT('%',#{project_name},'%')
+		</if>
+		<if test="subsidiary_company != null and subsidiary_company != ''">
+			and nonsm.subsidiary_company like CONCAT('%',#{subsidiary_company},'%')
+		</if>
+		<if test="operate_name != null and operate_name != ''">
+			and nonsm.operate_name like CONCAT('%',#{operate_name},'%')
+		</if>
+		<if test="operate_date != null and operate_date != ''">
+			and nonsm.operate_date like CONCAT('%',#{operate_date},'%')
+		</if>
+		order by RES.CREATE_TIME_ desc
+		<if test="firstResult != null and firstResult != '' and maxResults!=null and maxResults != ''">
+			limit #{firstResult},#{maxResults}
+		</if>
+	</select>
+	
+	<select id="findDoneAuditNonstandradPage" parameterType="pd" resultType="pd">
+		SELECT nonsm.*,u.`NAME` as operate_name
+			,(select SUM(nonstandrad_price) from tb_non_standrad_detail d where d.master_id=nonsm.non_standrad_id) AS nonstand_price
+			,tm.ele_type
+			,hi.ID_ AS task_id
+			,hi.NAME_ AS task_name
+			,(case when hi.ID_ is not null then 1 else 0 end) as isRuning  
+		FROM tb_non_standrad_master nonsm
+			LEFT JOIN sys_user u ON nonsm.operate_id=u.USER_ID
+			LEFT JOIN tb_models tm ON tm.models_name=nonsm.lift_name
+			RIGHT JOIN (
+				select distinct INS.BUSINESS_KEY_,INS.START_TIME_,INS.END_TIME_,TAS.ID_,TAS.NAME_
+				from ACT_HI_PROCINST INS 
+				inner join ACT_RE_PROCDEF D on INS.PROC_DEF_ID_ = D.ID_
+				inner join ACT_HI_TASKINST RES on RES.PROC_INST_ID_ = INS.PROC_INST_ID_ 
+				LEFT JOIN ACT_RU_TASK TAS on TAS.PROC_INST_ID_= RES.PROC_INST_ID_
+				WHERE D.KEY_ = 'nonStandrad' and RES.ASSIGNEE_ = #{user_id} AND RES.END_TIME_ is not null
+			) hi on nonsm.non_standrad_id = substring_index(hi.BUSINESS_KEY_,'.', -1)
+		WHERE nonsm.operate_id &lt;&gt; #{user_id} 
+		<if test="project_name != null and project_name != ''">
+			and nonsm.project_name like CONCAT('%',#{project_name},'%')
+		</if>
+		<if test="subsidiary_company != null and subsidiary_company != ''">
+			and nonsm.subsidiary_company like CONCAT('%',#{subsidiary_company},'%')
+		</if>
+		<if test="operate_name != null and operate_name != ''">
+			and u.`NAME` like CONCAT('%',#{operate_name},'%')
+		</if>
+		<if test="operate_date != null and operate_date != ''">
+			and nonsm.operate_date like CONCAT('%',#{operate_date},'%')
+		</if>
+		order by hi.START_TIME_ desc 
+		<if test="firstResult != null and firstResult != '' and maxResults!=null and maxResults != ''">
+			limit #{firstResult},#{maxResults}
+		</if>
+	</select>
+
+	<update id="updateMaster">
+		UPDATE
+		`tb_non_standrad_master`
+		SET
+		`project_name`=#{project_name},
+		`project_address`=#{project_address},
+		`project_area`=#{project_area},
+		`subsidiary_company`=#{subsidiary_company},
+		`operate_id`=#{operate_id},
+		`operate_date`=#{operate_date},
+		`lift_name`=#{lift_name},
+		`lift_speed`=#{lift_speed},
+		`traveling_height`=#{traveling_height},
+		`opening_width`=#{opening_width},
+		`rated_load`=#{rated_load},
+		`pit_depth`=#{pit_depth},
+		`well_depth`=#{well_depth},
+		`car_size`=#{car_size},
+		`lift_c`=#{lift_c},
+		`lift_z`=#{lift_z},
+		`lift_m`=#{lift_m},
+		`headroom_height`=#{headroom_height},
+		`lift_num`=#{lift_num},
+		`lift_nos`=#{lift_nos},
+		`lift_angle`=#{lift_angle},
+		`step_width`=#{step_width}
+		WHERE non_standrad_id=#{non_standrad_id}
+	</update>
+
+	<update id="updateMasterInstance">
+		UPDATE
+		`tb_non_standrad_master`
+		SET
+		`instance_status`=#{instance_status}
+		WHERE non_standrad_id=#{non_standrad_id}
+	</update>
+	<!-- 修改附件 土建图图号 备注-->
+	<update id="updateMasterUTB" parameterType="pd">
+		UPDATE
+		`tb_non_standrad_master`
+		SET
+		`NonUpload`=#{NonUpload_json},
+		`TJTTH`=#{TJTTH},
+		`NON_BZ`=#{NON_BZ}
+		WHERE non_standrad_id=#{non_standrad_id}
+	</update>
+	<!-- 修改附件 -->
+	<update id="updateMasterNonUpload" parameterType="pd">
+		UPDATE
+		`tb_non_standrad_master`
+		SET
+		`NonUpload`=#{NonUpload_json}
+		WHERE non_standrad_id=#{non_standrad_id}
+	</update>
+
+	<delete id="deleteDetail">
+		DELETE FROM tb_non_standrad_detail WHERE master_id=#{non_standrad_id}
+	</delete>
+
+	<select id="findDetailListForMasterId" parameterType="pd" resultType="pd">
+		SELECT * FROM tb_non_standrad_detail WHERE master_id IN
+		<foreach collection="ids"  item="id" index="index" open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+	</select>
+	<select id="deleteBatchDetail" parameterType="pd" resultType="pd">
+		DELETE FROM tb_non_standrad_detail WHERE master_id IN
+		<foreach collection="ids"  item="id" index="index" open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+	</select>
+	<select id="deleteBatchMaster" parameterType="pd" resultType="pd">
+		DELETE FROM tb_non_standrad_master WHERE non_standrad_id IN
+		<foreach collection="ids"  item="id" index="index" open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+	</select>
+
+	<select id="getParentRoleByUserid" parameterType="java.util.List" resultType="pd">
+		SELECT * FROM sys_role sr where sr.ROLE_ID in(
+		SELECT PARENT_ID FROM sys_role WHERE ROLE_ID in
+		<foreach collection="list"  item="id" index="index" open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+		)
+	</select>
+	
+	<select id="getNonStandradHandle" parameterType="pd" resultType="pd">
+		SELECT DISTINCT nonstandrad_handle FROM tb_non_standrad_detail WHERE nonstandrad_handle LIKE CONCAT('%',#{nonstandrad_handle},'%') LIMIT 20 
+	</select>
+
+	
+	<select id="findNonStandradToExcel" parameterType="pd" resultType="pd">
+		SELECT
+        a.non_standrad_id,
+        a.project_name,
+        project_address,
+        project_area,
+        subsidiary_company,
+        a.lift_name,
+        a.lift_speed,
+        a.traveling_height,
+        a.opening_width,
+        a.rated_load,
+        a.pit_depth,
+        a.well_depth,
+        a.car_size,
+        a.car_height,
+        a.lift_c,
+        a.lift_z,
+        a.lift_m,
+        a.headroom_height,
+        a.lift_num,
+        a.lift_angle,
+        a.step_width,
+        a.JDK,
+        a.JDS,
+        a.TJTTH,
+        a.kmxs,
+        a.sptj,
+        a.NON_BZ,
+        u.`NAME` operate_name,
+		a.operate_date,
+        a.instance_status,
+        a.operate_id,
+        b.*
+        FROM
+        tb_non_standrad_master a
+        LEFT JOIN sys_user u ON a.operate_id = u.USER_ID,
+        tb_non_standrad_detail b
+        WHERE
+        a.non_standrad_id = b.master_id 
+        <if  test="master_id != null and master_id != ''">
+            and a.non_standrad_id LIKE CONCAT('%',#{master_id},'%')
+        </if>
+        <if  test="project_area != null and project_area != ''">
+			and a.project_area LIKE CONCAT('%',#{project_area},'%')
+		</if>
+        <if  test="item_name != null and item_name != ''">
+            and a.project_name LIKE CONCAT('%',#{item_name},'%')
+        </if>
+		<if  test="subsidiary_company != null and subsidiary_company != ''">
+			and a.subsidiary_company LIKE CONCAT('%',#{subsidiary_company},'%')
+		</if>
+		<if  test="user_name != null and user_name != ''">
+			and u.name LIKE CONCAT('%',#{user_name},'%')
+		</if>
+		<if  test="operate_date != null and operate_date != ''">
+			and a.operate_date LIKE CONCAT('%',#{operate_date},'%')
+		</if>
+        <if  test="instance_status != null and instance_status != ''">
+			and a.instance_status LIKE CONCAT('%',#{instance_status},'%')
+		</if>
+		<if  test="MODELS_ID != null and MODELS_ID != ''">
+			and a.MODELS_ID =#{MODELS_ID}
+		</if>
+		<if  test="item_id != null and item_id != ''">
+			and a.item_id =#{item_id}
+		</if>
+		<if  test="lift_name != null and lift_name != ''">
+			and a.lift_name LIKE CONCAT('%',#{lift_name},'%')
+		</if>
+		<if  test="operate_date_start != null and operate_date_start != ''">
+			and a.operate_date &gt;= #{operate_date_start}
+		</if>
+		<if  test="operate_date_end != null and operate_date_end != ''">
+			and a.operate_date &lt;= CONCAT(#{operate_date_end},' 23:59:59')
+		</if>
+		<if test="userList!=null and userList.size()>0">
+			and a.operate_id in
+			<foreach collection="userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+        </if>
+		order by  a.non_standrad_id desc,b.detail_id asc
+	</select>
+	
+	<!-- (new)查询全部报价信息 -->
+	<select id="listTempPagenonStandradList" parameterType="page" resultType="pd">
+        SELECT
+        a.non_standrad_id,
+        a.project_name,
+        project_address,
+        project_area,
+        subsidiary_company,
+        a.lift_name,
+        a.lift_num,
+        u.`NAME` operate_name,
+		a.operate_date,
+        SUM(b.nonstandrad_ZJ) nonstand_price,
+        a.instance_id,
+        a.instance_status,
+        a.operate_id
+        FROM
+        tb_non_standrad_master a
+        LEFT JOIN sys_user u ON a.operate_id = u.USER_ID,
+        tb_non_standrad_detail b
+        WHERE
+        a.non_standrad_id = b.master_id
+        <if  test="pd.MODELS_ID != null and pd.MODELS_ID != ''">
+            and a.MODELS_ID LIKE CONCAT('%',#{pd.MODELS_ID},'%')
+        </if>
+        <!-- <if  test="pd.DT_SL != null and pd.DT_SL != ''">
+            and a.lift_num LIKE CONCAT('%',#{pd.DT_SL},'%')
+        </if> -->
+        <if  test="pd.BZ_C != null and pd.BZ_C != ''">
+            and a.lift_c LIKE CONCAT('%',#{pd.BZ_C},'%')
+        </if>
+        <if  test="pd.BZ_Z != null and pd.BZ_Z != ''">
+            and a.lift_z LIKE CONCAT('%',#{pd.BZ_Z},'%')
+        </if>
+        <if  test="pd.BZ_M != null and pd.BZ_M != ''">
+            and a.lift_m LIKE CONCAT('%',#{pd.BZ_M},'%')
+        </if>
+        <if  test="pd.BZ_SD != null and pd.BZ_SD != ''">
+            and a.lift_speed LIKE CONCAT('%',#{pd.BZ_SD},'%')
+        </if>
+<!--         <if  test="pd.BZ_KMXS= != null and pd.BZ_KMXS= != ''"> -->
+<!--             and a.BZ_KMXS LIKE CONCAT('%',#{pd.BZ_KMXS=},'%') -->
+<!--         </if> -->
+		<if  test="pd.BZ_KMKD != null and pd.BZ_KMKD != ''">
+			and a.opening_width LIKE CONCAT('%',#{pd.BZ_KMKD},'%')
+		</if>
+		<!-- <if  test="pd.DT_SL != null and pd.DT_SL != ''">
+			and a.lift_num LIKE CONCAT('%',#{pd.DT_SL},'%')
+		</if> -->
+<!-- 		<if  test="pd.BZ_KMXS != null and pd.BZ_KMXS != ''"> -->
+<!-- 			and a.kmxs LIKE CONCAT('%',#{pd.BZ_KMXS},'%') -->
+<!-- 		</if> -->
+	    <if  test="pd.BZ_QXJD != null and pd.BZ_QXJD != ''">
+			and a.lift_angle LIKE CONCAT('%',#{pd.BZ_QXJD},'%')
+		</if>
+		<if  test="pd.BZ_TJKD != null and pd.BZ_TJKD != ''">
+			and a.step_width LIKE CONCAT('%',#{pd.BZ_TJKD},'%')
+		</if>
+<!-- 		<if  test="pd.BZ_SPTJ != null and pd.BZ_SPTJ != ''"> -->
+<!-- 			and a.sptj LIKE CONCAT('%',#{pd.BZ_SPTJ},'%') -->
+<!-- 		</if> -->
+		<if  test="pd.BZ_TSGD != null and pd.BZ_TSGD != ''">
+			and a.traveling_height LIKE CONCAT('%',#{pd.BZ_TSGD},'%')
+		</if>
+		
+		<if  test="pd.BZ_ZZ != null and pd.BZ_ZZ != ''">
+			and a.rated_load LIKE CONCAT('%',#{pd.BZ_ZZ},'%')
+		</if>
+		<if  test="pd.user_name != null and pd.user_name != ''">
+			and u.name LIKE CONCAT('%',#{pd.user_name},'%')
+		</if>
+        <if  test="pd.instance_status != null and pd.instance_status != ''">
+			and a.instance_status LIKE CONCAT('%',#{pd.instance_status},'%')
+		</if>
+		<if  test="pd.item_id != null and pd.item_id != ''">
+			and a.item_id =#{pd.item_id}
+		</if>
+		<if  test="pd.master_id != null and pd.master_id != ''">
+            and a.non_standrad_id LIKE CONCAT('%',#{pd.master_id},'%')
+        </if>
+        <if  test="pd.project_area != null and pd.project_area != ''">
+			and a.project_area LIKE CONCAT('%',#{pd.project_area},'%')
+		</if>
+        <if  test="pd.item_name != null and pd.item_name != ''">
+            and a.project_name LIKE CONCAT('%',#{pd.item_name},'%')
+        </if>
+		<if  test="pd.subsidiary_company != null and pd.subsidiary_company != ''">
+			and a.subsidiary_company LIKE CONCAT('%',#{pd.subsidiary_company},'%')
+		</if>
+		<if  test="pd.operate_date != null and pd.operate_date != ''">
+			and a.operate_date LIKE CONCAT('%',#{pd.operate_date},'%')
+		</if>
+		<if test="pd.userList!=null and pd.userList.size()>0">
+			and a.operate_id in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+        </if>
+        GROUP BY
+        a.non_standrad_id,
+        a.project_name,
+        project_address,
+        project_area,
+        subsidiary_company,
+        a.lift_name,
+        a.lift_num,
+        u.`NAME`,
+        a.instance_id,
+        a.instance_status
+
+		order by  a.non_standrad_id desc
+	</select>
+
+	<select id="findDefinitionIdForUserId" parameterType="pd" resultType="pd">
+		select a.* 
+		from wf_task_assign a
+		left join sys_role r on r.role_id = a.group_id
+		left join sys_user u on find_in_set(r.role_id, u.role_id)
+		where a.process_definition_id = #{process_definition_id}
+		and u.user_id = #{user_id}
+	</select>
+
+	<select id="findUserForRoleName" parameterType="pd" resultType="pd">
+		select 
+		u.* 
+		from sys_user u
+		left join sys_role r on find_in_set(r.role_id, u.role_id)
+		 where r.role_name like CONCAT('%',#{role_name},'%') and u.user_id=#{user_id}
+	</select>
+	
+	<select id="findBjcsForMasterIdAndItemId" parameterType="pd" resultType="pd">
+		call _getBjcsForMasterId(#{master_id},#{item_id});
+	</select>
+
+</mapper>

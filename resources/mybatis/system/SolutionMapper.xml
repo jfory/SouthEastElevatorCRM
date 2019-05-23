@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SolutionMapper">
+<!-- 查询全部信息 -->
+   <select id="SolutionlistPage" parameterType="page" resultType="pd">
+	  SELECT
+	    s.*,
+        ht.hou_name,
+        h.houses_name
+      FROM
+	    tb_solution as s
+      LEFT JOIN
+        tb_housetype as ht
+      ON
+      s.houseType_id=ht.hou_id
+      LEFT JOIN
+        tb_houses as h
+      ON
+       s.houses_no=h.houses_no
+       where 1=1
+        <if test="pd.houses_name != null and pd.houses_name != ''">
+			and h.houses_name LIKE CONCAT(CONCAT('%',#{pd.houses_name}),'%')
+		</if>
+		<if test="pd.hou_name != null and pd.hou_name != ''">
+			and ht.hou_name LIKE CONCAT(CONCAT('%',#{pd.hou_name}),'%')
+		</if>
+		<if test="pd.so_name != null and pd.so_name != ''">
+			and s.so_name LIKE CONCAT(CONCAT('%',#{pd.so_name}),'%')
+		</if>
+		<if test="pd.roleType!='4'">
+			<if test="pd.userList!=null and pd.userList.size()>0">
+				and h.input_user in
+				<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+		            ${user_id}
+		        </foreach>
+		    </if>
+		</if>
+       ORDER BY h.houses_no DESC
+   </select>
+   <!-- 根据户型ID删除信息 -->
+   <delete id="delSolution" parameterType="pd">
+      DELETE FROM tb_solution WHERE so_id=#{so_id}
+   </delete>
+   <!-- 查询户型ID和name -->
+   <select id="houseTypelistPage" parameterType="page" resultType="pd">
+	  SELECT hou_id,hou_name FROM tb_housetype 
+   </select>
+   <!-- 根据户型名称and楼盘名称 查询户型ID and 楼盘ID -->
+   <select id="housesByName" parameterType="pd" resultType="pd">
+	  SELECT 
+        ht.hou_id,
+        h.houses_no
+      FROM 
+        tb_housetype as ht 
+      LEFT JOIN
+        tb_houses as h 
+      ON 
+        ht.houses_id=h.houses_no
+      WHERE 
+        ht.hou_name=#{house_name}
+        and h.houses_name=#{houses_name}
+   </select>
+    <!-- 根据ID查询信息 -->
+	<select id="findSolutionById" parameterType="page" resultType="pd">
+		SELECT * FROM tb_solution where so_id=#{so_id}
+	</select>
+    <!-- 新增户型信息 -->
+	<insert id="saveS" parameterType="pd">
+	    insert into tb_solution(
+		so_id,
+		so_name,
+		so_drawing,
+		so_describe,
+		so_price,
+		houseType_id,
+		houses_no
+		)
+		values
+		(
+		#{so_id},
+		#{so_name},
+		#{so_drawing_json},
+		#{so_describe},
+		#{so_price},
+		#{house_name},
+		#{houses_name}
+		)
+	</insert>
+	<!-- 修改 -->
+	<update id="editS" parameterType="pd">
+		UPDATE tb_solution
+		SET
+		so_name        =#{so_name},
+		so_drawing     =#{so_drawing_json},
+		so_describe    =#{so_describe},
+		so_price       =#{so_price},
+		houseType_id   =#{house_name},
+		houses_no      =#{houses_name}
+		WHERE
+		so_id   = #{so_id}
+	</update>
+	<!-- 获取option集合 -->
+    <select id="findSolutionList"  resultType="pd">
+    	select 
+    	  s.*,
+    	  ht.hou_name,
+    	  h.houses_name 
+    	from 
+    	  tb_solution as s
+    	LEFT JOIN
+    	  tb_housetype as ht 
+    	ON
+    	  s.houseType_id=ht.hou_id
+    	LEFT JOIN
+    	  tb_houses as h 
+    	ON 
+    	  s.houses_no =h.houses_no
+    </select>
+</mapper>

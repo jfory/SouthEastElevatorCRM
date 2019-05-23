@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="selectByRoleMapper">
+	
+	<select id="findAllUser"  resultType="String">
+		select user_id from sys_user
+	</select>
+	
+	<select id="findUserRole" parameterType="String" resultType="String">
+		select role_id from sys_user where user_id=#{USER_ID}
+	</select>
+	
+	<select id="findRoleType" parameterType="list" resultType="String">
+		select type from sys_role where 1=1
+		<if test="list!=null and list.size()>0">
+			and role_id in
+			<foreach collection="list"  item="role_id" index="index" open="(" close=")" separator=",">
+	            #{role_id}
+	        </foreach>
+        </if>
+        order by type desc
+        limit 1
+	</select>
+	
+	<select id="findPositionByUser" parameterType="String" resultType="pd">
+		select * from tb_position where id in(
+			select position_id from sys_user where user_id=#{user_id}
+		)
+	</select>
+	
+	<select id="findUserByPosition" parameterType="list" resultType="String">
+		select user_id from sys_user where position_id in
+		<foreach collection="list"  item="position_id" index="index"
+            open="(" close=")" separator=",">
+            #{position_id}
+        </foreach>
+	</select>
+	
+	<!-- 根据家用梯加盟商级别查询销售id -->
+	<select id="findSalesmanByLv" parameterType="list" resultType="String">
+		select s.user_id from sys_user s,sys_role r
+			where
+				s.role_id like CONCAT('%',CONCAT(r.role_id,'%'))
+				and s.user_id !='1'
+				<if test="list!=null and list.size()>0">
+					and r.type in
+					<foreach collection="list"  item="roleType" index="index" open="(" close=")" separator=",">
+			            #{roleType}
+			        </foreach>
+		        </if>
+	</select>
+
+	<select id="getPostionUserList" parameterType="pd" resultType="String">
+		CALL _getPostionUserList(#{user_id},#{child_user_id})
+	</select>
+</mapper>

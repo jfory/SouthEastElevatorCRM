@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="PdmMapper">
+	
+	<insert id="saveDGCXM" parameterType="pd">
+		insert into D_GCXM(
+			D_GCXM_XMID,
+			D_GCXM_XMMC,
+			D_GCXM_XMJC,
+			D_GCXM_XMSM,
+			D_GCXM_KHID,
+			D_GCXM_XSQY,
+			D_GCXM_AZQY,
+			D_GCXM_SFMS,
+			D_GCXM_DZ,
+			D_GCXM_YZBM,
+			D_GCXM_TEL,
+			D_GCXM_GJ,
+			D_GCXM_SF,
+			D_GCXM_SCLB,
+			D_GCXM_CPXSLB,
+			D_GCXM_XMKGRQ,
+			D_GCXM_YJSXRQ,
+			D_GCXM_TYRQ,
+			D_GCXM_TYBZ,
+			D_GCXM_BZ,
+			D_GCXM_XSDBID,
+			D_GCXM_GDJDID,
+			D_GCXM_BMID,
+			D_GCXM_ZJKHID,
+			D_GCXM_LXR,
+			D_GCXM_XMRQ,
+			D_GCXM_U_MODIFYDATE,
+			D_GCXM_U_MODIFYUSER
+		)values(
+			#{D_GCXM_XMID},
+			#{D_GCXM_XMMC},
+			#{D_GCXM_XMJC},
+			#{D_GCXM_XMSM},
+			#{D_GCXM_KHID},
+			#{D_GCXM_XSQY},
+			#{D_GCXM_AZQY},
+			#{D_GCXM_SFMS},
+			#{D_GCXM_DZ},
+			#{D_GCXM_YZBM},
+			#{D_GCXM_TEL},
+			#{D_GCXM_GJ},
+			#{D_GCXM_SF},
+			#{D_GCXM_SCLB},
+			#{D_GCXM_CPXSLB},
+			#{D_GCXM_XMKGRQ},
+			#{D_GCXM_YJSXRQ},
+			#{D_GCXM_TYRQ},
+			#{D_GCXM_TYBZ},
+			#{D_GCXM_BZ},
+			#{D_GCXM_XSDBID},
+			#{D_GCXM_GDJDID},
+			#{D_GCXM_BMID},
+			#{D_GCXM_ZJKHID},
+			#{D_GCXM_LXR},
+			#{D_GCXM_XMRQ},
+			#{D_GCXM_U_MODIFYDATE},
+			#{D_GCXM_U_MODIFYUSER}
+		)
+	</insert>
+	
+	<insert id="saveDXMPZ" parameterType="pd">
+		insert into D_XMPZ(
+			D_XMPZ_ZLH,
+			D_XMPZ_BB,
+			D_XMPZ_XMID,
+			D_XMPZ_KHID,
+			D_XMPZ_WLID,
+			D_XMPZ_BZ,
+			D_XMPZ_U_MODIFYDATE,
+			D_XMPZ_U_MODIFYUSER,
+			D_XMPZ_E_MODIFYDATE,
+			D_XMPZ_E_MODIFYUSER
+		)values(
+			#{D_XMPZ_ZLH},
+			#{D_XMPZ_BB},
+			#{D_XMPZ_XMID},
+			#{D_XMPZ_KHID},
+			#{D_XMPZ_WLID},
+			#{D_XMPZ_BZ},
+			#{D_XMPZ_U_MODIFYDATE},
+			#{D_XMPZ_U_MODIFYUSER},
+			#{D_XMPZ_E_MODIFYDATE},
+			#{D_XMPZ_E_MODIFYUSER}
+		)
+	</insert>	
+	
+	<insert id="saveDXMPZCS" parameterType="pd">
+		insert into D_XMPZCS(
+			D_XMPZCS_ZLH,
+			D_XMPZCS_BB,
+			D_XMPZCS_CSID,
+			D_XMPZCS_XH,
+			D_XMPZCS_XSSX,
+			D_XMPZCS_CSZ
+		)values(
+			#{D_XMPZCS_ZLH},
+			#{D_XMPZCS_BB},
+			#{D_XMPZCS_CSID},
+			#{D_XMPZCS_XH},
+			#{D_XMPZCS_XSSX},
+			#{D_XMPZCS_CSZ}
+		)
+	</insert>
+	
+	<insert id="saveDDZGX" parameterType="pd">
+		insert into D_DZGX(
+			D_DZGX_ID,
+			D_DZGX_U_BMID,
+			D_DZGX_U_BMMC,
+			D_DZGX_E_BMID,
+			D_DZGX_E_BMMC,
+			D_DZGX_LX,
+			D_DZGX_U_WHR,
+			D_DZGX_U_WHRJ,
+			D_DZGX_E_WHR,
+			D_DZGX_E_WHRJ,
+			D_DZGX_BZ 
+		)values(
+			#{D_DZGX_ID},
+			#{D_DZGX_U_BMID},
+			#{D_DZGX_U_BMMC},
+			#{D_DZGX_E_BMID},
+			#{D_DZGX_E_BMMC},
+			#{D_DZGX_LX},
+			#{D_DZGX_U_WHR},
+			#{D_DZGX_U_WHRJ},
+			#{D_DZGX_E_WHR},
+			#{D_DZGX_E_WHRJ},
+			#{D_DZGX_BZ} 
+		)
+	</insert>
+	
+	<select id="findDGCXM" resultType="pd">
+		select * from D_DGCXM
+	</select>
+	
+	<select id="findDXMPZ" resultType="pd">
+		select * from D_DXMPZ
+	</select>
+	
+	<select id="findDXMPZCS" resultType="pd">
+		select * from D_DXMPZCS
+	</select>
+	
+	<select id="findDDZGX" resultType="pd">
+		select * from D_DZGX
+	</select>
+	
+	
+	<!-- pdm用,查询项目信息 -->
+	<select id="findGCXMForPdm" resultType="pd">
+		select
+			item_no AS D_GCXM_XMID,
+			item_name AS D_GCXM_XMMC,
+			customer_no AS D_GCXM_KHID,
+			item_area AS D_GCXM_XSQY,
+			item_install_address AS D_GCXM_AZQY,
+			item_address AS D_GCXM_DZ,
+			market_flag AS D_GCXM_SCLB,
+			sale_type AS D_GCXM_CPXSLB,
+			start_date AS D_GCXM_XMKGRQ,
+			plan_complete AS D_GCXM_YJSXRQ,
+			remark AS D_GCXM_BZ,
+			item_contact AS D_GCXM_LXR,
+			input_date AS D_GCXM_XMRQ
+		from tb_item
+		where item_no not in (
+			select no from tb_pdm_log
+		)
+	</select>
+	
+	<select id="listPagefindPdmLog" parameterType="page" resultType="pd">
+		select p.*,su.name from tb_pdm_log p left join sys_user su on p.input_user =su.user_id
+	</select>
+	
+	<select id="findExistDZGX" parameterType="pd" resultType="String">
+		select count(*) from D_DZGX 
+			where D_DZGX_U_BMID=#{D_DZGX_U_BMID}
+			and D_DZGX_U_BMMC=#{D_DZGX_U_BMMC}
+			and D_DZGX_LX=#{D_DZGX_LX}
+	</select>
+	
+	<select id="findDataDZGX" resultType="pd">
+		select customer_no as no,customer_name as name,'KHXX' as type from 
+		(
+			select customer_no,customer_name from tb_customer_ordinary union
+			select customer_no,customer_name from tb_customer_merchant union
+			select customer_no,customer_name from tb_customer_core 
+		)customer union
+		select id as no,name as name,'BM' as type from tb_department
+	</select>
+	
+	<select id="findDataXMPZ" resultType="pd">
+		select e.no,i.item_no,i.customer_no from tb_elevator_details e,tb_item i where e.item_id=i.item_id
+	</select>
+	
+	<select id="findDataXMPZCS" resultType="pd">
+		select no from tb_elevator_details
+	</select>
+	
+	<select id="listPageGCXMLog" parameterType="page" resultType="pd">
+		select * from tb_gcxm_log
+	</select>
+	
+	<select id="listPageXMPZLog" parameterType="page" resultType="pd">
+		select * from tb_xmpz_log
+	</select>
+	
+	<select id="listPageXMPZCSLog" parameterType="page" resultType="pd">
+		select * from tb_xmpzcs_log
+	</select>
+	
+	<select id="listPageDZGXLog" parameterType="page" resultType="pd">
+		select * from tb_dzgx_log
+	</select>
+	
+	<insert id="saveGCXMLog" parameterType="pd">
+		insert into tb_gcxm_log(
+			no,
+			input_date,
+			input_user,
+			status
+		)values(
+			#{no},
+			#{input_date},
+			#{input_user},
+			#{status}
+		)
+	</insert>
+	
+	<insert id="saveXMPZLog" parameterType="pd">
+		insert into tb_xmpz_log(
+			no,
+			input_date,
+			input_user,
+			status
+		)values(
+			#{no},
+			#{input_date},
+			#{input_user},
+			#{status}
+		)
+	</insert>
+	
+	<insert id="saveXMPZCSLog" parameterType="pd">
+		insert into tb_xmpzcs_log(
+			no,
+			input_date,
+			input_user,
+			status
+		)values(
+			#{no},
+			#{input_date},
+			#{input_user},
+			#{status}
+		)
+	</insert>
+	
+	<insert id="saveDZGXLog" parameterType="pd">
+		insert into tb_dzgx_log(
+			no,
+			input_date,
+			input_user,
+			status
+		)values(
+			#{no},
+			#{input_date},
+			#{input_user},
+			#{status}
+		)
+	</insert>
+	
+</mapper>	

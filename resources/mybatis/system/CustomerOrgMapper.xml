@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CustomerOrgMapper">
+
+    <select id="findAllCustomerCompany"   resultType="pd">
+		select * from tb_customer_company
+	</select>
+	
+	<select id="findCustomerCompanys"  parameterType="pd"  resultType="pd">
+		select * from tb_customer_company where id not in(#{id})
+	</select>
+	
+	<select id="findCustomerCompanyById" parameterType="pd" resultType="pd">
+		select * from tb_customer_company where id=#{id}
+	</select>
+	
+	<select id="findCompanyParent" parameterType="pd" resultType="pd">
+		select * from tb_customer_company where id=#{pId}
+	</select>
+	
+	<update id="updateCustomerCompany" parameterType="pd">
+		update tb_customer_company set pId=#{pId},name=#{name},type=#{type} where id=#{id}
+	</update>
+	
+	<insert id="insertCustomerCompany" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+		insert into tb_customer_company (pId,name,type)
+		values(#{pId},#{name},#{type})
+	</insert>
+	
+	<delete id="deleteCustomerCompany" parameterType="pd">
+		delete from tb_customer_company where id=#{id} or pId=#{id}
+	</delete>
+    
+</mapper>

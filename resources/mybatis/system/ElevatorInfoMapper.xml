@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ElevatorInfoMapper">
+
+    <!-- 电梯详情分页列表 -->
+    <select id="elevatorDetailsList" parameterType="pd" resultType="pd" useCache="false">
+
+
+        select e.elevator_name, b.*, a.elevator_instance_id, a.elevator_approval
+        from (select a.models_name, e.*
+              from tb_elevator_details e
+                       left join (select m.models_id as id, m.models_name as models_name, '1' as flag from tb_models m
+                                  UNION
+                                  select mi.models_id as id, mi.models_name as models_name, '2' as flag
+                                  from tb_models_info mi)a on e.flag = a.flag
+              where a.id = e.models_id)b
+                 left join tb_elevator e on b.elevator_id = e.elevator_id
+                 left JOIN tb_elevator_audit a ON b.id = a.id
+
+        WHERE b.item_id = #{item_id}
+    </select>
+
+
+    <!-- 根据ID查询电梯详情对象 -->
+    <select id="findElevatorInfoById" resultType="pd">
+        select * from tb_elevator_info where 1=1
+        <if test="item_id!=null and item_id!=''">
+            and item_id = #{item_id}
+        </if>
+    </select>
+
+    <!-- 根据ID查询电梯详情集合 -->
+    <select id="findElevatorDetailsListById" parameterType="pd" resultType="pd">
+        select * from tb_elevator_details where 1=1
+        <if test="item_id!=null and item_id!=''">
+            and item_id = #{item_id}
+        </if>
+    </select>
+
+    <!-- 根据查询条件查询电梯信息 -->
+    <select id="findElevatorDetailsListByCondition" parameterType="pd" resultType="pd">
+        select * from tb_elevator_details where 1=1
+        <if test="item_id!=null and item_id!=''">
+            and item_id = #{item_id}
+        </if>
+        <if test="model_id!=null and model_id!=''">
+            and models_id = #{model_id}
+        </if>
+    </select>
+
+    <!-- 根据ID查询电梯详情集合 -->
+    <select id="findElevatorInfoListById" parameterType="pd" resultType="pd">
+        select * from tb_elevator_info where 1=1
+        <if test="item_id!=null and item_id!=''">
+            and item_id = #{item_id}
+        </if>
+    </select>
+
+    <!-- 根据主键查询电梯详情对象 -->
+    <select id="findElevatorInfoId" parameterType="pd" resultType="pd">
+        select * from tb_elevator_info where 1=1
+        <if test="id !=null and id !='' ">
+            and id = #{id}
+        </if>
+    </select>
+
+
+    <!-- 电梯详情添加 -->
+    <insert id="elevatorInfoAdd" parameterType="pd">
+        insert into tb_elevator_info (item_id, elevator_id, models_id, num, total, flag, details_id)
+        values (#{item_id}, #{elevator_id}, #{models_id}, #{num}, #{total}, #{flag}, #{details_id})
+    </insert>
+
+    <!-- 电梯详情更新 -->
+    <update id="elevatorInfoUpdate" parameterType="pd">
+        update tb_elevator_info
+        <set>
+            item_id = #{item_id},
+            elevator_id = #{elevator_id},
+            models_id = #{models_id},
+            num = #{num},
+            total = #{total},
+            flag = #{flag}
+        </set>
+        where id=#{id}
+    </update>
+
+    <!-- 型号保存后更新电梯详情 -->
+    <update id="elevatorDetailsToModelsUpdate" parameterType="pd">
+        update tb_elevator_details
+        <set>
+            <if test="item_id != null and item_id != '' ">
+                item_id = #{item_id},
+            </if>
+            <if test="elevator_id != null and elevator_id != '' ">
+                elevator_id = #{elevator_id},
+            </if>
+            <if test="elevator_id != null and elevator_id != '' ">
+                num = #{num},
+            </if>
+            models_id = #{models_id},
+            total = #{total},
+            flag = #{flag}
+        </set>
+        where id=#{id}
+    </update>
+
+    <!-- 电梯详情删除 -->
+    <delete id="elevatorInfoDeleteById">
+        delete
+        from tb_elevator_info
+        where item_id = #{item_id}
+    </delete>
+
+    <!-- 电梯详情批量删除-->
+    <delete id="elevatorInfoDeleteAll" parameterType="String">
+        delete from tb_elevator_info
+        where item_id in
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <!-- 根据主键删除 -->
+    <delete id="elevatorInfoDeleteByPid" parameterType="pd">
+        delete
+        from tb_elevator_info
+        where id = #{id}
+    </delete>
+
+    <!-- arisu -->
+    <select id="findElevatorInfoListByItemId" parameterType="String" resultType="pd">
+        select i.*,e.elevator_name from tb_elevator_info i left join tb_elevator e on e.elevator_id=i.elevator_id
+        where i.item_id=#{item_id}
+        <!-- select ei.*,te.elevator_name,ti.item_status from tb_elevator_info ei left join tb_elevator te on te.elevator_id=ei.elevator_id
+            left join tb_item ti on ei.item_id=ti.item_id
+                where ei.item_id=#{item_id} -->
+    </select>
+
+    <!-- arisu -->
+    <select id="findTotalById" parameterType="String" resultType="String">
+        select total
+        from tb_elevator_info
+        where id = #{id}
+    </select>
+
+    <!-- 修改elevator_info中flag为非标类型2 -->
+    <update id="updateElevatorInfoFlag" parameterType="String">
+        update tb_elevator_info
+        set flag = 2
+        where details_id = #{details_id}
+    </update>
+
+    <!-- 修改elevator_info中flag为标准/其他类型 -->
+    <update id="resetElevatorInfoFlag" parameterType="String">
+        update tb_elevator_info
+        set flag = 1
+        where details_id = #{details_id}
+    </update>
+
+    <!-- 根据项目id删除elevatorinfo -->
+    <delete id="deleteElevatorInfoByItemId" parameterType="String">
+        delete
+        from tb_elevator_info
+        where item_id = #{item_id}
+    </delete>
+</mapper>	

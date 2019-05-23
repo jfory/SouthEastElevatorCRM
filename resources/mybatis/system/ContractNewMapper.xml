@@ -1,0 +1,2198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ContractNewMapper">
+    <!-- 查询全部设备合同信息 -->
+	<select id="SoContractlistPage" parameterType="page" resultType="pd">
+		SELECT
+			tb_so_contract.*,
+			eo.offer_version,
+			sys_user.`NAME` AS USER_NAME
+		FROM
+			tb_so_contract
+		LEFT JOIN
+			sys_user
+		ON
+			tb_so_contract.INPUT_USER=sys_user.USER_ID
+		LEFT JOIN
+			(SELECT offer_id,offer_version FROM tb_iteminoffer) AS eo ON tb_so_contract.`HT_OFFER_ID`= eo.offer_id 
+		WHERE 1=1
+		<if test="pd.item_name != null and pd.item_name != ''">
+			and tb_so_contract.item_name LIKE CONCAT(CONCAT('%',#{pd.item_name}),'%')
+		</if>
+		<if test="pd.HT_NO != null and pd.HT_NO != ''">
+			and tb_so_contract.HT_NO LIKE CONCAT(CONCAT('%',#{pd.HT_NO}),'%')
+		</if>
+		<if test="pd.ACT_STATUS != null and pd.ACT_STATUS != ''">
+			and tb_so_contract.ACT_STATUS LIKE CONCAT(CONCAT('%',#{pd.ACT_STATUS}),'%')
+		</if>
+		<if test="pd.userList!=null and pd.userList.size()>0">
+			and tb_so_contract.INPUT_USER in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+        </if>
+		order by INPUT_TIME DESC
+	</select>
+
+    <!-- 根据合同UUid获取合同信息 -->
+	<select id="findSoConByUUid" parameterType="pd" resultType="pd">
+		SELECT
+		  tb_so_contract.*,
+		  sys_user.`NAME` as user_name
+		FROM
+		  tb_so_contract
+		LEFT JOIN
+		  sys_user
+		ON
+		  tb_so_contract.INPUT_USER=sys_user.USER_ID
+		WHERE tb_so_contract.HT_UUID=#{HT_UUID}
+		<if test="userList!=null and userList.size()>0">
+			and tb_so_contract.INPUT_USER in
+			<foreach collection="userList"  item="user_id" index="index" open="(" close=")" separator=",">
+				${user_id}
+			</foreach>
+		</if>
+	</select>
+
+
+	<!-- 根据项目id获取项目信息 -->
+	<select id="findItemById" parameterType="pd" resultType="pd">
+		SELECT
+			i.item_id,
+		  i.item_no,
+		  i.item_name,
+			i.order_org_contact HT_LXR,
+			i.order_org_phone HT_LXDH,
+		  customer.customer_name,
+            customer.customer_no,
+		  address.*
+		FROM
+			tb_item AS i
+		LEFT JOIN (
+			SELECT
+				customer_no,
+				customer_name
+			FROM
+				tb_customer_core
+			UNION
+				SELECT
+					customer_no,
+					customer_name
+				FROM
+					tb_customer_merchant
+				UNION
+					SELECT
+						customer_no,
+						customer_name
+					FROM
+						tb_customer_ordinary
+		) AS customer ON i.customer_no = customer.customer_no
+		LEFT JOIN
+		  (
+		    SELECT
+			tb_address.id address_id,
+		  tb_loc_province.name as province_name,
+		  tb_loc_city.name as city_name,
+		  tb_loc_county.name as county_name,
+		  tb_address.address_info,
+				tb_address.province_id,
+				tb_address.city_id,
+				tb_address.county_id
+		FROM
+			tb_address
+		LEFT JOIN
+		  tb_loc_province
+		ON
+		  tb_address.province_id=tb_loc_province.id
+		LEFT JOIN
+		  tb_loc_city
+		ON
+		  tb_address.city_id=tb_loc_city.id
+		LEFT JOIN
+		  tb_loc_county
+		ON
+		  tb_address.county_id=tb_loc_county.id
+
+		  ) as address ON i.item_install_address=address.address_id
+		   where item_id=#{item_id}
+	</select>
+	<!-- 根据项目id获取电梯信息 -->
+	<select id="findBJCByItemId" parameterType="pd" resultType="pd">
+		SELECT
+			*
+		FROM
+			tb_bjc as b
+		LEFT JOIN
+		  tb_models as m
+		ON
+		  b.BJC_MODELS=m.models_id
+		WHERE
+		  b.BJC_ITEM_ID=#{item_id}
+	</select>
+
+    <!-- 根据电梯id获取电梯信息 -->
+	<select id="findElevById" parameterType="pd" resultType="pd">
+		SELECT
+			*,
+			mo.ele_type
+		FROM
+			tb_temp_elevator_details as elev
+			left join  tb_models mo on elev.models_id=mo.models_id
+		where elev.id in
+		<foreach collection="list"  item="list" index="index" open="(" close=")" separator=",">
+            #{list}
+        </foreach>
+	</select>
+
+    <!-- 根据项目id获取电梯数量 -->
+	<select id="findElevByItemId" parameterType="pd" resultType="pd">
+		SELECT
+		COUNT(*) as DTNUM
+		FROM tb_elevator_details
+		WHERE item_id=#{item_id}
+	</select>
+
+    <!-- 根据报价id获取电梯数量 -->
+	<select id="findElevByOfferId" parameterType="pd" resultType="pd">
+		SELECT
+		COUNT(1) as DTNUM
+		FROM tb_temp_elevator_details ted
+        LEFT JOIN tb_iteminoffer eo on eo.item_id = ted.item_id and eo.offer_version = ted.offer_version
+		WHERE eo.offer_id = #{AZ_OFFER_ID}
+	</select>
+
+     <!-- 根据项目id获取报价金额 -->
+	<select id="findOfferByItemId" parameterType="pd" resultType="pd">
+		SELECT
+		offer_id,
+		total,
+		COUNT_TATOL,
+		SWXX_MBQX,
+        SWXX_ZBJBL,
+        COUNT_AZF
+		FROM tb_e_offer
+		WHERE item_id=#{item_id}
+	</select>
+
+    <!-- 根据合同id获取 tb_so_dtinfo信息 -->
+	<select id="findDtInfoByHtId" parameterType="pd" resultType="pd">
+		SELECT
+		  *
+		FROM
+		  tb_so_dtinfo
+		WHERE
+		  DT_HT_ID=#{HT_UUID}
+	</select>
+
+	<!-- 根据合同id获取 tb_so_fkfs -->
+	<select id="findFkfsByHtId" parameterType="pd" resultType="pd">
+		SELECT
+		  *
+		FROM
+		  tb_so_fkfs
+		WHERE
+		  FKFS_HT_UUID=#{HT_UUID}
+	</select>
+
+    <!-- 根据合同id获取 tb_so_fkfs -->
+	<select id="findFkfsByOfferNo" parameterType="pd" resultType="pd">
+select SWXX_DJ as FKFS_FKBL ,'1' as FKFS_KX,'1' as FKFS_PDRQ,cast( (SWXX_DJ/100.0)*total AS DECIMAL(16,2)) as FKFS_JE,SWXX_DJ_DAY AS FKFS_FKTS FROM tb_iteminoffer WHERE offer_no = #{offer_no} and  SWXX_DJ!=''
+union
+select SWXX_PCK as FKFS_FKBL,'2' as FKFS_KX ,'2' as FKFS_PDRQ,cast( (SWXX_PCK/100.0)*total AS DECIMAL(16,2)) as FKFS_JE,SWXX_PCK_DAY AS FKFS_FKTS FROM tb_iteminoffer WHERE offer_no = #{offer_no} and  SWXX_PCK!=''
+union
+select SWXX_FHK as FKFS_FKBL,'3' as FKFS_KX,'3' as FKFS_PDRQ,cast( (SWXX_FHK/100.0)*total AS DECIMAL(16,2)) as FKFS_JE,SWXX_FHK_DAY AS FKFS_FKTS FROM tb_iteminoffer WHERE offer_no = #{offer_no} and  SWXX_FHK!=''
+union
+select SWXX_HDGDK as FKFS_FKBL ,'4' as FKFS_KX,'3' as FKFS_PDRQ,cast( (SWXX_HDGDK/100.0)*total AS DECIMAL(16,2)) as FKFS_JE,SWXX_HDGDK_DAY AS FKFS_FKTS FROM tb_iteminoffer WHERE offer_no = #{offer_no} and SWXX_HDGDK!=''
+union
+select SWXX_YSK as FKFS_FKBL,'7' as FKFS_KX,'5' as FKFS_PDRQ,cast( (SWXX_YSK/100.0)*total AS DECIMAL(16,2)) as FKFS_JE,SWXX_YSK_DAY AS FKFS_FKTS FROM tb_iteminoffer WHERE offer_no = #{offer_no} and  SWXX_YSK!=''
+union
+select SWXX_ZBJBL as FKFS_FKBL,'8' as FKFS_KX,'6' as FKFS_PDRQ,cast( (SWXX_ZBJBL/100.0)*total AS DECIMAL(16,2)) as FKFS_JE,SWXX_ZBJBL_DAY AS FKFS_FKTS FROM tb_iteminoffer WHERE offer_no = #{offer_no} and  SWXX_ZBJBL!=''
+union
+select SWXX_XYZ as FKFS_FKBL,'9' as FKFS_KX,'7' as FKFS_PDRQ,cast( (SWXX_XYZ/100.0)*total AS DECIMAL(16,2)) as FKFS_JE,SWXX_XYZ_DAY AS FKFS_FKTS FROM tb_iteminoffer WHERE offer_no = #{offer_no} and  SWXX_XYZ!=''
+	</select>
+
+    <!-- 查询不存在合同表内的报价信息 -->
+	<select id="e_offerlistPage" parameterType="page" resultType="pd">
+	    SELECT
+			*
+		FROM
+			(
+				SELECT
+					eo.offer_id,
+					eo.offer_no,
+					i.item_name,
+					i.item_id,
+					customer.customer_name,
+					bjc.elenum as num,
+					FORMAT(eo.total, '000,000.00') AS total,
+					u.NAME AS USERNAME,
+					eo.instance_id,
+					eo.instance_status
+				FROM
+					tb_e_offer AS eo
+				LEFT JOIN tb_item AS i ON eo.item_id = i.item_id
+				LEFT JOIN (
+					SELECT
+						customer_no,
+						customer_name
+					FROM
+						tb_customer_core
+					UNION
+						SELECT
+							customer_no,
+							customer_name
+						FROM
+							tb_customer_merchant
+						UNION
+							SELECT
+								customer_no,
+								customer_name
+							FROM
+								tb_customer_ordinary
+				) AS customer ON i.customer_no = customer.customer_no
+				LEFT JOIN (
+					SELECT
+						*, COUNT(id) AS num
+					FROM
+						tb_elevator_details
+					GROUP BY
+						item_id
+				) AS elev ON eo.item_id = elev.item_id
+				LEFT JOIN sys_user AS u ON eo.offer_user = u.USER_ID
+                left join(select BJC_ITEM_ID,cast(sum(BJC_SL) as decimal) elenum from  tb_bjc group by BJC_ITEM_ID) bjc on eo.item_id=bjc.BJC_ITEM_ID
+				where instance_status='4'
+				<if test="pd.item_name != null and pd.item_name != ''">
+					and i.item_name LIKE CONCAT(CONCAT('%',#{pd.item_name}),'%')
+				</if>
+                <if test="pd.userList!=null and pd.userList.size()>0">
+                    and eo.offer_user in
+                    <foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+                        ${user_id}
+                    </foreach>
+                </if>
+			) qwe
+		WHERE
+			qwe.offer_id NOT IN (
+				SELECT
+					HT_OFFER_ID
+				FROM
+					tb_so_contract
+			)
+	</select>
+
+    <!-- 根据HT_UUID 删除tb_so_dtInfo -->
+	<delete id="deleteDtInfo" parameterType="pd">
+		delete from tb_so_dtInfo where DT_HT_ID=#{HT_UUID}
+	</delete>
+
+	<!-- 根据HT_UUID 删除tb_so_fkfs -->
+	<delete id="deleteFkfs" parameterType="pd">
+		delete from tb_so_fkfs where FKFS_HT_UUID=#{HT_UUID}
+	</delete>
+
+	<!-- 根据HT_UUID 删除tb_so_contract -->
+	<delete id="deleteContract" parameterType="pd">
+		delete from tb_so_contract where HT_UUID=#{HT_UUID}
+	</delete>
+
+
+    <!-- 保存合同信息 -->
+	<insert id="save" parameterType="pd">
+		insert into tb_so_contract
+		(
+			HT_UUID,
+			HT_NO,
+			HT_ITEM_ID,
+			HT_OFFER_ID,
+			HT_QDRQ,
+			HT_MBQX,
+			HT_JHFS,
+			HT_ZBJBL,
+			HT_LXR,
+			HT_LXDH,
+			HT_YJKGRQ,
+			HT_TYPE,
+			HT_FJSC,
+			HT_WJLX,
+			HT_YJSGZQ,
+			HT_YJGHZQ,
+			HT_JHRQ,
+			HT_BZ,
+			ACT_KEY,
+			ACT_STATUS,
+			INPUT_USER,
+			INPUT_TIME,
+			customer_name,
+			item_name,
+			DT_NUM,
+			TOTAL,
+			PRICE,
+			HT_FJSC_JSON,
+			HT_YJFHRQ,
+			HT_YJYSRQ,
+			`HT_JF_JS`,
+			`HT_JF_AZ`,
+			`HT_JF_WB`,
+			`HT_JF_CWXG`,
+			HT_SFMD,
+			HT_YJZBJRQ,
+			HT_YJXYZRQ,
+			HT_REMARK
+		)values(
+			#{HT_UUID},
+			#{HT_NO},
+			#{item_id},
+			#{offer_id},
+			#{HT_QDRQ},
+			#{HT_MBQX},
+			#{HT_JHFS},
+			#{HT_ZBJBL},
+			#{HT_LXR},
+			#{HT_LXDH},
+			#{HT_YJKGRQ},
+			#{HT_TYPE},
+			#{HT_FJSC},
+			#{HT_WJLX},
+			#{HT_YJSGZQ},
+			#{HT_YJGHZQ},
+			#{HT_JHRQ},
+			#{HT_BZ},
+			#{ACT_KEY},
+			#{ACT_STATUS},
+			#{INPUT_USER},
+			#{INPUT_TIME},
+			#{customer_name},
+			#{item_name},
+			#{DTNUM},
+			#{TOTAL},
+			#{PRICE},
+			#{HT_FJSC_JSON},
+			#{HT_YJFHRQ},
+			#{HT_YJYSRQ},
+			#{HT_JF_JS},
+			#{HT_JF_AZ},
+			#{HT_JF_WB},
+			#{HT_JF_CWXG},
+			#{HT_SFMD},
+			#{HT_YJZBJRQ},
+			#{HT_YJXYZRQ},
+			#{HT_REMARK}
+		)
+	</insert>
+
+    <!-- 根据HT_UUID 修改合同信息 -->
+	<update id="edit" parameterType="pd">
+	    UPDATE tb_so_contract
+		SET
+		HT_QDRQ        =#{HT_QDRQ},
+		HT_MBQX         =#{HT_MBQX},
+		HT_JHFS         =#{HT_JHFS},
+		HT_ZBJBL        =#{HT_ZBJBL},
+		HT_LXR         =#{HT_LXR},
+		HT_LXDH         =#{HT_LXDH},
+		HT_YJKGRQ        =#{HT_YJKGRQ},
+		HT_TYPE         =#{HT_TYPE},
+		HT_FJSC         =#{HT_FJSC},
+		HT_WJLX          =#{HT_WJLX},
+		HT_YJSGZQ         =#{HT_YJSGZQ},
+		HT_YJGHZQ         =#{HT_YJGHZQ},
+		HT_JHRQ            =#{HT_JHRQ},
+		HT_BZ            =#{HT_BZ},
+		PRICE            =#{PRICE},
+		HT_FJSC_JSON=#{HT_FJSC_JSON},
+		HT_YJYSRQ = #{HT_YJYSRQ},
+		HT_YJFHRQ = #{HT_YJFHRQ},
+		`HT_JF_JS` = #{HT_JF_JS},
+		`HT_JF_AZ` = #{HT_JF_AZ},
+		`HT_JF_WB` = #{HT_JF_WB},
+		`HT_JF_CWXG` = #{HT_JF_CWXG},
+		HT_SFMD=#{HT_SFMD},
+		HT_YJZBJRQ=#{HT_YJZBJRQ},
+		HT_YJXYZRQ=#{HT_YJXYZRQ},
+		HT_REMARK=#{HT_REMARK},
+		customer_name=#{customer_name},
+		item_name=#{item_name}
+		Where
+		HT_UUID = #{HT_UUID}
+	</update>
+
+     <!-- 保存电梯信息 -->
+	<insert id="saveDt" parameterType="pd">
+		insert into tb_so_dtInfo
+		(
+			DT_UUID,
+			DT_NO,
+			DT_TX,
+			DT_TH,
+			DT_CZM,
+			DT_SBDJ,
+			DT_AZDJ,
+			DT_YSJ,
+			DT_XJ,
+			DT_HT_ID,
+			DT_BJC_ID,
+			DT_ELEV_ID
+		)values(
+			#{DT_UUID},
+			#{DT_NO},
+			#{DT_TX},
+			#{DT_TH},
+			#{DT_CZM},
+			#{DT_SBDJ},
+			#{DT_AZDJ},
+			#{DT_YSJ},
+			#{DT_XJ},
+			#{DT_HT_ID},
+			#{DT_BJC_ID},
+			#{DT_ELEV_ID}
+		)
+	</insert>
+
+	<!-- 保存电梯信息 -->
+	<update id="updateDt" parameterType="pd">
+		UPDATE tb_so_dtInfo
+        SET
+        DT_TH    =#{DT_TH},
+        DT_NO    =#{DT_NO}
+        Where
+        DT_HT_ID = #{DT_HT_ID} AND
+        DT_UUID = #{DT_UUID}
+	</update>
+
+	 <!-- 保存付款方式 -->
+	<insert id="saveFkfs" parameterType="pd">
+		insert into tb_so_fkfs
+		(
+			FKFS_UUID,
+			FKFS_QS,
+			FKFS_KX,
+			FKFS_PDRQ,
+			FKFS_PCRQ,
+			FKFS_FKBL,
+			FKFS_JE,
+			FKFS_ZT,
+			FKFS_BZ,
+			FKFS_HT_UUID,
+			FKFS_FKTS
+		)values(
+			#{FKFS_UUID},
+			#{FKFS_QS},
+			#{FKFS_KX},
+			#{FKFS_PDRQ},
+			#{FKFS_PCRQ},
+			#{FKFS_FKBL},
+			#{FKFS_JE},
+			#{FKFS_ZT},
+			#{FKFS_BZ},
+			#{FKFS_HT_UUID},
+			#{FKFS_FKTS}
+		)
+	</insert>
+
+	<!-- 飞尚COD输出 -->
+	<select id="printFEISHANG_COD" parameterType="pd" resultType="pd">
+		select
+			FEISHANG_ID,
+			FEISHANG_ZHJ,
+			FEISHANG_SBJ,
+			FEISHANG_ZK,
+			FEISHANG_ZHSBJ,
+			FEISHANG_AZF,
+			FEISHANG_YSF,
+			FEISHANG_SJBJ,
+			FEISHANG_SL,
+			ELEV_IDS,
+			a.ITEM_ID,
+			a.MODELS_ID,
+			BZ_ZZ,
+			BZ_SD,
+			BZ_KMXS,
+			BZ_KMKD,
+			BZ_C,
+			BZ_Z,
+			BZ_M,
+			BASE_KZXT,
+			BASE_KZFS,
+			BASE_YYZJ,
+			BASE_JDJG,
+			BASE_QGLJJ,
+			BASE_JXGG,
+			BASE_JXGD,
+			BASE_KMCC,
+			BASE_JXRKSL,
+			BASE_MLXMBH,
+			BASE_JDCZQHD,
+			BASE_JDK,
+			BASE_JDS,
+			BASE_TSGD,
+			BASE_DKSD,
+			BASE_DCGD,
+			BASE_JDZG,
+			BASE_JZZT,
+			BASE_LCBJ,
+			BASE_DGZJ,
+			OPT_SZTJMSJ,
+			OPT_XFLD,
+			OPT_XFYYX,
+			OPT_TWXFYFW,
+			OPT_JXDZZ,
+			OPT_CCTVDL,
+			OPT_TDYJJY,
+			OPT_DJGRBH,
+			OPT_WLW,
+			OPT_SJCZ,
+			OPT_BAJK,
+			OPT_YYBZ,
+			OPT_FDLCZ,
+			OPT_XJX,
+			OPT_JJBYDYCZZZ,
+			OPT_LOPAN,
+			OPT_LOPANGS,
+			OPT_GTJX,
+			OPT_GTCS,
+			DZJKSDJXT_DJTXFS,
+			DZJKSDJXT_DJDDTTS,
+			JXZH_JM,
+			JXZH_JMSBH,
+			JXZH_QWB,
+			JXZH_QWBSBH,
+			JXZH_CWB,
+			JXZH_CWBSBH,
+			JXZH_HWB,
+			JXZH_HWBSBH,
+			JXZH_JDZH,
+			JXZH_BXGDD,
+			JXZH_BXGDB,
+			JXZH_BGJ,
+			JXZH_DBXH,
+			JXZH_DBZXHD,
+			JXZH_FZTXH,
+			JXZH_FZTAZWZ,
+			TMMT_FWBXGTM,
+			TMMT_FWBXGXMT,
+			TMMT_DMT,
+			TMMT_SCTMMT,
+			TMMT_SCSBH,
+			TMMT_SCSL,
+			TMMT_FSCTMMT,
+			TMMT_FSCSBH,
+			TMMT_FSCSL,
+			CZP_CZPLX,
+			CZP_CZPXH,
+			CZP_XS,
+			CZP_AN,
+			CZP_CZ,
+			CZP_CZPWZ,
+			TMXHZZ_TWZHLX,
+			TMXHZZ_TWZHXH,
+			TMXHZZ_XS,
+			TMXHZZ_AN,
+			TMXHZZ_CZ,
+			TMXHZZ_TWZHXS,
+			TMXHZZ_ZDJC,
+			TMXHZZ_MCGS,
+			TMXHZZ_FJSM,
+			UNSTD,
+			a.DT_REMARK,
+			c.HT_NO,b.BJC_SL,b.BJC_ENO,
+			f.name,c.customer_name as end_name,
+			c.item_name,c.HT_JHRQ,
+			JXZH_FZTAZWZ1,
+			JXZH_FZTAZWZ2,
+			JXZH_FZTAZWZ3,
+			a.TJTTH,
+			d.offer_version,
+			TMMT_PTDMT,
+			DMT_SL,
+			FSC_DMT,
+			FSC_DMT_SL,
+			nons.CGFB_JXCLBH,
+			nons.CGFB_MTBH443,
+			nons.CGFB_MTBHSUS304,
+			nons.CGFB_MTBH15SUS304,
+			nons.CGFB_MTBH1215,
+			nons.CGFB_JXHL,
+			nons.CGFB_DLSB,
+			nons.CGFB_DZCZ,
+			nons.CGFB_KMGD,
+			nons.CGFB_DKIP65,
+			nons.CGFB_PKM,
+			nons.CGFB_GTJX,
+			nons.CGFB_ZFSZ2000,
+			nons.CGFB_ZFSZ3000,
+			nons.CGFB_ZFSZAQB,
+			nons.CGFB_TDYJ,
+			nons.CGFB_JJFAJMK,
+			nons.CGFB_JJFACXK,
+			a.BASE_MLX,
+			a.BASE_MBH,
+			u.`NAME` as user_name,
+			org.customer_name as customer_name
+		from
+			tb_feishang a
+			LEFT JOIN tb_bjc b
+			ON a.FEISHANG_ID = b.BJC_COD_ID
+			LEFT JOIN tb_iteminoffer d
+			ON d.item_id = b.BJC_ITEM_ID and d.offer_version = b.offer_version
+			LEFT JOIN tb_so_contract c
+			ON d.OFFER_ID = c.HT_OFFER_ID
+			LEFT JOIN tb_address e
+			ON e.id = d.item_install_address
+			LEFT JOIN tb_loc_province f
+			ON f.id = e.province_id
+			LEFT JOIN tb_conventional_nonstandard nons
+			ON nons.BJ_DT_ID = a.FEISHANG_ID
+			LEFT JOIN sys_user u
+			ON u.user_id = c.input_user
+			LEFT JOIN (
+			  select customer_id, customer_name from tb_customer_ordinary
+              union select customer_id, customer_name from tb_customer_merchant
+              union select customer_id, customer_name from tb_customer_core
+              union select agent_id customer_id,agent_name as customer_name from tb_agent
+            ) org ON org.customer_id = d.order_org
+			WHERE b.BJC_COD_ID = #{BJC_COD_ID}
+	</select>
+
+
+	<!-- 飞尚无机房COD输出 -->
+	<select id="printFEISHANG_COD_MRL" parameterType="pd" resultType="pd">
+		select
+			FEISHANG_MRL_ID,
+			FEISHANG_MRL_ZHJ,
+			FEISHANG_MRL_SBJ,
+			FEISHANG_MRL_ZK,
+			FEISHANG_MRL_ZHSBJ,
+			FEISHANG_MRL_AZF,
+			FEISHANG_MRL_YSF,
+			FEISHANG_MRL_SJBJ,
+			FEISHANG_MRL_SL,
+			ELEV_IDS,
+			a.ITEM_ID,
+			a.MODELS_ID,
+			BZ_ZZ,
+			BZ_SD,
+			BZ_KMXS,
+			BZ_KMKD,
+			BZ_C,
+			BZ_Z,
+			BZ_M,
+			BASE_KZXT,
+			BASE_KZFS,
+			BASE_YYZJ,
+			BASE_JDJG,
+			BASE_QGLJJ,
+			BASE_JXGG,
+			BASE_JXGD,
+			BASE_KMCC,
+			BASE_JXRKSL,
+			BASE_MLXMBH,
+			BASE_JDCZQHD,
+			BASE_JDK,
+			BASE_JDS,
+			BASE_TSGD,
+			BASE_DKSD,
+			BASE_DCGD,
+			BASE_JDZG,
+			BASE_JZZT,
+			BASE_LCBJ,
+			BASE_DGZJ,
+			OPT_SZTJMSJ,
+			OPT_XFLD,
+			OPT_XFYYX,
+			OPT_TWXFYFW,
+			OPT_JXDZZ,
+			OPT_CCTVDL,
+			OPT_TDYJJY,
+			OPT_DJGRBH,
+			OPT_WLW,
+			OPT_SJCZ,
+			OPT_BAJK,
+			OPT_YYBZ,
+			OPT_FDLCZ,
+			OPT_XJX,
+			OPT_JJBYDYCZZZ,
+			OPT_LOPAN,
+			OPT_LOPANGS,
+			OPT_GTJX,
+			OPT_GTCS,
+			DZJKSDJXT_DJTXFS,
+			DZJKSDJXT_DJDDTTS,
+			JXZH_JM,
+			JXZH_JMSBH,
+			JXZH_QWB,
+			JXZH_QWBSBH,
+			JXZH_CWB,
+			JXZH_CWBSBH,
+			JXZH_HWB,
+			JXZH_HWBSBH,
+			JXZH_JDZH,
+			JXZH_BXGDD,
+			JXZH_BXGDB,
+			JXZH_BGJ,
+			JXZH_DBXH,
+			JXZH_DBZXHD,
+			JXZH_FZTXH,
+			JXZH_FZTAZWZ,
+			TMMT_FWBXGTM,
+			TMMT_FWBXGXMT,
+			TMMT_DMT,
+			TMMT_SCTMMT,
+			TMMT_SCSBH,
+			TMMT_SCSL,
+			TMMT_FSCTMMT,
+			TMMT_FSCSBH,
+			TMMT_FSCSL,
+			CZP_CZPLX,
+			CZP_CZPXH,
+			CZP_XS,
+			CZP_AN,
+			CZP_CZ,
+			CZP_CZPWZ,
+			TMXHZZ_TWZHLX,
+			TMXHZZ_TWZHXH,
+			TMXHZZ_XS,
+			TMXHZZ_AN,
+			TMXHZZ_CZ,
+			TMXHZZ_TWZHXS,
+			TMXHZZ_ZDJC,
+			TMXHZZ_MCGS,
+			TMXHZZ_FJSM,
+			UNSTD,
+			a.DT_REMARK,
+			c.HT_NO,b.BJC_SL,b.BJC_ENO,
+			f.name,c.customer_name as end_name,
+			c.item_name,c.HT_JHRQ,
+			JXZH_FZTAZWZ1,
+			JXZH_FZTAZWZ2,
+			JXZH_FZTAZWZ3,
+			a.TJTTH,
+			d.offer_version,
+			TMMT_PTDMT,
+			DMT_SL,
+			FSC_DMT,
+			FSC_DMT_SL,
+			nons.CGFB_JXCLBH,
+			nons.CGFB_MTBH443,
+			nons.CGFB_MTBHSUS304,
+			nons.CGFB_MTBH15SUS304,
+			nons.CGFB_MTBH1215,
+			nons.CGFB_JXHL,
+			nons.CGFB_DLSB,
+			nons.CGFB_DZCZ,
+			nons.CGFB_KMGD,
+			nons.CGFB_DKIP65,
+			nons.CGFB_PKM,
+			nons.CGFB_GTJX,
+			nons.CGFB_ZFSZ2000,
+			nons.CGFB_ZFSZ3000,
+			nons.CGFB_ZFSZAQB,
+			nons.CGFB_TDYJ,
+			nons.CGFB_JJFAJMK,
+			nons.CGFB_JJFACXK,
+			u.`NAME` as user_name,
+			a.BASE_JJXF,
+			a.BASE_MLX,
+			a.BASE_MBH,
+			org.customer_name as customer_name
+		from
+			tb_feishang_mrl a
+			LEFT JOIN tb_bjc b
+			ON a.FEISHANG_MRL_ID = b.BJC_COD_ID
+			LEFT JOIN tb_iteminoffer d
+			ON d.item_id = b.BJC_ITEM_ID and d.offer_version = b.offer_version
+			LEFT JOIN tb_so_contract c
+			ON d.OFFER_ID = c.HT_OFFER_ID
+			LEFT JOIN tb_address e
+			ON e.id = d.item_install_address
+			LEFT JOIN tb_loc_province f
+			ON f.id = e.province_id
+			LEFT JOIN tb_conventional_nonstandard nons
+			ON nons.BJ_DT_ID = a.FEISHANG_MRL_ID
+			LEFT JOIN sys_user u
+			ON u.user_id = c.input_user
+			LEFT JOIN (
+			  select customer_id, customer_name from tb_customer_ordinary
+              union select customer_id, customer_name from tb_customer_merchant
+              union select customer_id, customer_name from tb_customer_core
+              union select agent_id customer_id,agent_name as customer_name from tb_agent
+            ) org ON org.customer_id = d.order_org
+	   	WHERE b.BJC_COD_ID = #{BJC_COD_ID}
+	</select>
+
+	<!-- 飞逸COD输出 -->
+	<select id="printSHINY_COD" parameterType="pd" resultType="pd">
+		select
+			SHINY_ID,
+			SHINY_AZF,
+			SHINY_YSF,
+			SHINY_SL,
+			SHINY_ZK,
+			SHINY_ZHJ,
+			SHINY_SBJ,
+			SHINY_ZHSBJ,
+			SHINY_SJBJ,
+			ELEV_IDS,
+			a.ITEM_ID,
+			BZ_ZZ,
+			BZ_SD,
+			BZ_KMXS,
+			BZ_KMKD,
+			BZ_C,
+			BZ_Z,
+			BZ_M,
+			BASE_KZXT,
+			BASE_KZFS,
+			BASE_YYZJ,
+			BASE_QGLJJ,
+			BASE_JXGG,
+			BASE_JXGD,
+			BASE_HTDM,
+			BASE_MJXH,
+			BASE_MBHFS,
+			BASE_JDJG,
+			BASE_JDCZQHD,
+			BASE_JDK,
+			BASE_JDS,
+			BASE_TSGD,
+			BASE_DKSD,
+			BASE_DCGD,
+			BASE_JDZG,
+			BASE_JZZT,
+			BASE_LCBJ,
+			BASE_DGZJ,
+			OPT_JFGT,
+			OPT_COP,
+			OPT_WZYCOPMWAN,
+			OPT_GBSCJRCZXCOP,
+			OPT_LOP,
+			OPT_FDLCZ,
+			OPT_TDJJJY,
+			OPT_YSJCZ,
+			OPT_CCTVDL,
+			OPT_JJBYDYCZZZ,
+			OPT_JXDZZ,
+			OPT_ZPC,
+			OPT_YCJSJKZB,
+			OPT_YYBZ,
+			OPT_HJZDFHJZ,
+			OPT_BAJK,
+			OPT_DJGRBH,
+			OPT_XFLD,
+			OPT_TWXFYFW,
+			DZJKSDJXT_DJTXFS,
+			DZJKSDJXT_TQZDSBH,
+			JXZH_JM,
+			JXZH_JMSBH,
+			JXZH_QWB,
+			JXZH_QWBSBH,
+			JXZH_CWB,
+			JXZH_CWBSBH,
+			JXZH_HWB,
+			JXZH_HWBSBH,
+			JXZH_JDZH,
+			JXZH_JDAQC,
+			JXZH_DBXH,
+			JXZH_DBZXHD,
+			JXZH_FZTXH,
+			JXZH_FZTAZWZ,
+			JXZH_BGJ,
+			JXZH_YLZHZL,
+			TMMT_SCTMMTCZXMK,
+			TMMT_FSCTMMTCZXMK,
+			TMMT_XMKCZS,
+			TMMT_XMKLM,
+			TMMT_SCTMMTCZDMK,
+			TMMT_FSCTMMTCZDMK,
+			TMMT_DMKCZS,
+			TMMT_DMKLM,
+			TMMT_TMCZ,
+			TMMT_FSCTMCZ,
+			TMMT_CZS,
+			TMMT_LM,
+			CZP_CZPLX,
+			CZP_CZPXH,
+			CZP_XS,
+			CZP_AN,
+			CZP_CZ,
+			CZP_CZPWZ,
+			TMXHZZ_TWZHLX,
+			TMXHZZ_TWZHXH,
+			TMXHZZ_SL,
+			TMXHZZ_XS,
+			TMXHZZ_AN,
+			TMXHZZ_CZ,
+			TMXHZZ_TWZHXS,
+			TMXHZZ_ZDJC,
+			TMXHZZ_FJSM,
+			UNSTD,
+			a.DT_REMARK,
+			c.HT_NO,b.BJC_SL,b.BJC_ENO,
+			<!-- h.name,g.name, -->
+			f.name,c.customer_name,
+			<!-- e.address_info, -->
+			c.item_name,c.HT_JHRQ,
+			a.TJTTH,
+			d.offer_version,
+			a.JXZH_FZTAZWZ1,
+			a.JXZH_FZTAZWZ2,
+			a.JXZH_FZTAZWZ3,
+			a.TMMT_SCTMMTCZXMKSBH,
+			a.TMMT_FSCTMMTCZXMKSBH,
+			a.TMMT_SCTMMTCZDMKSBH,
+			a.TMMT_FSCTMMTCZDMKSBH,
+			a.TMMT_TMCZSBH,
+			a.TMMT_FSCTMCZSBH
+		from
+			tb_shiny a
+		LEFT JOIN tb_bjc b
+		ON a.SHINY_ID = b.BJC_COD_ID
+		LEFT JOIN tb_iteminoffer d
+		ON d.item_id = b.BJC_ITEM_ID and d.offer_version = b.offer_version
+		LEFT JOIN tb_so_contract c
+		ON d.OFFER_ID = c.HT_OFFER_ID
+		LEFT JOIN tb_address e
+		ON e.id = d.item_install_address
+		LEFT JOIN tb_loc_province f
+		ON f.id = e.province_id
+		<!-- /*LEFT JOIN tb_loc_city g
+		ON g.id = e.city_id
+		LEFT JOIN tb_loc_county h
+		ON h.id = e.county_id*/ -->
+		WHERE b.BJC_COD_ID = #{BJC_COD_ID}
+	</select>
+
+	<!-- 新飞越COD输出 -->
+	<select id="printFEIYUE_COD" parameterType="pd" resultType="pd">
+		select
+			a.*,
+			c.HT_NO,b.BJC_SL,b.BJC_ENO,
+			<!-- h.name,g.name, -->
+			f.name,c.customer_name,
+			<!-- e.address_info, -->
+			c.item_name,c.HT_JHRQ,d.offer_version,cn.*
+		from
+			 tb_feiyue a
+		LEFT JOIN tb_bjc b
+		ON a.FEIYUE_ID = b.BJC_COD_ID
+		LEFT JOIN tb_iteminoffer d
+		ON d.item_id = b.BJC_ITEM_ID and d.offer_version = b.offer_version
+		LEFT JOIN tb_so_contract c
+		ON d.OFFER_ID = c.HT_OFFER_ID
+		LEFT JOIN tb_address e
+		ON e.id = d.item_install_address
+		LEFT JOIN tb_loc_province f
+		ON f.id = e.province_id
+		LEFT JOIN tb_conventional_nonstandard cn
+		ON a.FEIYUE_ID = cn.BJ_DT_ID
+		<!-- /*LEFT JOIN tb_loc_city g
+		ON g.id = e.city_id
+		LEFT JOIN tb_loc_county h
+		ON h.id = e.county_id*/ -->
+		WHERE b.BJC_COD_ID = #{BJC_COD_ID}
+	</select>
+
+	<!-- 新飞越MRLCOD输出 -->
+	<select id="printFeiYueMRL_COD" parameterType="pd" resultType="pd">
+	    SELECT
+		  a.*,
+		  c.HT_NO,
+		  b.BJC_SL,
+		  b.BJC_ENO,
+		  f. NAME,
+		  c.customer_name,
+		  c.item_name,
+		  c.HT_JHRQ,
+		  d.offer_version,
+		  cn.*
+		FROM
+			tb_feiyue_mrl a
+		LEFT JOIN tb_bjc b ON a.FEIYUEMRL_ID = b.BJC_COD_ID
+		LEFT JOIN tb_iteminoffer d ON d.item_id = b.BJC_ITEM_ID and d.offer_version = b.offer_version
+		LEFT JOIN tb_so_contract c ON d.OFFER_ID = c.HT_OFFER_ID
+		LEFT JOIN tb_address e ON e.id = d.item_install_address
+		LEFT JOIN tb_loc_province f ON f.id = e.province_id
+		LEFT JOIN tb_conventional_nonstandard cn on a.FEIYUEMRL_ID = cn.BJ_DT_ID
+		WHERE b.BJC_COD_ID = #{BJC_COD_ID}
+	</select>
+
+	<!-- 飞扬3000+无机房COD输出 -->
+	<select id="printFEIYANG_MRL_COD" parameterType="pd" resultType="pd">
+		select
+			FEIYANGMRL_ID,
+			FEIYANGMRL_AZF,
+			FEIYANGMRL_YSF,
+			FEIYANGMRL_SL,
+			FEIYANGMRL_ZK,
+			FEIYANGMRL_ZHJ,
+			FEIYANGMRL_SBJ,
+			FEIYANGMRL_ZHSBJ,
+			FEIYANGMRL_SJBJ,
+			ELEV_IDS,
+			a.ITEM_ID,
+			BZ_ZZ,
+			BZ_SD,
+			BZ_KMXS,
+			BZ_KMKD,
+			BZ_C,
+			BZ_Z,
+			BZ_M,
+			BASE_KZXT,
+			BASE_KZFS,
+			BASE_JDJG,
+			BASE_QGLJJ,
+			BASE_JXGG,
+			BASE_JXGD,
+			BASE_KMCC,
+			BASE_MLXMBH,
+			BASE_JDCZQHD,
+			BASE_JDK,
+			BASE_JDS,
+			BASE_TSGD,
+			BASE_DKSD,
+			BASE_DCGD,
+			BASE_JDZG,
+			BASE_JZZT,
+			BASE_LCBJ,
+			BASE_DGZJ,
+			OPT_MWAN,
+			OPT_HJZDFHJZ,
+			OPT_XFYYX,
+			OPT_JXDZZ,
+			OPT_CCTVDL,
+			OPT_TDJJJY,
+			OPT_DJGRBH,
+			OPT_KQJHZZ,
+			OPT_NMYKJAN,
+			OPT_FDLCZ,
+			OPT_ZPC,
+			OPT_BAJK,
+			OPT_YYBZ,
+			OPT_QPGM,
+			OPT_DLFW,
+			OPT_KMBC,
+			OPT_DZYX,
+			OPT_NLHK,
+			OPT_YCJK,
+			OPT_ICK,
+			OPT_ICKZKSB,
+			OPT_ICKKP,
+			OPT_PTDTKT,
+			OPT_ZYFTSDTKT,
+			OPT_JKGM,
+			OPT_JKYYJ,
+			OPT_GTMJXJMBF,
+			OPT_GTMTMBF,
+			OPT_GTMS,
+			OPT_CMZH,
+			OPT_JFGT,
+			OPT_DJT,
+			DZJKSDJXT_DJTXFS,
+			DZJKSDJXT_DJTS,
+			JXZH_JM,
+			JXZH_JMSBH,
+			JXZH_JMZH,
+			JXZH_JXZH,
+			JXZH_QWB,
+			JXZH_QWBSBH,
+			JXZH_CWB,
+			JXZH_CWBSBH,
+			JXZH_HWB,
+			JXZH_HWBSBH,
+			JXZH_JDZH,
+			JXZH_ZSDD,
+			JXZH_AQC,
+			JXZH_BGJ,
+			JXZH_DBXH,
+			JXZH_DBZXHD,
+			JXZH_YLZHZL,
+			JXZH_FSXH,
+			JXZH_FSAZWZ,
+			TMMT_FWBXGXMT,
+			TMMT_PTDMT,
+			TMMT_PTJMBXGTM,
+			TMMT_SCTMMT,
+			TMMT_SCSBH,
+			TMMT_FSCTMMT,
+			TMMT_FSCSBH,
+			TMXHZZ_TWZHLX,
+			TMXHZZ_TWZHXH,
+			TMXHZZ_XS,
+			TMXHZZ_AN,
+			TMXHZZ_CZ,
+			TMXHZZ_ZDJC,
+			TMXHZZ_MCGS,
+			TMXHZZ_FJSM,
+			TMXHZZ_WZYCOPMWAN,
+			CZP_CZPLX,
+			CZP_CZPXH,
+			CZP_XS,
+			CZP_AN,
+			CZP_CZ,
+			CZP_CZPWZ,
+			CZP_XS_SUB,
+			UNSTD,
+			a.DT_REMARK,
+			c.HT_NO,b.BJC_SL,b.BJC_ENO,
+			f.name,c.customer_name,
+			c.item_name,c.HT_JHRQ,
+			FSCDMT_SL,TMXHZZ_TWZHXS_XX,
+			FSCFDMT_SL,
+			FDMT_SL,
+			DMT_SL,
+			a.TJTTH,
+			d.offer_version,
+			FSC_DMT,
+			a.JXZH_FSAZWZ_H,
+			a.JXZH_FSAZWZ_Z,
+			a.JXZH_FSAZWZ_Y,
+			a.TMXHZZ_GBSCJRCZX,
+			a.BASE_YYZJ,
+			nons.CGFB_JXCLBH,
+			nons.CGFB_MTBH443,
+			nons.CGFB_MTBHSUS304,
+			nons.CGFB_MTBH15SUS304,
+			nons.CGFB_MTBH1215,
+			nons.CGFB_JXHL,
+			nons.CGFB_DLSB,
+			nons.CGFB_DZCZ,
+			nons.CGFB_KMGD,
+			nons.CGFB_DKIP65,
+			nons.CGFB_PKM,
+			nons.CGFB_GTJX,
+			nons.CGFB_ZFSZ2000,
+			nons.CGFB_ZFSZ3000,
+			nons.CGFB_ZFSZAQB,
+			nons.CGFB_TDYJ,
+			nons.CGFB_JJFAJMK,
+			nons.CGFB_JJFACXK
+		from
+			tb_feiyang_mrl a
+		LEFT JOIN tb_bjc b
+		ON a.FEIYANGMRL_ID = b.BJC_COD_ID
+		LEFT JOIN tb_iteminoffer d
+		ON d.item_id = b.BJC_ITEM_ID and d.offer_version = b.offer_version
+		LEFT JOIN tb_so_contract c
+		ON d.OFFER_ID = c.HT_OFFER_ID
+		LEFT JOIN tb_address e
+		ON e.id = d.item_install_address
+		LEFT JOIN tb_loc_province f
+		ON f.id = e.province_id
+		LEFT JOIN tb_conventional_nonstandard nons
+		ON nons.BJ_DT_ID = a.FEIYANGMRL_ID
+		WHERE b.BJC_COD_ID = #{BJC_COD_ID}
+	</select>
+
+	<!-- 飞扬3000小机房COD输出 -->
+	<select id="printFEIYANG_COD" parameterType="pd" resultType="pd">
+		select
+			FEIYANG_ID,
+			FEIYANG_AZF,
+			FEIYANG_YSF,
+			FEIYANG_SL,
+			FEIYANG_ZK,
+			FEIYANG_ZHJ,
+			FEIYANG_SBJ,
+			FEIYANG_ZHSBJ,
+			FEIYANG_SJBJ,
+			ELEV_IDS,
+			a.ITEM_ID,
+			BZ_ZZ,
+			BZ_SD,
+			BZ_KMXS,
+			BZ_KMKD,
+			BZ_C,
+			BZ_Z,
+			BZ_M,
+			BASE_KZXT,
+			BASE_KZFS,
+			BASE_JDJG,
+			BASE_QGLJJ,
+			BASE_JXGG,
+			BASE_JXGD,
+			BASE_KMCC,
+			BASE_MLXMBH,
+			BASE_JDCZQHD,
+			BASE_JDK,
+			BASE_JDS,
+			BASE_TSGD,
+			BASE_DKSD,
+			BASE_DCGD,
+			BASE_JDZG,
+			BASE_JZZT,
+			BASE_LCBJ,
+			BASE_DGZJ,
+			OPT_MWAN,
+			OPT_HJZDFHJZ,
+			OPT_XFYYX,
+			OPT_JXDZZ,
+			OPT_CCTVDL,
+			OPT_TDJJJY,
+			OPT_DJGRBH,
+			OPT_KQJHZZ,
+			OPT_NMYKJAN,
+			OPT_FDLCZ,
+			OPT_ZPC,
+			OPT_BAJK,
+			OPT_YYBZ,
+			OPT_QPGM,
+			OPT_DLFW,
+			OPT_KMBC,
+			OPT_DZYX,
+			OPT_NLHK,
+			OPT_YCJK,
+			OPT_ICK,
+			OPT_ICKZKSB,
+			OPT_ICKKP,
+			OPT_PTDTKT,
+			OPT_ZYFTSDTKT,
+			OPT_JKGM,
+			OPT_JKYYJ,
+			OPT_GTMJXJMBF,
+			OPT_GTMTMBF,
+			OPT_GTMS,
+			OPT_CMZH,
+			OPT_JFGT,
+			OPT_DJT,
+			DZJKSDJXT_DJTXFS,
+			DZJKSDJXT_DJTS,
+			JXZH_JM,
+			JXZH_JMSBH,
+			JXZH_JMZH,
+			JXZH_JXZH,
+			JXZH_QWB,
+			JXZH_QWBSBH,
+			JXZH_CWB,
+			JXZH_CWBSBH,
+			JXZH_HWB,
+			JXZH_HWBSBH,
+			JXZH_JDZH,
+			JXZH_ZSDD,
+			JXZH_AQC,
+			JXZH_BGJ,
+			JXZH_DBXH,
+			JXZH_DBZXHD,
+			JXZH_YLZHZL,
+			JXZH_FSXH,
+			JXZH_FSAZWZ,
+			TMMT_FWBXGXMT,
+			TMMT_PTDMT,
+			TMMT_PTJMBXGTM,
+			TMMT_SCTMMT,
+			TMMT_SCSBH,
+			TMMT_FSCTMMT,
+			TMMT_FSCSBH,
+			TMXHZZ_TWZHLX,
+			TMXHZZ_TWZHXH,
+			TMXHZZ_XS,
+			TMXHZZ_AN,
+			TMXHZZ_CZ,
+			TMXHZZ_ZDJC,
+			TMXHZZ_MCGS,
+			TMXHZZ_FJSM,
+			TMXHZZ_WZYCOPMWAN,
+			TMXHZZ_TWZHXS_XX,
+			CZP_CZPLX,
+			CZP_CZPXH,
+			CZP_XS,
+			CZP_AN,
+			CZP_CZ,
+			CZP_CZPWZ,
+			CZP_XS_SUB,
+			UNSTD,
+			a.DT_REMARK,
+			c.HT_NO,b.BJC_SL,b.BJC_ENO,
+			f.name,c.customer_name,
+			c.item_name,c.HT_JHRQ,
+			FSCDMT_SL,
+			FSCFDMT_SL,
+			FDMT_SL,
+			DMT_SL,
+			a.TJTTH,
+			d.offer_version,
+			a.JXZH_FSAZWZ_H,
+			a.JXZH_FSAZWZ_Z,
+			a.JXZH_FSAZWZ_Y,
+			a.TMXHZZ_GBSCJRCZX,
+			nons.CGFB_JXCLBH,
+			nons.CGFB_MTBH443,
+			nons.CGFB_MTBHSUS304,
+			nons.CGFB_MTBH15SUS304,
+			nons.CGFB_MTBH1215,
+			nons.CGFB_JXHL,
+			nons.CGFB_DLSB,
+			nons.CGFB_DZCZ,
+			nons.CGFB_KMGD,
+			nons.CGFB_DKIP65,
+			nons.CGFB_PKM,
+			nons.CGFB_GTJX,
+			nons.CGFB_ZFSZ2000,
+			nons.CGFB_ZFSZ3000,
+			nons.CGFB_ZFSZAQB,
+			nons.CGFB_TDYJ,
+			nons.CGFB_JJFAJMK,
+			nons.CGFB_JJFACXK
+		from
+			tb_feiyang a
+		LEFT JOIN tb_bjc b
+		ON a.FEIYANG_ID = b.BJC_COD_ID
+		LEFT JOIN tb_iteminoffer d
+		ON d.item_id = b.BJC_ITEM_ID and d.offer_version = b.offer_version
+		LEFT JOIN tb_so_contract c
+		ON d.OFFER_ID = c.HT_OFFER_ID
+		LEFT JOIN tb_address e
+		ON e.id = d.item_install_address
+		LEFT JOIN tb_loc_province f
+		ON f.id = e.province_id
+		LEFT JOIN tb_conventional_nonstandard nons
+		ON nons.BJ_DT_ID = a.FEIYANG_ID
+		WHERE b.BJC_COD_ID = #{BJC_COD_ID}
+	</select>
+
+	<!-- 飞扬消防梯COD输出 -->
+	<select id="printFEIYANGXF_COD" parameterType="pd" resultType="pd">
+		select
+			FEIYANGXF_ID,
+			FEIYANGXF_AZF,
+			FEIYANGXF_YSF,
+			FEIYANGXF_SL,
+			FEIYANGXF_ZK,
+			FEIYANGXF_ZHJ,
+			FEIYANGXF_SBJ,
+			FEIYANGXF_ZHSBJ,
+			FEIYANGXF_SJBJ,
+			ELEV_IDS,
+			a.ITEM_ID,
+			BZ_ZZ,
+			BZ_SD,
+			BZ_KMXS,
+			BZ_KMKD,
+			BZ_C,
+			BZ_Z,
+			BZ_M,
+			BASE_KZXT,
+			BASE_KZFS,
+			BASE_JDJG,
+			BASE_QGLJJ,
+			BASE_JXGG,
+			BASE_JXGD,
+			BASE_KMCC,
+			BASE_MLXMBH,
+			BASE_JDCZQHD,
+			BASE_JDK,
+			BASE_JDS,
+			BASE_TSGD,
+			BASE_DKSD,
+			BASE_DCGD,
+			BASE_JDZG,
+			BASE_JZZT,
+			BASE_LCBJ,
+			BASE_DGZJ,
+			OPT_MWAN,
+			OPT_JXDZZ,
+			OPT_CCTVDL,
+			OPT_TDJJJY,
+			OPT_DJGRBH,
+			OPT_KQJHZZ,
+			OPT_NMYKJAN,
+			OPT_FDLCZ,
+			OPT_ZPC,
+			OPT_BAJK,
+			OPT_YYBZ,
+			OPT_QPGM,
+			OPT_DLFW,
+			OPT_KMBC,
+			OPT_DZYX,
+			OPT_NLHK,
+			OPT_YCJK,
+			OPT_ICK,
+			OPT_ICKZKSB,
+			OPT_ICKKP,
+			OPT_PTDTKT,
+			OPT_ZYFTSDTKT,
+			OPT_JKGM,
+			OPT_JKYYJ,
+			OPT_GTMJXJMBF,
+			OPT_GTMTMBF,
+			OPT_GTMS,
+			OPT_CMZH,
+			DZJKSDJXT_DJTXFS,
+			DZJKSDJXT_DJTS,
+			JXZH_JM,
+			JXZH_JMSBH,
+			JXZH_JMZH,
+			JXZH_JXZH,
+			JXZH_QWB,
+			JXZH_QWBSBH,
+			JXZH_CWB,
+			JXZH_CWBSBH,
+			JXZH_HWB,
+			JXZH_HWBSBH,
+			JXZH_JDZH,
+			JXZH_ZSDD,
+			JXZH_BGJ,
+			JXZH_DBXH,
+			JXZH_DBZXHD,
+			JXZH_YLZHZL,
+			JXZH_FSXH,
+			JXZH_FSAZWZ,
+			TMMT_JZBXGXMT,
+			TMMT_PTDMT,
+			TMMT_PTJMBXGTM,
+			TMMT_SCTMMT,
+			TMMT_SCSBH,
+			TMMT_FSCTMMT,
+			TMMT_FSCSBH,
+			TMXHZZ_TWZHLX,
+			TMXHZZ_TWZHXH,
+			TMXHZZ_XS,
+			TMXHZZ_AN,
+			TMXHZZ_CZ,
+			TMXHZZ_ZDJC,
+			TMXHZZ_MCGS,
+			TMXHZZ_FJSM,
+			TMXHZZ_WZYCOPMWAN,
+			CZP_CZPLX,
+			CZP_CZPXH,
+			CZP_XS,
+			CZP_AN,
+			CZP_CZ,
+			CZP_CZPWZ,
+			CZP_XS_SUB,
+			UNSTD,
+			a.DT_REMARK,
+			c.HT_NO,b.BJC_SL,b.BJC_ENO,
+			f.name,c.customer_name,
+			c.item_name,c.HT_JHRQ,BASE_YYZJ,
+			FSCDMT_SL,
+			FSCFDMT_SL,
+			FDMT_SL,
+			DMT_SL,
+			a.TJTTH,
+			d.offer_version,
+			nons.CGFB_JXCLBH,
+			nons.CGFB_MTBH443,
+			nons.CGFB_MTBHSUS304,
+			nons.CGFB_MTBH15SUS304,
+			nons.CGFB_MTBH1215,
+			nons.CGFB_JXHL,
+			nons.CGFB_DLSB,
+			nons.CGFB_DZCZ,
+			nons.CGFB_KMGD,
+			nons.CGFB_DKIP65,
+			nons.CGFB_PKM,
+			nons.CGFB_GTJX,
+			nons.CGFB_ZFSZ2000,
+			nons.CGFB_ZFSZ3000,
+			nons.CGFB_ZFSZAQB,
+			nons.CGFB_TDYJ,
+			nons.CGFB_JJFAJMK,
+			nons.CGFB_JJFACXK
+		from
+			tb_feiyang_xf a
+			LEFT JOIN tb_bjc b
+			ON a.FEIYANGXF_ID = b.BJC_COD_ID
+			LEFT JOIN tb_iteminoffer d
+			ON d.item_id = b.BJC_ITEM_ID and d.offer_version = b.offer_version
+			LEFT JOIN tb_so_contract c
+			ON d.OFFER_ID = c.HT_OFFER_ID
+			LEFT JOIN tb_address e
+			ON e.id = d.item_install_address
+			LEFT JOIN tb_loc_province f
+			ON f.id = e.province_id
+			LEFT JOIN tb_conventional_nonstandard nons
+			ON nons.BJ_DT_ID = a.FEIYANGXF_ID
+			WHERE b.BJC_COD_ID = #{BJC_COD_ID}
+	</select>
+
+	<!-- 扶梯COD输出 -->
+	<select id="printDNP9300_COD" parameterType="pd" resultType="pd">
+		select
+			a.*,
+			c.HT_NO,b.BJC_SL,b.BJC_ENO,
+			f.name,c.customer_name,
+			c.item_name,c.HT_JHRQ,d.offer_version
+		from
+			tb_dnp9300 a
+			LEFT JOIN tb_bjc b
+			ON a.DNP9300_ID = b.BJC_COD_ID
+			LEFT JOIN tb_iteminoffer d
+			ON d.item_id = b.BJC_ITEM_ID and d.offer_version = b.offer_version
+			LEFT JOIN tb_so_contract c
+			ON d.OFFER_ID = c.HT_OFFER_ID
+			LEFT JOIN tb_address e
+			ON e.id = d.item_install_address
+			LEFT JOIN tb_loc_province f
+			ON f.id = e.province_id
+			WHERE b.BJC_COD_ID = #{BJC_COD_ID}
+	</select>
+
+    <!-- 人行道COD输出 -->
+    <select id="printDNR_COD" parameterType="pd" resultType="pd">
+		select
+			a.*,
+			c.HT_NO,b.BJC_SL,b.BJC_ENO,
+			f.name,c.customer_name,
+			c.item_name,c.HT_JHRQ,d.offer_version
+		from
+			tb_dnr a
+			LEFT JOIN tb_bjc b
+			ON a.DNR_ID = b.BJC_COD_ID
+			LEFT JOIN tb_iteminoffer d
+			ON d.item_id = b.BJC_ITEM_ID and d.offer_version = b.offer_version
+			LEFT JOIN tb_so_contract c
+			ON d.OFFER_ID = c.HT_OFFER_ID
+			LEFT JOIN tb_address e
+			ON e.id = d.item_install_address
+			LEFT JOIN tb_loc_province f
+			ON f.id = e.province_id
+			WHERE b.BJC_COD_ID = #{BJC_COD_ID}
+	</select>
+
+    <!-- 获取电梯类型 -->
+    <select id="getElevatorType" parameterType="pd" resultType="pd">
+		select a.BJC_COD_ID,b.MODELS_NAME,b.ele_type,b.MODELS_ID from tb_bjc a
+		left join tb_models b on a.bjc_models=b.models_id
+		where a.BJC_COD_ID=#{BJC_COD_ID}
+	</select>
+
+	    <!-- 查询流程是否存在 -->
+    <select id="SelAct_Key" parameterType="pd" resultType="pd">
+        SELECT
+          *
+        FROM
+          act_re_procdef
+        WHERE
+          KEY_ = #{KEY}
+    </select>
+
+    <!-- 修改流程Key -->
+    <update id="editAct_Key" parameterType="pd">
+        UPDATE tb_so_contract
+        SET
+        ACT_KEY    =#{ACT_KEY}
+        Where
+        HT_UUID = #{HT_UUID}
+    </update>
+
+    <!-- 修改流程状态 -->
+    <update id="editAct_Status" parameterType="pd">
+        UPDATE tb_so_contract
+        SET
+        ACT_STATUS    =#{ACT_STATUS}
+        Where
+        HT_UUID = #{HT_UUID}
+    </update>
+
+    <!-- 根据报价编号获取信息 -->
+	<select id="findOfferById" parameterType="pd" resultType="pd">
+	   SELECT
+		  eo.*,
+		  i.*,
+		customer.customer_name
+		FROM
+			tb_e_offer as eo
+		LEFT JOIN
+		  tb_item as i
+		ON
+		  eo.item_id=i.item_id
+		LEFT JOIN (
+				 SELECT
+				   customer_no,
+				   customer_name
+				 FROM
+				  tb_customer_core
+				 UNION
+				 SELECT
+				   customer_no,
+				   customer_name
+				 FROM
+				   tb_customer_merchant
+				 UNION
+				 SELECT
+				   customer_no,
+				   customer_name
+				 FROM
+				   tb_customer_ordinary
+			   ) AS customer ON i.customer_no = customer.customer_no
+		WHERE
+			offer_id = #{offer_id}
+	</select>
+
+    <!-- 设备合同输出 -->
+    <select id="printContractDevice" parameterType="page" resultType="pd">
+		select
+			*
+		from
+			tb_so_contract
+		where 1=1 limit 1
+	</select>
+
+	<!-- 价格表输出 -->
+    <select id="printPriceList" parameterType="pd" resultType="pd">
+	 select CASE WHEN b.models_name = 'DNR'  THEN c.TBKD
+            WHEN b.models_name = 'DNP9300'  THEN c.TJKD
+            ELSE a.BJC_ZZ END BJC_ZZ_TBKD,
+		 	CASE WHEN b.models_name = 'DNR' THEN c.QXJD
+            WHEN b.models_name = 'DNP9300' THEN c.QXJD
+            ELSE concat(a.BJC_C,'/',a.BJC_Z) END BJC_CZ_QXJD,
+			a.BJC_TSGD/1000 AS BJC_TSGD_Q
+			 ,a.*,c.*,b.MODELS_NAME,dtinfo.*
+			from tb_bjc a
+            inner join tb_iteminoffer eo on a.bjc_item_id=eo.item_id and a.offer_version=eo.offer_version
+            left join view_getdttsfcjf dtinfo on dtinfo.cod_id = a.bjc_cod_id
+			left join tb_models b on a.bjc_models=b.models_id
+			LEFT JOIN TB_ESCALATOR_STANDARD c ON b.standard_id = c.ID
+			where eo.offer_id= #{OFFER_ID}
+
+	</select>
+
+	<!-- 获取COD项目 -->
+<!--     <select id="getCODContract" parameterType="pd" resultType="pd"> -->
+<!-- 		select a.*,b.MODELS_NAME from tb_bjc a -->
+<!-- 		left join tb_models b on a.bjc_models=b.models_id -->
+<!-- 		where a.bjc_item_id=#{HT_ITEM_ID} -->
+<!-- 	</select> -->
+
+	<!-- new获取COD项目 -->
+    <select id="getCODContract" parameterType="pd" resultType="pd">
+		select a.*,b.MODELS_NAME from tb_bjc a
+		left join tb_models b on a.bjc_models=b.models_id
+		where a.bjc_item_id=#{HT_ITEM_ID} and a.offer_version = #{offer_version}
+	</select>
+
+	<update id="updateItemItemName" parameterType="pd">
+		UPDATE tb_item SET item_name=#{item_name} WHERE item_id=#{item_id}
+	</update>
+
+	<select id="getSequence" parameterType="pd" resultType="pd">
+		CALL _getSequence(#{sequence_type})
+	</select>
+	<update id="updateItemCustomerName" parameterType="pd">
+		UPDATE tb_item SET end_user=#{end_user},customer_no=#{customer_no} WHERE item_id=#{item_id}
+	</update>
+
+    <update id="updateThenGetELeValue" parameterType="pd">
+		<selectKey keyProperty="current_value" resultType="String" order="AFTER">
+			select (select current_value from tb_sequence where sequence_name=#{ele_type}) as current_value from dual;
+		</selectKey>
+        UPDATE tb_sequence SET current_value=current_value+`_increment` WHERE sequence_name=#{ele_type}
+    </update>
+	<select id="getDTtypeValue" resultType="map">
+		select * from tb_typetocode
+		where ele_type=#{ele_type}
+	</select>
+<!-- 	修改合同毛利润 -->
+	<update id="updateContractMLR" parameterType="pd">
+		UPDATE tb_so_contract SET HT_MLR=#{HT_MLR} WHERE HT_UUID=#{HT_UUID}
+	</update>
+	<!-- 导出设备合同信息 -->
+	<select id="findContractNewExcel" parameterType="pd" resultType="pd">
+		SELECT
+			c.*,
+			customer.customer_no,
+			customer.customer_name as end_name,
+			ord.customer_name as customer_namex,
+			u.`NAME` as USER_NAME,
+			ai.detailedAddress as item_install_address_excel,
+			eo.offer_no,
+			eo.offer_version
+		FROM
+		  tb_so_contract AS c
+		LEFT JOIN
+			tb_iteminoffer AS eo on eo.offer_id = c.HT_OFFER_ID
+		LEFT JOIN (
+			SELECT
+				customer_no,
+				customer_name
+			FROM
+				tb_customer_core
+			UNION
+				SELECT
+					customer_no,
+					customer_name
+				FROM
+					tb_customer_merchant
+				UNION
+					SELECT
+						customer_no,
+						customer_name
+					FROM
+						tb_customer_ordinary
+		) AS customer ON eo.customer_no = customer.customer_no
+		LEFT JOIN (
+			SELECT
+				customer_id,
+				customer_name
+			FROM
+				tb_customer_core
+			UNION
+			SELECT
+				customer_id,
+				customer_name
+			FROM
+				tb_customer_merchant
+			UNION
+				SELECT
+					customer_id,
+					customer_name
+				FROM
+					tb_customer_ordinary
+			UNION
+				SELECT
+					agent_id as customer_id,
+					agent_name as customer_name
+				FROM
+					tb_agent
+		) AS ord ON eo.order_org = ord.customer_id
+		LEFT JOIN
+		  sys_user AS u
+		ON
+		  c.INPUT_USER=u.USER_ID
+		LEFT JOIN view_getaddressname ai on ai.id = eo.item_install_address
+		where 1=1
+		<if test="item_name != null and item_name != ''">
+			and c.item_name LIKE CONCAT(CONCAT('%',#{item_name}),'%')
+		</if>
+		<if test="HT_NO != null and HT_NO != ''">
+			and c.HT_NO LIKE CONCAT(CONCAT('%',#{HT_NO}),'%')
+		</if>
+		<if test="ACT_STATUS != null and ACT_STATUS != ''">
+			and c.ACT_STATUS LIKE CONCAT(CONCAT('%',#{ACT_STATUS}),'%')
+		</if>
+		<if test="userList!=null and userList.size()>0">
+			and c.INPUT_USER in
+			<foreach collection="userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+        </if>
+		order by INPUT_TIME DESC
+	</select>
+
+	<!-- 查询不存在合同表内的报价信息 -->
+	<select id="findEofferContract" parameterType="page" resultType="pd">
+	    SELECT
+			*
+		FROM
+			(
+		SELECT
+					eo.*,
+					customer.customer_name,
+					bjc.elenum AS num,
+					FORMAT(eo.total, '000,000.00') AS eototal,
+					u.NAME AS USERNAME
+				FROM
+					tb_iteminoffer AS eo
+				LEFT JOIN (
+					SELECT
+						customer_no,
+						customer_name
+					FROM
+						tb_customer_core
+					UNION
+						SELECT
+							customer_no,
+							customer_name
+						FROM
+							tb_customer_merchant
+						UNION
+							SELECT
+								customer_no,
+								customer_name
+							FROM
+								tb_customer_ordinary
+				) AS customer ON eo.customer_no = customer.customer_no
+				LEFT JOIN (
+					SELECT
+						*, COUNT(id) AS num
+					FROM
+						tb_Temp_elevator_details
+					GROUP BY
+						item_id,offer_version
+				) AS elev ON eo.item_id = elev.item_id AND eo.offer_version = elev.offer_version
+				LEFT JOIN sys_user AS u ON eo.offer_user = u.USER_ID
+                LEFT JOIN(SELECT BJC_ITEM_ID,CAST(SUM(BJC_SL) AS DECIMAL) elenum,offer_version FROM tb_bjc GROUP BY BJC_ITEM_ID,offer_version) bjc ON
+                eo.item_id=bjc.BJC_ITEM_ID AND eo.offer_version = bjc.offer_version
+				WHERE instance_status='4'
+				<if test="pd.item_name != null and pd.item_name != ''">
+					and eo.item_name LIKE CONCAT(CONCAT('%',#{pd.item_name}),'%')
+				</if>
+                <if test="pd.userList!=null and pd.userList.size()>0">
+                    and eo.offer_user in
+                    <foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+                        ${user_id}
+                    </foreach>
+                </if>
+			) qwe
+		WHERE
+			qwe.offer_id NOT IN (
+				SELECT
+					HT_OFFER_ID
+				FROM
+					tb_so_contract
+			)
+	</select>
+
+	<!-- (new)根据项目id报价版本获取电梯信息 -->
+	<select id="findBJCBYItemidoff" parameterType="pd" resultType="pd">
+		SELECT
+			*
+		FROM
+			tb_bjc as b
+		LEFT JOIN
+		  tb_models as m
+		ON
+		  b.BJC_MODELS=m.models_id
+		WHERE
+		  b.BJC_ITEM_ID=#{item_id} and b.offer_version=#{offer_version}
+	</select>
+
+
+	<!-- 根据项目id获取电梯数量 -->
+	<select id="findElevCount" parameterType="pd" resultType="pd">
+		SELECT
+		COUNT(*) as DTNUM
+		FROM tb_temp_elevator_details
+		WHERE item_id=#{item_id} and offer_version = #{offer_version}
+	</select>
+
+	<!-- (new)根据项目id获取项目信息 -->
+	<select id="findItemDetailForContract" parameterType="pd" resultType="pd">
+		SELECT
+			eo.*,
+		  customer.customer_name,
+            customer.customer_no,
+		  address.*
+		FROM
+			tb_iteminoffer AS eo
+		LEFT JOIN (
+			SELECT
+				customer_no,
+				customer_name
+			FROM
+				tb_customer_core
+			UNION
+				SELECT
+					customer_no,
+					customer_name
+				FROM
+					tb_customer_merchant
+				UNION
+					SELECT
+						customer_no,
+						customer_name
+					FROM
+						tb_customer_ordinary
+		) AS customer ON eo.customer_no = customer.customer_no
+		LEFT JOIN
+		  (
+		    SELECT
+			tb_address.id address_id,
+		  tb_loc_province.name as province_name,
+		  tb_loc_city.name as city_name,
+		  tb_loc_county.name as county_name,
+		  tb_address.address_info,
+				tb_address.province_id,
+				tb_address.city_id,
+				tb_address.county_id
+		FROM
+			tb_address
+		LEFT JOIN
+		  tb_loc_province
+		ON
+		  tb_address.province_id=tb_loc_province.id
+		LEFT JOIN
+		  tb_loc_city
+		ON
+		  tb_address.city_id=tb_loc_city.id
+		LEFT JOIN
+		  tb_loc_county
+		ON
+		  tb_address.county_id=tb_loc_county.id
+
+		  ) as address ON eo.item_install_address=address.address_id
+		   where item_id=#{item_id} and offer_version=#{offer_version}
+	</select>
+	
+	<!-- 根据报价id获取项目信息 -->
+	<select id="findItemDetailForOfferId" parameterType="pd" resultType="pd">
+		SELECT
+			eo.*,
+		  customer.customer_name,
+            customer.customer_no,
+		  address.*
+		FROM
+			tb_iteminoffer AS eo
+		LEFT JOIN (
+			SELECT
+				customer_no,
+				customer_name
+			FROM
+				tb_customer_core
+			UNION
+				SELECT
+					customer_no,
+					customer_name
+				FROM
+					tb_customer_merchant
+				UNION
+					SELECT
+						customer_no,
+						customer_name
+					FROM
+						tb_customer_ordinary
+		) AS customer ON eo.customer_no = customer.customer_no
+		LEFT JOIN
+		  (
+		    SELECT
+			tb_address.id address_id,
+		  tb_loc_province.name as province_name,
+		  tb_loc_city.name as city_name,
+		  tb_loc_county.name as county_name,
+		  tb_address.address_info,
+				tb_address.province_id,
+				tb_address.city_id,
+				tb_address.county_id
+		FROM
+			tb_address
+		LEFT JOIN
+		  tb_loc_province
+		ON
+		  tb_address.province_id=tb_loc_province.id
+		LEFT JOIN
+		  tb_loc_city
+		ON
+		  tb_address.city_id=tb_loc_city.id
+		LEFT JOIN
+		  tb_loc_county
+		ON
+		  tb_address.county_id=tb_loc_county.id
+
+		  ) as address ON eo.item_install_address=address.address_id
+		   where eo.offer_id=#{offer_id}
+	</select>
+
+	<update id="updateTempItemNameForContract" parameterType="pd">
+		UPDATE tb_iteminoffer SET item_name=#{item_name} WHERE item_id=#{item_id} WHERE item_id=#{item_id} and offer_version=#{offer_version}
+	</update>
+
+	<update id="updateTempItemCustomerName" parameterType="pd">
+		UPDATE tb_iteminoffer SET end_user=#{end_user},customer_no=#{customer_no} WHERE item_id=#{item_id} and offer_version=#{offer_version}
+	</update>
+
+	<update id="updateTempItemCustomerNameOfOfferId" parameterType="pd">
+		UPDATE tb_iteminoffer SET end_user=#{end_user},customer_no=#{customer_no} WHERE offer_id=#{offer_id}
+	</update>
+
+	<!-- (new)根据报价编号获取信息 -->
+	<select id="findIteminOfferById" parameterType="pd" resultType="pd">
+	   SELECT
+		  eo.*,
+		customer.customer_name
+		FROM
+			tb_iteminoffer as eo
+		LEFT JOIN (
+				 SELECT
+				   customer_no,
+				   customer_name
+				 FROM
+				  tb_customer_core
+				 UNION
+				 SELECT
+				   customer_no,
+				   customer_name
+				 FROM
+				   tb_customer_merchant
+				 UNION
+				 SELECT
+				   customer_no,
+				   customer_name
+				 FROM
+				   tb_customer_ordinary
+			   ) AS customer ON eo.customer_no = customer.customer_no
+		WHERE
+			offer_id = #{offer_id}
+	</select>
+
+	<update id="updateItemNameForContract" parameterType="pd">
+		UPDATE tb_iteminoffer SET item_name=#{item_name},order_org=#{order_org} WHERE offer_id=#{offer_id}
+	</update>
+
+	<!-- (new)根据项目id获取电梯数量 -->
+	<select id="findTempElevByItemId" parameterType="pd" resultType="pd">
+		SELECT
+		COUNT(*) as DTNUM
+		FROM tb_Temp_elevator_details
+		WHERE item_id=#{item_id} and offer_version=#{offer_version}
+	</select>
+
+	<!-- new根据项目id获取项目信息 -->
+	<select id="findTempItemdetail" parameterType="pd" resultType="pd">
+		SELECT
+		  eo.*,
+		  address.*
+		FROM
+			tb_iteminoffer AS eo
+		LEFT JOIN (
+			SELECT
+				customer_no,
+				customer_name
+			FROM
+				tb_customer_core
+			UNION
+				SELECT
+					customer_no,
+					customer_name
+				FROM
+					tb_customer_merchant
+				UNION
+					SELECT
+						customer_no,
+						customer_name
+					FROM
+						tb_customer_ordinary
+		) AS customer ON eo.customer_no = customer.customer_no
+		LEFT JOIN
+		  (
+		    SELECT
+			tb_address.id address_id,
+		  tb_loc_province.name as province_name,
+		  tb_loc_city.name as city_name,
+		  tb_loc_county.name as county_name,
+		  tb_address.address_info,
+				tb_address.province_id,
+				tb_address.city_id,
+				tb_address.county_id
+		FROM
+			tb_address
+		LEFT JOIN
+		  tb_loc_province
+		ON
+		  tb_address.province_id=tb_loc_province.id
+		LEFT JOIN
+		  tb_loc_city
+		ON
+		  tb_address.city_id=tb_loc_city.id
+		LEFT JOIN
+		  tb_loc_county
+		ON
+		  tb_address.county_id=tb_loc_county.id
+
+		  ) as address ON eo.item_install_address=address.address_id
+		   where item_id=#{item_id} and offer_version=#{offer_version}
+	</select>
+
+	<select id="findAuditContractNewPage" parameterType="pd" resultType="pd">
+		select distinct con.*,RES.NAME_ as task_name,RES.ID_ as task_id,(case when RES.ASSIGNEE_ is not null then 1 else 0 end) as type,con.INPUT_TIME as TASK_TIME,'4' as TASK_TYPE  from ACT_RU_TASK RES
+		left join ACT_RU_IDENTITYLINK I on I.TASK_ID_ = RES.ID_ left join act_re_procdef proc on proc.ID_ = RES.PROC_DEF_ID_
+		left join act_ru_execution exe on RES.PROC_INST_ID_=exe.PROC_INST_ID_
+		right join (
+			SELECT
+			  a.*,
+			  u.`NAME` as user_name
+			FROM
+			  tb_so_contract a
+			LEFT JOIN sys_user u ON a.INPUT_USER=u.USER_ID
+			<where>
+				<if test="userList!=null and userList.size()>0">
+					and a.INPUT_USER in
+					<foreach collection="userList"  item="userId" index="index" open="(" close=")" separator=",">
+						${userId}
+					</foreach>
+				</if>
+			</where>
+		) con on con.HT_UUID = substring_index(exe.BUSINESS_KEY_,'.', -1)
+		WHERE (
+		  RES.ASSIGNEE_ = #{user_id}
+		  or (
+			RES.ASSIGNEE_ is null
+			and (
+			  I.USER_ID_ = #{user_id}
+			  or
+			  I.GROUP_ID_ IN (
+				select g.GROUP_ID_ from ACT_ID_MEMBERSHIP g where g.USER_ID_ = #{user_id}
+			  )
+			)
+		  )
+		) and proc.KEY_ = 'ContractNew' and exe.BUSINESS_KEY_  like 'tb_so_contract.HT_UUID.%'
+		<if test="project_name != null and project_name != ''">
+			and con.item_name like CONCAT('%',#{project_name},'%')
+		</if>
+		order by RES.CREATE_TIME_ desc
+		<if test="firstResult != null and firstResult != '' and maxResults!=null and maxResults != ''">
+			limit #{firstResult},#{maxResults}
+		</if>
+	</select>
+
+	<update id="updateUploadForID" parameterType="pd">
+		UPDATE
+		`tb_so_contract`
+		SET
+		`HT_FJSC_JSON`=#{HT_FJSC_JSON_JS},
+		`HT_FJSC`=#{HT_FJSC_JS},
+		`HT_WJLX`=#{HT_WJLX_JS}
+		WHERE HT_UUID=#{HT_UUID}
+	</update>
+
+	<select id="isExistDTHTH" parameterType="String" resultType="Integer">
+		SELECT COUNT(1) FROM tb_so_dtinfo WHERE DT_NO = #{DT_NO}
+	</select>
+
+	<!-- 根据HT_UUID 修改合同信息 -->
+	<update id="updateHThtfj" parameterType="pd">
+	    UPDATE tb_so_contract
+		SET
+		CONTRACT_ATTA_JSON        =#{CONTRACT_ATTA_JSON}
+		Where
+		HT_UUID = #{HT_UUID} AND ACT_STATUS = '4'
+	</update>
+	
+	<!-- 获取合同定金的来款项 -->
+	<select id="findHtDJLK" parameterType="pd" resultType="pd">
+		select so.HT_UUID,so.CONTRACT_ATTA_JSON,lk.* from tb_so_contract so
+		INNER JOIN tb_so_ysk ys ON so.HT_UUID = ys.YSK_HT_ID AND ys.YSK_KX = '1'
+		LEFT JOIN tb_so_lk lk ON so.HT_UUID = lk.LK_HT_ID AND ys.YSK_LK_ID=lk.LK_UUID AND lk.LK_KX = '1'
+		WHERE HT_UUID = #{HT_UUID}
+	</select>
+	
+		<!-- 根据HT_UUID 修改合同信息 -->
+	<update id="updateContractStatus" parameterType="pd">
+	    UPDATE tb_so_contract
+		SET
+		CONTRACT_STATUS        =#{CONTRACT_STATUS}
+		Where
+		HT_UUID = #{HT_UUID} AND ACT_STATUS = '4'
+	</update>
+	
+	<!-- 根据项目id报价版本判断报价是否是买断 -->
+	<select id="isOfferMDOfItemIdAndVersion" parameterType="pd" resultType="Integer">
+		SELECT 
+			count(1) 
+		FROM 
+			tb_bjc bjc INNER JOIN view_getdttsfcjf dt ON bjc.bjc_cod_id = dt.cod_id AND dt.OTHP_GCLX='买断'
+		WHERE
+		bjc.BJC_ITEM_ID=#{item_id} and bjc.offer_version=#{offer_version}
+	</select>
+	
+	<select id="findRoleOfwherePd" parameterType="pd" resultType="pd">
+		SELECT 
+			*
+		FROM 
+			sys_role
+		where 1=1 and 
+		<foreach collection="childrenWhere"  item="wh" index="index" open="(" close=")" separator="or">
+           <if test="wh.whereType == 'like' and wh.whereValue != '' and wh.whereValue != null">
+           		 role_name like CONCAT('%',#{wh.whereValue},'%')
+           </if>
+           <if test="wh.whereType == 'in' and wh.whereValue != '' and wh.whereValue != null">
+           		 role_name in 
+           		<foreach collection="wh.whereValue.split(',')"  item="wname" index="wnameindex" open="(" close=")" separator=",">
+					'${wname}'
+				</foreach>
+           </if>
+       	</foreach>
+		and role_id = #{role_id}
+	</select>
+	
+
+</mapper>

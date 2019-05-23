@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="EncasementMapper">
+
+	
+	
+	<!-- 根据项目ID查询出货单列表 -->
+	<select id="listPageAllConsignee" parameterType="page" resultType="pd">
+		select * from tb_consignee where 1=1
+		<if test="pd.item_id != null and pd.item_id != '' ">
+			and item_id = #{pd.item_id}
+		</if>
+		<if test="pd.consignee_state != null and pd.consignee_state != '' ">
+			and consignee_state = #{pd.consignee_state}
+		</if>
+		<if test="pd.search_consignee_no != null and pd.search_consignee_no != '' ">
+			and consignee_no = #{pd.search_consignee_no}
+		</if>
+	
+	</select>
+	
+	
+	
+	<!-- 根据项目ID查询电梯详情列表 -->
+	<select id="listAllElevatorDetails" parameterType="pd" resultType="pd">
+	
+		select * from tb_plan_elevator WHERE 1=1 
+		<if test="checkedList != null and checkedList.size() > 0">
+			and elevator_id in 
+			<foreach collection="checkedList"  item="elevator_id" index="index" open="(" close=")" separator=",">
+		         #{elevator_id}
+		    </foreach>
+        </if> 
+			
+	</select>
+	
+	<!--根据工号查询装箱列表  -->
+	<select id="listPageAllEncasement" parameterType="page" resultType="pd">
+		select * from tb_encasement where 1=1
+		<if test="pd.elevator_id != null and pd.elevator_id != '' ">
+			and elevator_no = #{pd.elevator_no}
+		</if>
+	</select>
+	
+	
+	<!-- 根据电梯工号查询装箱对象 -->
+	<select id="findEncasementObjByElevatorNo" resultType="pd" parameterType="pd">
+		select * from tb_encasement where 1=1
+			and elevator_no = #{elevator_no}
+	</select>
+	
+	<!-- 保存装箱 -->
+	<insert id="saveEncasement" parameterType="pd" >
+		insert into 
+			tb_encasement(
+				encasement_no,
+				encasement_name,
+				create_time,
+				elevator_no,
+				consignee_id,
+				shipments_id,
+				receive_id,
+				details_id
+			)values(
+				#{encasement_no},
+				#{encasement_name},
+				now(),
+				#{elevator_no},
+				#{consignee_id},
+				#{shipments_id},
+				#{receive_id},
+				#{details_id}
+			)
+	</insert>
+	
+	<!-- 修改装箱 -->
+	<update id="editEncasement" parameterType="pd">
+		update
+			tb_encasement
+		<set>
+			encasement_no = #{encasement_no},
+			encasement_name = #{encasement_name},
+			
+		</set>
+		where
+			encasement_id=#{encasement_id}
+	</update>
+	
+	<!-- 删除出货单 -->
+	<delete id="delEncasement" parameterType="pd">
+		delete from tb_encasement where encasement_id=#{encasement_id}
+	</delete>
+    
+   <update id="updateConsigneeState" parameterType="pd">
+   		update tb_consignee
+   		<set>
+   			consignee_state = #{consignee_state},
+   		</set>
+   		where consignee_id = #{consignee_id}
+   </update>
+    
+    
+    <!-- 根据电梯编号查询电梯id -->
+    <select id="findElevatorDetailsIdByNO" parameterType="String" resultType="String">
+    	select id from tb_elevator_details where no=#{no}
+    </select>
+    
+    
+    
+    
+    
+</mapper>

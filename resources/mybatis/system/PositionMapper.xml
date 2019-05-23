@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PositionMapper">
+    <select id="positionlistPage" resultType="pd" parameterType="page">
+        SELECT * FROM 
+        tb_position 
+        ORDER BY request_time DESC
+
+    </select>
+    <select id="listAllPositions" resultType="pd">
+        SELECT * FROM 
+        tb_position 
+    </select>
+    <!-- 新增一条记录，插入成功后返回主键 暂时未实现-->
+    <insert id="insertPosition" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            select LAST_INSERT_ID()
+        </selectKey>
+		insert into tb_position
+		(    id,
+		     parentId,
+		     name,
+		     orderNo,
+             is_manager,
+             create_time,
+			`type`
+		)values(
+             #{id},
+			 #{parentId},
+		     #{name},
+		     #{orderNo},
+             #{is_manager},
+             now(),
+			'9'
+		)
+	
+	</insert>
+	<!-- 获取最大值 -->
+    <select id="getMaxId" parameterType="pd" resultType="String">
+      
+        select id from tb_position order by create_time desc limit 1
+		
+	</select>
+	<!-- 根据父类ID获取数据 -->
+    <select id="getPositionByParentId" parameterType="pd" resultType="pd">
+      
+        select * from tb_position where parentId = #{parentId}
+		
+	</select>
+	<!-- 根据ID获取数据 -->
+    <select id="getPositionById" parameterType="pd" resultType="pd">
+		select po.*,dept.name as deptname from tb_position po LEFT JOIN tb_department dept ON po.parentId=dept.id where po.id = #{id}
+		
+	</select>
+    <update id="updatePosition" parameterType="pd">
+		UPDATE tb_position 
+		   SET
+		   name =#{name},
+		   orderNo =#{orderNo},
+		   is_manager=#{is_manager}
+	     WHERE id =#{id}
+	</update>
+
+    <delete id="deletePosition">
+		DELETE FROM tb_position 
+			  WHERE id = #{id}
+	</delete>
+	
+	<!-- 根据用户id获取职位名和职位id -->
+	<select id="findPositionInfoByUid" parameterType="pd" resultType="pd">
+		select
+			p.id,
+			p.name
+		from 
+			tb_position p,
+			sys_user s
+		where
+			s.POSITION_ID=p.id
+			and 
+			s.USER_ID=#{USER_ID}
+	</select>
+	
+	<select id="findPositionByUserId" parameterType="String" resultType="pd">
+		select * from tb_position where id in(
+			select position_id from sys_user where user_id=#{user_id}
+		)
+	</select>
+	
+	<!-- 导入导出用sql -->
+	<select id="findPositionList" resultType="pd">
+		SELECT
+		p.*,
+		d.name as dname
+		FROM
+		tb_position AS p
+		LEFT JOIN tb_department AS d ON p.parentId = d.id
+	</select>
+	
+	<insert id="savePosition" parameterType="pd">
+		insert into tb_position(
+			id,
+			parentId,
+			orderNo,
+			name,
+			create_time,
+			is_manager,
+			type
+		)values(
+			#{id},
+			#{parentId},
+			#{orderNo},
+			#{name},
+			#{create_time},
+			#{is_manager},
+			#{type}
+		)
+	</insert>
+
+</mapper>

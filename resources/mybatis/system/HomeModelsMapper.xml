@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="HomeModelsMapper">
+	
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+	
+    
+    <!-- 型号分页列表 -->
+    <select id="homeModelslistPage" resultType="pd" parameterType="page">
+    	SELECT * FROM tb_models WHERE 1=1 
+    	<if test="pd.models_name !=null and pd.models_name !=''">
+	    	 AND (models_name LIKE CONCAT(CONCAT('%',#{pd.models_name}),'%'))
+    	</if>
+    	<if test="pd.elevator_id !=null and pd.elevator_id !=''">
+	    	AND elevator_id = #{pd.elevator_id}
+    	</if>
+    </select>
+    
+    <!-- 根据ID查找型号 -->
+    <select id="findModelsById" parameterType="pd" resultType="pd">
+    	select * from tb_models where 1=1
+    	<if test="models_id !=null and models_id !='' ">
+    		and  models_id = #{models_id}
+    	</if>
+    	<if test="elevator_id !=null and elevator_id !='' ">
+    		and elevator_id = #{elevator_id}
+    	</if>
+    </select>
+    
+    <!-- 根据类型查找型号列表 -->
+    <select id="findModelsByTypeList" parameterType="pd" resultType="pd">
+    	select * from tb_models where 1=1
+    	<if test="models_id !=null and models_id !='' ">
+    		and  models_id = #{models_id}
+    	</if>
+    	<if test="elevator_id !=null and elevator_id !='' ">
+    		and elevator_id = #{elevator_id}
+    	</if>
+    </select>
+    
+    <!-- 根据电梯类型ID查找型号列表 -->
+    <select id="findModelsByElevatorIdList" parameterType="pd" resultType="pd">
+    	select * from tb_models where 1=1
+    	
+    	<if test="elevator_id !=null and elevator_id !='' ">
+    		and elevator_id = #{elevator_id}
+    	</if>
+    </select>
+    
+     <!-- 型号添加 -->
+    <insert id="modelsAdd" parameterType="pd">
+    	insert into tb_models(
+    		
+    		models_name,
+    		elevator_id,
+    		product_id,
+    		models_description,
+    		models_price,
+    		elevator_speed_id,
+    		elevator_weight_id,
+    		elevator_storey_id,
+    		elevator_standard_price,
+    		elevator_base_id,
+    		elevator_base_price,
+    		elevator_optional_json,
+    		elevator_nonstandard_json,
+    		elevator_optional_price,
+    		elevator_nonstandard_price,
+    		elevator_height_add,
+    		elevator_height_money,
+    		rise,
+    		top_height,
+    		pit_depth,
+    		crbsp,
+    		rail_bracket_price,
+    		cable_height,
+    		cable_price
+    	)values(
+    		
+    		#{models_name},
+    		#{elevator_id},
+    		#{product_id},
+    		#{models_description},
+    		#{models_price},
+    		#{elevator_speed_id},
+    		#{elevator_weight_id},
+    		#{elevator_storey_id},
+    		#{elevator_standard_price},
+    		#{elevator_base_id},
+    		#{elevator_base_price},
+    		#{elevator_optional_json},
+    		#{elevator_nonstandard_json},
+    		#{elevator_optional_price},
+    		#{elevator_nonstandard_price},
+    		#{elevator_height_add},
+    		#{elevator_height_money},
+    		#{rise},
+    		#{top_height},
+    		#{pit_depth},
+    		#{crbsp},
+    		#{rail_bracket_price},
+    		#{cable_height},
+    		#{cable_price}
+    	)
+    </insert>
+    
+     <!-- 型号编辑-->
+    <update id="modelsUpdate" parameterType="pd">
+    	update  tb_models
+    	<set>
+    		models_name = #{models_name},
+    		elevator_id = #{elevator_id},
+    		product_id = #{product_id},
+    		models_description = #{models_description},
+    		models_price = #{models_price},
+    		elevator_speed_id = #{elevator_speed_id},
+    		elevator_weight_id = #{elevator_weight_id},
+    		elevator_storey_id = #{elevator_storey_id},
+    		elevator_standard_price = #{elevator_standard_price},
+    		elevator_base_id = #{elevator_base_id},
+    		elevator_base_price = #{elevator_base_price},
+    		elevator_optional_json = #{elevator_optional_json},
+    		elevator_nonstandard_json = #{elevator_nonstandard_json},
+    		elevator_optional_price = #{elevator_optional_price},
+    		elevator_nonstandard_price = #{elevator_nonstandard_price},
+    		elevator_height_add = #{elevator_height_add},
+    		elevator_height_money = #{elevator_height_money},
+    		rise = #{rise},
+    		top_height = #{top_height},
+    		pit_depth = #{pit_depth},
+    		crbsp = #{crbsp},
+    		rail_bracket_price = #{rail_bracket_price},
+    		cable_height = #{cable_height},
+    		cable_price = #{cable_price}
+    	</set>
+    	where models_id = #{models_id}
+    </update>
+    
+     <!-- 型号删除-->
+    <delete id="modelsDelete" parameterType="pd">
+    	delete from tb_models 
+    	where models_id = #{models_id}
+    </delete>
+    
+    <!-- 型号批量删除-->
+    <delete id="modelsDeleteAll" parameterType="String">
+    	delete from tb_models
+    	where models_id in
+    	<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+    
+    
+    
+    
+    
+   
+    
+    
+    
+   
+</mapper>

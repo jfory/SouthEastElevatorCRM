@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ProductionPlanMapper">
+    
+    <!-- 获取option集合 -->
+    <select id="findProductionPlanOneList"  resultType="pd">
+    	SELECT
+	      *
+        FROM
+	      tb_production_oneplan as po 
+	    WHERE po.type='1'
+    </select>
+    <!-- 获取option集合 -->
+    <select id="findProductionPlanTowList"  resultType="pd">
+    	SELECT
+	      *
+        FROM
+	      tb_production_oneplan as po 
+	    WHERE po.type='2'
+    </select>
+	<!-- 查询全部排产计划 -->
+	<select id="proPlanlistPage" parameterType="page" resultType="pd">
+		SELECT * from tb_production_oneplan where type='1'
+		<if test="pd.roleType!='4'">
+			<if test="pd.userList!=null and pd.userList.size()>0">
+				and input_user in
+				<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+		            ${user_id}
+		        </foreach>
+		    </if>
+		</if>
+	</select>
+	<!-- 查询审核完成等待进入计划排产的电梯 -->
+	<select id="elevatorlistPage" parameterType="page" resultType="pd">
+		SELECT
+		i.item_no,
+		i.item_name,
+		po.elevator_no,
+		e.elevator_name,
+		p.product_name,
+		ed.total,
+		po.special_state
+		FROM
+		tb_production_onerow AS po
+		LEFT JOIN
+		tb_item as i
+		ON
+		po.item_id=i.item_id
+		LEFT JOIN
+		tb_elevator_details as ed
+		ON
+		po.elevator_no=ed.`no`
+		LEFT JOIN
+		tb_product as p
+		ON
+		ed.product_id=p.product_id
+		LEFT JOIN
+		tb_elevator as e
+		ON
+		ed.elevator_id=e.elevator_id
+		WHERE
+		po.approval = '2'
+		AND
+		po.plan_state='0'
+	</select>
+	<!-- 新增排产计划 -->
+	<insert id="saveS" parameterType="pd">
+		insert into
+		tb_production_oneplan(
+		pro_uuid,
+		pro_no,
+		pro_name,
+		End_Time,
+		type,
+		input_user,
+		input_time
+		)
+		values
+		(
+		#{pro_uuid},
+		#{pro_no},
+		#{pro_name},
+		#{End_Time},
+		#{type},
+		#{input_user},
+		#{input_time}
+		)
+	</insert>
+	<!-- 新增排产电梯 -->
+	<insert id="elevatorsaveS" parameterType="pd">
+		insert into
+		tb_plan_elevator(
+		pro_eleva_no,
+		pro_plan_no,
+		item_id,
+		item_no,
+		elevator_no,
+		elevator_name,
+		product_name,
+		total,
+		type,
+		elevator_id,
+		special_state
+		)
+		values
+		(
+		#{pro_eleva_no},
+		#{pro_no},
+		#{item_id},
+		#{item_no},
+		#{elevator_no},
+		#{elevator_name},
+		#{product_name},
+		#{total},
+		#{type},
+		#{id},
+		#{special_state}
+		)
+	</insert>
+	<!-- 根据电梯工号修改状态（一排） -->
+	<update id="upfindById" parameterType="pd">
+		UPDATE tb_production_onerow
+		SET
+		plan_state =#{plan_state}
+		Where
+		elevator_no=#{elevator_no}
+	</update>
+	<!-- 根据排产计划编号查询电梯信息 -->
+	<select id="findplanById" parameterType="page" resultType="pd">
+		SELECT
+		pe.pro_plan_no,
+		i.item_no,
+		i.item_name,
+		ed.no,
+		e.elevator_name,
+		p.product_name,
+		ed.total
+		FROM
+		tb_plan_elevator AS pe
+		LEFT JOIN
+		tb_elevator_details as ed
+		ON
+		pe.elevator_no=ed.no
+		LEFT JOIN
+		tb_product as p
+		ON
+		ed.product_id=p.product_id
+		LEFT JOIN
+		tb_item as i
+		ON
+		ed.item_id=i.item_id
+		LEFT JOIN
+		tb_elevator as e
+		ON
+		ed.elevator_id=e.elevator_id
+		WHERE
+		pe.pro_plan_no=#{pd.pro_plan_no}
+	</select>
+	<!-- 根据电梯编号，去一排表中查询这台电梯是不是特批电梯 -->
+	<select id="fpById" parameterType="page" resultType="pd">
+	      SELECT 
+	        o.special_state
+	      FROM 
+	        tb_production_onerow as o 
+	      WHERE 
+	        o.elevator_no=#{elevator_no}
+	</select>
+	<!-- ******************二排排产计划****************** -->
+	<!-- 查询全部排产计划（二排） -->
+	<select id="proTowPlanlistPage" parameterType="page" resultType="pd">
+		SELECT * from tb_production_oneplan where type='2'
+		<if test="pd.roleType!='4'">
+			<if test="pd.userList!=null and pd.userList.size()>0">
+				and input_user in
+				<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+		            ${user_id}
+		        </foreach>
+		    </if>
+		</if>
+	</select>
+	<!-- 查询审核通过等待进入计划排产的电梯 -->
+	<select id="elevatorTowlistPage" parameterType="page"
+		resultType="pd">
+		SELECT
+		i.item_no,
+		i.item_name,
+		po.elevator_no,
+		e.elevator_name,
+		p.product_name,
+		ed.total,
+		po.special_state
+		FROM
+		tb_production_towrow AS po
+		LEFT JOIN
+		tb_item as i
+		ON
+		po.item_id=i.item_id
+		LEFT JOIN
+		tb_elevator_details as ed
+		ON
+		po.elevator_no=ed.`no`
+		LEFT JOIN
+		tb_product as p
+		ON
+		ed.product_id=p.product_id
+		LEFT JOIN
+		tb_elevator as e
+		ON
+		ed.elevator_id=e.elevator_id
+		WHERE
+		po.approval = '2'
+		AND
+		po.plan_state='0'
+	</select>
+	<!-- 根据电梯编号查询电梯信息 -->
+	<select id="findelevadById" parameterType="pd" resultType="pd">
+		SELECT
+		ed.id ,
+		ed.`no`,
+		ed.item_id,
+		i.item_no,
+		e.elevator_name,
+		p.product_name,
+		ed.total
+		FROM
+		tb_elevator_details as ed
+		LEFT JOIN
+		tb_item as i
+		ON
+		ed.item_id=i.item_id
+		LEFT JOIN
+		tb_elevator as e
+		ON
+		ed.elevator_id=e.elevator_id
+		LEFT JOIN
+		tb_product as p
+		ON
+		ed.product_id=p.product_id
+		WHERE
+		ed.`no`=#{elevator_no}
+	</select>
+	<!-- 根据电梯工号修改状态（二排） -->
+	<update id="upfindtowById" parameterType="pd">
+		UPDATE tb_production_towrow
+		SET
+		plan_state =#{plan_state}
+		Where
+		elevator_no=#{elevator_no}
+	</update>
+	<!-- 根据电梯编号，去一排表中查询这台电梯是不是特批电梯 -->
+	<select id="fpTowById" parameterType="page" resultType="pd">
+	      SELECT 
+	        o.special_state
+	      FROM 
+	        tb_production_towrow as o 
+	      WHERE 
+	        o.elevator_no=#{elevator_no}
+	</select>
+	<!-- *******************报表模块********************* -->
+	<!-- 总数 -->
+	<!-- 年份 -->
+	<select id="productionYearNum" parameterType="String" resultType="pd">
+	    SELECT
+          YEAR(po.End_Time) as date,
+	      COUNT(e.pro_eleva_no) as num
+        FROM
+	      tb_plan_elevator AS e
+        LEFT JOIN
+          tb_production_oneplan as po
+        ON
+          e.pro_plan_no=po.pro_no
+        WHERE
+	      e.pro_plan_no in (
+		SELECT
+			po.pro_no
+		FROM
+			tb_production_oneplan AS po
+		WHERE
+			po.type = '2'
+	       )
+          group by YEAR (po.End_Time)
+	</select>
+	<!-- 月份 -->
+	<select id="productionMonthNum" parameterType="String" resultType="pd">
+	    SELECT
+          Month(po.End_Time) as date,
+	      COUNT(e.pro_eleva_no) as num
+        FROM
+	      tb_plan_elevator AS e
+        LEFT JOIN
+          tb_production_oneplan as po
+        ON
+          e.pro_plan_no=po.pro_no
+        WHERE
+	      e.pro_plan_no in (
+		SELECT
+			po.pro_no
+		FROM
+			tb_production_oneplan AS po
+		WHERE
+			po.type = '2')AND 
+          YEAR(po.End_Time)=#{year}
+          group by YEAR (po.End_Time)
+	</select>
+	<!-- 季度 -->
+	<select id="productionQuarterNum" parameterType="String" resultType="pd">
+	    SELECT
+          Quarter(po.End_Time) as date,
+	      COUNT(e.pro_eleva_no) as num
+        FROM
+	      tb_plan_elevator AS e
+        LEFT JOIN
+          tb_production_oneplan as po
+        ON
+          e.pro_plan_no=po.pro_no
+        WHERE
+	      e.pro_plan_no in (
+		SELECT
+			po.pro_no
+		FROM
+			tb_production_oneplan AS po
+		WHERE
+			po.type = '2')AND 
+          YEAR(po.End_Time)=#{year}
+          group by YEAR (po.End_Time)
+	</select>
+	<!-- 梯种 -->
+	<!-- 年份 -->
+	<select id="productionYearTypeNum" parameterType="String" resultType="pd">
+	    SELECT
+          YEAR(po.End_Time) as date,
+	      COUNT(IF(e.elevator_name='常规梯',e.elevator_name,NULL)) as GeneralNum,
+          COUNT(IF(e.elevator_name='家用梯',e.elevator_name,NULL)) as HomeUseNum,
+          COUNT(IF(e.elevator_name='特种梯',e.elevator_name,NULL)) as SpecialNum,
+          COUNT(IF(e.elevator_name='扶梯',e.elevator_name,NULL))   as EscalatorNum
+        FROM
+	      tb_plan_elevator AS e
+       LEFT JOIN
+         tb_production_oneplan as po
+       ON
+         e.pro_plan_no=po.pro_no
+      WHERE
+	    e.pro_plan_no in (
+		SELECT
+			po.pro_no
+		FROM
+			tb_production_oneplan AS po
+		WHERE
+			po.type = '2'
+	)
+   group by YEAR (po.End_Time)
+	</select>
+	<!-- 月份 -->
+	<select id="productionMonthTypeNum" parameterType="String" resultType="pd">
+	    SELECT
+          Month(po.End_Time) as date,
+	      COUNT(IF(e.elevator_name='常规梯',e.elevator_name,NULL)) as GeneralNum,
+          COUNT(IF(e.elevator_name='家用梯',e.elevator_name,NULL)) as HomeUseNum,
+          COUNT(IF(e.elevator_name='特种梯',e.elevator_name,NULL)) as SpecialNum,
+          COUNT(IF(e.elevator_name='扶梯',e.elevator_name,NULL))   as EscalatorNum
+        FROM
+	      tb_plan_elevator AS e
+       LEFT JOIN
+         tb_production_oneplan as po
+       ON
+         e.pro_plan_no=po.pro_no
+      WHERE
+	    e.pro_plan_no in (
+		SELECT
+			po.pro_no
+		FROM
+			tb_production_oneplan AS po
+		WHERE
+			po.type = '2'
+	)AND 
+   YEAR(po.End_Time)=#{year}
+   group by YEAR (po.End_Time)
+	</select>
+	<!-- 季度 -->
+	<select id="productionQuarterTypeNum" parameterType="String" resultType="pd">
+	     SELECT
+          Quarter(po.End_Time) as date,
+	      COUNT(IF(e.elevator_name='常规梯',e.elevator_name,NULL)) as GeneralNum,
+          COUNT(IF(e.elevator_name='家用梯',e.elevator_name,NULL)) as HomeUseNum,
+          COUNT(IF(e.elevator_name='特种梯',e.elevator_name,NULL)) as SpecialNum,
+          COUNT(IF(e.elevator_name='扶梯',e.elevator_name,NULL))   as EscalatorNum
+        FROM
+	      tb_plan_elevator AS e
+       LEFT JOIN
+         tb_production_oneplan as po
+       ON
+         e.pro_plan_no=po.pro_no
+      WHERE
+	    e.pro_plan_no in (
+		SELECT
+			po.pro_no
+		FROM
+			tb_production_oneplan AS po
+		WHERE
+			po.type = '2'
+	)AND 
+   YEAR(po.End_Time)=#{year}
+   group by YEAR (po.End_Time)
+	</select>
+</mapper>

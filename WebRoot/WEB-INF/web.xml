@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         version="2.5">
+
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:/spring/ApplicationContext.xml</param-value>
+    </context-param>
+    <context-param>
+        <param-name>log4jConfigLocation</param-name>
+        <param-value>classpath:log4j.properties</param-value>
+    </context-param>
+    <filter>
+        <filter-name>encodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>encodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- 连接池 启用Web监控统计功能   start-->
+    <filter>
+        <filter-name>DruidWebStatFilter</filter-name>
+        <filter-class>com.alibaba.druid.support.http.WebStatFilter</filter-class>
+        <init-param>
+            <param-name>exclusions</param-name>
+            <param-value>*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>DruidWebStatFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <servlet>
+        <servlet-name>DruidStatView</servlet-name>
+        <servlet-class>com.alibaba.druid.support.http.StatViewServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DruidStatView</servlet-name>
+        <url-pattern>/druid/*</url-pattern>
+    </servlet-mapping>
+    <!-- 连接池 启用Web监控统计功能   end-->
+
+    <filter>
+        <filter-name>loginFilter</filter-name>
+        <filter-class>com.dncrm.filter.LoginFilter</filter-class>
+    </filter>
+    <listener>
+        <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
+    </listener>
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <servlet>
+        <servlet-name>springMvc</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:/spring/ApplicationContext-mvc.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>springMvc</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+    <!-- 同步用户数据 -->
+    <!--<listener>
+       <listener-class>com.dncrm.listener.SynUserListener</listener-class>
+   </listener>-->
+    <!-- 会员签到流水明细查询接口监听 -->
+    <!--<listener>
+       <listener-class>com.dncrm.listener.GetUserArriveTransListener</listener-class>
+   </listener>
+    转换会员数据监听
+   <listener>
+       <listener-class>com.dncrm.listener.ShiftDateTableInfo</listener-class>
+   </listener>
+   销售数据中间表数据采集接口监听
+   <listener>
+       <listener-class>com.dncrm.listener.GetTradeDataListener</listener-class>
+   </listener>
+    根据消费和刷卡记录转换会员消费数据监听
+   <listener>
+       <listener-class>com.dncrm.listener.IntegrationVipPayInfo</listener-class>
+   </listener>  -->
+    <!-- tomcat等 启动之前执行 -->
+    <filter>
+        <filter-name>startFilter</filter-name>
+        <filter-class>com.dncrm.filter.startFilter</filter-class>
+    </filter>
+
+    <!-- Shiro filter start -->
+    <filter>
+        <filter-name>shiroFilter</filter-name>
+        <filter-class>
+            org.springframework.web.filter.DelegatingFilterProxy
+        </filter-class>
+        <init-param>
+            <param-name>targetFilterLifecycle</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>shiroFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <!-- Shiro filter end -->
+
+    <servlet>
+        <display-name>FCExporter</display-name>
+        <servlet-name>FCExporter</servlet-name>
+        <servlet-class>com.fusioncharts.exporter.servlet.FCExporter</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FCExporter</servlet-name>
+        <url-pattern>/FCExporter</url-pattern>
+    </servlet-mapping>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/404.jsp</location>
+    </error-page>
+
+
+    <!--
+         <error-page>
+            <error-code>405</error-code>
+           <location>/WEB-INF/405.html</location>
+         </error-page>
+         <error-page>
+           <error-code>404</error-code>
+           <location>/WEB-INF/404.html</location>
+         </error-page>
+         <error-page>
+           <error-code>500</error-code>
+           <location>/WEB-INF/500.html</location>
+         </error-page>
+         <error-page>
+           <error-code>javax.servle.ServletException</error-code>
+           <location>/WEB-INF/error.html</location>
+         </error-page>
+         <error-page>
+           <error-code>java.lang.NullPointerException</error-code>
+           <location>/WEB-INF/error.html</location>
+         </error-page>
+    -->
+    <session-config>
+        <session-timeout>600</session-timeout>
+    </session-config>
+</web-app>

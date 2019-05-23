@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="StrategicMapper">
+  <!-- 查询全部协议 -->
+  <select id="strategiclistPage" parameterType="pd" resultType="pd">
+     SELECT
+	   *
+     FROM
+	   tb_strategic
+     WHERE
+       1=1
+     <if test="pd.stra_no != null and pd.stra_no != ''">
+         and stra_no LIKE CONCAT(CONCAT('%', #{pd.stra_no}),'%')
+     </if>
+     <if test="pd.stra_name != null and pd.stra_name != ''">
+         and stra_name LIKE CONCAT(CONCAT('%', #{pd.stra_name}),'%')
+     </if>
+     <if test="pd.stra_second != null and pd.stra_second != ''">
+         and stra_second LIKE CONCAT(CONCAT('%', #{pd.stra_second}),'%')
+     </if>
+     <if test="pd.roleType!='4'">
+		<if test="pd.userList!=null and pd.userList.size()>0">
+				and requester_id in
+				<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+		            ${user_id}
+		        </foreach>
+		    </if>
+	  </if>
+      ORDER BY modified_time DESC
+  </select>
+  <!-- 根据协议编号查询协议信息 -->
+  <select id="findById" parameterType="page" resultType="pd">
+      select * from tb_strategic where stra_no=#{stra_no}
+  </select>
+  <!-- 根据协议编号删除数据 -->
+  <delete id="delfindById" parameterType="pd">
+     DELETE from tb_strategic where stra_no=#{stra_no}
+  </delete>
+  <!-- 新增协议 -->
+  <insert id="saveS" parameterType="pd">
+		insert into tb_strategic(
+		stra_uuid,
+		stra_no,
+		stra_name,
+		stra_clause,
+		stra_owner,
+		stra_ow_representative,
+		stra_ow_entrusted,
+	    stra_ow_phone,
+		stra_second,
+		stra_se_representative,
+		stra_se_entrusted,
+		stra_se_phone,
+		stra_SignedTime,
+		modified_time,
+		end_Time,
+		stra_strategy_key,
+		stra_approval,
+		requester_id,
+		customer_no
+		)
+		values
+		(
+		#{stra_uuid},
+		#{stra_no},
+		#{stra_name},
+		#{stra_clause},
+		#{stra_owner},
+		#{stra_ow_representative},
+		#{stra_ow_entrusted},
+	    #{stra_ow_phone},
+		#{stra_second},
+		#{stra_se_representative},
+		#{stra_se_entrusted},
+		#{stra_se_phone},
+		#{stra_SignedTime},
+		#{modified_time},
+		#{end_Time},
+		#{stra_strategy_key},
+		#{stra_approval},
+		#{requester_id},
+		#{customer_no}
+		)
+	</insert>
+	<!-- 根据协议ID修改协议信息 -->
+	<update id="upfindById" parameterType="pd">
+	    UPDATE tb_strategic
+		SET
+		stra_uuid                   =#{stra_uuid},
+		stra_name                   =#{stra_name},
+		stra_clause                 =#{stra_clause},
+		stra_owner                  =#{stra_owner},
+		stra_ow_representative      =#{stra_ow_representative},
+		stra_ow_entrusted           =#{stra_ow_entrusted},
+	    stra_ow_phone               =#{stra_ow_phone},
+		stra_second                 =#{stra_second},
+		stra_se_representative      =#{stra_se_representative},
+		stra_se_entrusted           =#{stra_se_entrusted},
+		stra_se_phone               =#{stra_se_phone},
+		stra_SignedTime             =#{stra_SignedTime},
+		modified_time               =#{modified_time},
+		end_Time                    =#{end_Time},
+		stra_strategy_key           =#{stra_strategy_key},
+		stra_approval               =#{stra_approval},
+		requester_id                =#{requester_id},
+		customer_no                 =#{customer_no}
+		Where
+		stra_no=#{stra_no}
+	</update>
+	<!-- 查询流程是否存在 -->
+	<select id="stra_strategy_key" parameterType="page" resultType="pd">
+	    SELECT
+	      *
+        FROM
+	      act_re_procdef
+        WHERE
+	      KEY_ = 'StrategyContract'
+	</select>
+	<!-- 更新审核状态 -->
+    <update id="upStraApproval" parameterType="pd">
+    	UPDATE tb_strategic
+		SET
+    	  stra_approval =#{stra_approval}
+    	WHERE
+	    stra_no= #{stra_no}
+    </update>
+     <!-- 根据uuid查询基本信息 -->
+	<select id="findByuuId" parameterType="page" resultType="pd">
+		select * from tb_strategic where stra_uuid=#{stra_uuid}
+	</select>
+	<select id="customerlist" parameterType="pd" resultType="pd">
+	    SELECT customer_name,customer_no from tb_customer_core 
+	</select>
+    <!-- 根据客户name查询客户id -->
+	<select id="findCustomer_coreByName" parameterType="pd" resultType="pd">
+	    SELECT customer_no from tb_customer_core where customer_name=#{customer_name}
+	</select>
+	 <!-- 获取option集合 -->
+    <select id="findStrategicList"  resultType="pd">
+    	select 
+    	s.*,
+    	c.customer_name
+    	from 
+    	tb_strategic as s
+    	LEFT JOIN
+    	tb_customer_core as c
+    	ON
+    	s.customer_no=c.customer_no
+    </select>
+</mapper>

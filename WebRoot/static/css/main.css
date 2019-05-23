@@ -1,0 +1,31 @@
+body{background-color:#FAFBFD;left:0px;top:0px;right:0px;bottom:0px;margin:0px;font-family: Microsoft Yahei,Arial, sans-serif;font-size: 12px;text-align: center;}
+a{text-decoration:none;}
+.main_table{border: 1px solid #CCCCCC;margin-top:10px;background-color: #F2F2F2;}
+.main_head{height:27px;background: url("../images/news-title-bg.gif") repeat-x;}
+.main_info{height:27px;text-align: center;color:#666666;}
+.main_table_even{background-color: #ffffff;}
+
+.dialog_iframe{width:100%;height:100%;}
+.shadow{position:absolute;display:none;top:0px;left:0px;z-index:8;width:100%;height:100%;opacity: .7;filter: progid:DXImageTransform.Microsoft.Alpha(opacity=70);background: url('../images/shadow.png') fixed repeat;}
+
+.search_div{width:100%; height:30px;line-height:30px;text-align: left;margin-top:10px;}
+.search_div input{vertical-align: middle;}
+
+a.myBtn,a.myBtn em{background-image:url(../images/lhgdg_bg.png);background-repeat:no-repeat;vertical-align: middle;}
+a.myBtn,a.myBtn em{display:inline-block;height:21px;cursor: pointer;}
+a.myBtn{text-decoration:none;background-position:-32px -41px;padding-left:15px;color:#000;cursor:default;margin-right:5px;}
+a.myBtn:hover{background-position:-32px -83px;}
+a.myBtn em{font-style:normal;background-position:right -62px;padding-right:15px;line-height:21px;line-height:24px\0;font-size:12px;}
+a.myBtn:hover em{background-position:right -104px;}
+
+.btn{width:60px;height:25px;cursor: pointer;border-width:0px;background-image: url(../images/btn-bg2.gif);letter-spacing: 3px;}
+.page_and_btn {width:100%;height:auto;overflow:hidden;padding:10px 0px 0px 0px;}
+.page_and_btn ul { margin:0px;list-style:none;float:right;width:auto;height:100%;overflow:hidden;padding:0px;}
+.page_and_btn ul li { float:left; border:1px solid #CCCCCC; height:20px; line-height:20px; margin:0px 2px;}
+.page_and_btn ul li a{color:#333; text-decoration:none;}
+.page_and_btn ul li a, .pageinfo { display:block; padding:0px 6px; background:#FAFBFD;}
+.page_and_btn  { color:#555;}
+.current { background:#ccced4; display:block; padding:0px 6px; font-weight:bold;}
+.page_and_btn div{float:left;}
+
+.input_disabled{border: 1px solid #7F9DB9;background-color: #e8e8e8;}

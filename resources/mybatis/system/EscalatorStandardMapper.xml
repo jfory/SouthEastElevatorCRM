@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="EscalatorStandardMapper">
+
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- 扶梯标准价格分页列表 -->
+    <select id="escalatorStandardlistPage" parameterType="page" resultType="pd" useCache="false">
+        select *
+        	   from tb_escalator_standard a where 1=1
+        	 
+        <if test="pd.escalator_model_id !=null and pd.escalator_model_id !=''">
+        	 AND (escalator_model_id LIKE CONCAT(CONCAT('%', #{pd.escalator_model_id}),'%'))
+        </if>
+        
+        
+    </select>
+    
+    
+     <!-- 根据ID查询电梯标准价格对象 -->
+    <select id="findEscalatorStandardById"  resultType="pd">
+		select * from tb_escalator_standard where 1=1
+		<if test="id !=null and id !=''">
+			and id = #{id}
+		</if>
+	</select>
+	
+	<!-- 根据ID查询电梯标准价格集合 -->
+	<select id="findEscalatorStandardListById" parameterType="pd" resultType="pd">
+		select * from tb_escalator_standard where 1=1
+		<if test="id !=null and id !=''">
+			and id = #{id}
+		</if>
+	</select>
+	
+	
+	<!-- 电梯标准价格名称是否存在重复 -->
+    <select id="existsElevatorStandardName" parameterType="pd" resultType="pd">
+    	select * from tb_elevator_standard where elevator_storey_name=#{elevator_storey_name} 
+    	<if test="elevator_storey_id !=null and elevator_storey_id !=''">
+    		and elevator_storey_id not in (#{elevator_storey_id})
+    	</if>
+    </select>
+    
+    <!-- 电梯标准价格添加 -->
+    <insert id="escalatorStandardAdd" parameterType="pd">
+    	insert into tb_escalator_standard(
+    		
+    		escalator_model_id,
+    		escalator_standard_id,
+    		escalator_width_id,
+    		escalator_standard_price,
+    		escalator_standard_description
+    	)values(
+    		#{escalator_model_id},
+    		#{escalator_standard_id},
+    		#{escalator_width_id},
+    		#{escalator_standard_price},
+    		#{escalator_standard_description}
+    	)
+    </insert>
+    
+    <!-- 电梯标准价格更新 -->
+    <update id="escalatorStandardUpdate" parameterType="pd">
+    	update tb_escalator_standard
+    	<set>
+    		escalator_model_id = #{escalator_model_id},
+    		escalator_standard_id = #{escalator_standard_id},
+    		escalator_width_id = #{escalator_width_id},
+    		escalator_standard_price = #{escalator_standard_price},
+    		escalator_standard_description = #{escalator_standard_description},
+    	</set>
+    	where id=#{id}
+    </update>
+    
+     <!-- 电梯标准价格删除 -->
+     <delete id="escalatorStandardDeleteById">
+		delete from tb_escalator_standard
+    	where id = #{id}
+	</delete>
+	
+	<!-- 电梯标准价格批量删除-->
+    <delete id="escalatorStandardDeleteAll" parameterType="String">
+    	delete from tb_escalator_standard
+    	where id in
+    	<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+    
+    <select id="countEscalatorStandardPrice" resultType="pd" parameterType="pd">
+    	select * from tb_escalator_standard where 1=1
+    	
+    		and escalator_model_id = #{escalator_model_id}
+    	
+    	
+    		and escalator_standard_id = #{escalator_standard_id}
+    	
+    	
+    		and escalator_width_id = #{escalator_width_id}
+    	
+    </select>
+    
+    <!-- 扶梯标准导出 -->
+    <select id="findEscalatorStandardList" resultType="pd">
+    	select * from tb_escalator_standard
+    </select>
+    
+    <!-- 扶梯标准导入 -->
+    <insert id="saveEscalatorStandard" parameterType="pd">
+    	insert into tb_escalator_standard(
+    		escalator_model_id,
+    		escalator_standard_id,
+    		escalator_width_id,
+    		escalator_standard_price,
+    		escalator_standard_description
+    	)values(
+    		#{escalator_model_id},
+    		#{escalator_standard_id},
+    		#{escalator_width_id},
+    		#{escalator_standard_price},
+    		#{escalator_standard_description}
+    	)
+    </insert>
+</mapper>	

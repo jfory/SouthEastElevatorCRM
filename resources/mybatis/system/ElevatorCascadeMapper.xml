@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="ElevatorCascadeMapper">
+
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+	
+	
+	<!-- 电梯级联集合  -->
+	
+    <select id="listAllElevatorCascade" resultType="pd">
+       SELECT *,elevator_id as 'nodeType' FROM tb_elevator_cascade 
+    </select>
+    
+    <!-- 电梯级联类型集合  -->
+	
+    <select id="listAllElevatorCascadeByElevatorId" resultType="pd" parameterType="pd">
+       SELECT * FROM tb_elevator_cascade where 1=1
+       <if test="elevator_id != null and elevator_id != '' ">
+       		and elevator_id = #{elevator_id}
+       </if> 
+       or parentId = '0'
+    </select>
+    
+     
+    
+    <!-- 新增一条记录，插入成功后返回主键 暂时未实现-->
+    <insert id="insertElevatorCascade" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            select LAST_INSERT_ID()
+        </selectKey>
+		insert into tb_elevator_cascade
+		(    id,
+		     parentId,
+		     name,
+		     orderNo,
+             create_time,
+             elevator_id
+		)values(
+             #{id},
+			 #{parentId},
+		     #{name},
+		     #{orderNo},
+             now(),
+             #{elevator_id}
+		)
+	
+	</insert>
+	
+	<!-- 获取最大值 -->
+    <select id="getMaxId" parameterType="pd" resultType="String">
+      
+        select id from tb_elevator_cascade order by create_time desc limit 1
+		
+	</select>
+	
+	<!-- 根据ID获取数据 -->
+    <select id="getElevatorCascadeById" parameterType="pd" resultType="pd">
+      
+        select * from tb_elevator_cascade where id = #{id}
+		
+	</select>
+	
+	
+	<update id="updateElevatorCascade" parameterType="pd">
+		UPDATE tb_elevator_cascade 
+		   SET
+		   name =#{name},
+		   orderNo =#{orderNo},
+		   parentId = #{parentId},
+		   elevator_id = #{elevator_id}
+	     WHERE id =#{id}
+	</update>
+	
+	 <delete id="deleteElevatorCascade">
+		DELETE FROM tb_elevator_cascade 
+			  WHERE id = #{id}
+	</delete>
+	
+	
+	
+	<!-- 根据parentId获取集合 -->
+	<select id="elevatorCascadeListByParentId" resultType="pd" parameterType="pd">
+		select * from tb_elevator_cascade where 1=1
+		<if test="parentId != null and parentId != '' ">
+			and parentId = #{parentId}
+		</if>
+		<if test="elevator_id != null and elevator_id != '' ">
+			and elevator_id = #{elevator_id}
+		</if>
+	</select>
+	
+	<!-- 根据ID获取集合 -->
+	<select id="getElevatorCascadeListById" parameterType="pd" resultType="pd">
+		select * from tb_elevator_cascade where 1=1
+		<if test="id != null and id != '' ">
+			and id = #{id}
+		</if>
+	</select>
+	
+	<!-- 根据parentId获取所有父类对象 -->
+	<select id="findAllParentElevatorCascadeByParentId" parameterType="pd" resultType="pd">
+		select * from tb_elevator_cascade where id = #{parentId}
+	</select>
+</mapper>	

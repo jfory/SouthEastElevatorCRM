@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="RegelevStandardMapper">
+	<!-- 电梯标准价格分页列表 -->
+    <select id="regelevStandardlistPage" parameterType="page" resultType="pd">
+        SELECT * FROM TB_REGELEV_STANDARD
+    </select>
+    
+    <select id="listAllRegelevStandard" resultType="pd">
+    	<!-- SELECT * FROM TB_REGELEV_STANDARD -->
+    	SELECT ID,NAME FROM TB_REGELEV_STANDARD
+    	UNION
+    	SELECT ID,NAME FROM TB_ESCALATOR_STANDARD
+    </select>
+    
+    <select id="findById" parameterType="pd" resultType="pd">
+    	SELECT * FROM TB_REGELEV_STANDARD WHERE ID=#{ID}
+    </select>
+    
+	<!-- 家用梯 -->
+    <select id="findById3" parameterType="pd" resultType="pd">
+    	SELECT * FROM TB_HOUSEHOLD_STANDARD WHERE ID=#{ID}
+    </select>
+    
+    <select id="findByModelsId" parameterType="pd" resultType="pd">
+    	SELECT * FROM TB_REGELEV_STANDARD WHERE ID=#{standard_id}
+    </select>
+    
+    <select id="findByModelsId2" parameterType="pd" resultType="pd">
+    	SELECT * FROM TB_ESCALATOR_STANDARD WHERE ID=#{standard_id}
+    </select>
+    
+    <select id="findById2" parameterType="pd" resultType="pd">
+    	SELECT * FROM TB_ESCALATOR_STANDARD WHERE ID=#{ID}
+    </select>
+    
+    <!-- 电梯标准价格添加 -->
+    <insert id="regelevStandardAdd" parameterType="pd">
+    	INSERT INTO TB_REGELEV_STANDARD(
+    		ID,
+    		TYPE,
+    		NAME,
+    		ZZ,
+    		SD,
+    		KMXS,
+    		KMKD,
+    		C,
+    		Z,
+    		M,
+    		PRICE
+    	)values(
+    		#{ID},
+    		#{TYPE},
+    		#{NAME},
+    		#{ZZ},
+    		#{SD},
+    		#{KMXS},
+    		#{KMKD},
+    		#{C},
+    		#{Z},
+    		#{M},
+    		#{PRICE}
+    	)
+    </insert>
+    
+    
+    <!-- 扶梯标准价格添加 -->
+    <insert id="escalatorStandardAdd" parameterType="pd">
+    	INSERT INTO TB_ESCALATOR_STANDARD(
+    		ID,
+    		TYPE,
+    		NAME,
+    		SD,
+    		GG,
+    		TSGD,
+    		TJKD,
+    		TBKD,
+    		QXJD,
+    		SPTJ,
+    		PRICE
+    	)values(
+    		#{ID},
+    		#{TYPE},
+    		#{NAME},
+    		#{SD},
+    		#{GG},
+    		#{TSGD},
+    		#{TJKD},
+    		#{TBKD},
+    		#{QXJD},
+    		#{SPTJ},
+    		#{PRICE}
+    	)
+    </insert>
+    
+    <!-- 获取常规梯 全部型号 -->
+    <select id="modelsList" parameterType="page" resultType="pd">
+        SELECT * FROM tb_models where elevator_id='1'
+    </select>
+</mapper>	

@@ -1,0 +1,1238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ItemMapper">
+
+    <select id="findItemsByCondition" parameterType="page" resultType="pd">
+        select *
+        from tb_item
+        LEFT JOIN tb_item_follow_up on tb_item.item_id = tb_item_follow_up.GJ_item_id
+        where item_sub_branch = #{item_sub_branch}
+        <if test="sale_type!=null and sale_type!=''">
+            and sale_type = #{sale_type}
+        </if>
+        <if test="order_org!=null and order_org!=''">
+            and order_org = #{order_org}
+        </if>
+    </select>
+    
+    <select id="findItemsByItemId" parameterType="pd" resultType="pd">
+        select i.*,
+        (case when (select count(1) from tb_so_contract tcontract where tcontract.HT_ITEM_ID=i.item_id )>0 then '5'
+        when (select count(1) from tb_iteminoffer tbjc where tbjc.item_id=i.item_id)>0 then '2'
+        when item_status='11' then '11'
+        else '1' end) i_status
+        from tb_item i
+        where i.item_id = #{item_id}
+    </select>
+
+    <select id="listPageAllItemByRole" parameterType="page" resultType="pd">
+        select
+        item_id,
+        item_no,
+        item_name,
+        item_install_address,end_user,
+        customer_no,
+        sale_type,
+        order_org,
+        order_org_contact,
+        order_org_phone,
+        item_area,
+        item_sub_branch,
+        is_cross_region,
+        item_install_sub_branch,
+        (case when (select count(1) from tb_so_contract tcontract where tcontract.HT_ITEM_ID=item_id )>0 then '5'
+        when (select count(1) from tb_e_offer tbjc where tbjc.item_id=tb_item.item_id)>0 then '2'
+        when item_status='11' then '11'
+        else '1' end) item_status,
+        market_flag,
+        mes_source,
+        enable_status,
+        elevator_info,
+        start_date,
+        plan_complete,
+        plan_comeinto,
+        plan_contract,
+        design_name,
+        design_address,
+        design_phone,
+        design_fax,
+        item_design,
+        item_design_phone,
+        item_engineer,
+        item_engineer_phone,
+        special_require,
+        filing_man,
+        input_date,
+        modified_date,
+        market_type,
+        self_inferiority,
+        agreement_possible,
+        item_total,
+        item_manager,
+        is_attention,
+        is_imporant,
+        item_org,
+        item_org_contact,
+        item_org_phone,
+        item_contact,
+        item_contact_phone,
+        plan_deposit,
+        manager_duty,
+        item_address,
+        manager_phone,
+        filing_area,
+        filing_sub_company,
+        filing_branch_company,
+        input_user,
+        u.`NAME` as input_uname,
+        modified_by,
+        remark,
+        cross_region_num,
+        contract_type,
+        item_instance_id,
+        item_approval,
+        (case when (select count(1) from tb_so_contract tcontract1 where tcontract1.HT_ITEM_ID=item_id )&lt;=0 and
+        (select count(1) from tb_e_offer tbjc1 where tbjc1.item_id=tb_item.item_id)&lt;=0 and IFNULL(item_status,0) &lt;&gt;
+        11 and
+        TIMESTAMPDIFF(MONTH,input_date,DATE(now()))&gt;=3 then '滞留'
+        else '正常' end) ZL_TYPE,
+        date(input_date) as HTLRSJ,
+        idia.name as item_area_name,
+        idis.name as item_sub_branch_name
+        from
+        tb_item
+        left join sys_user u on u.user_id = tb_item.input_user
+        left join tb_department idia on idia.id = tb_item.item_area
+        left join tb_department idis on idis.id = tb_item.item_sub_branch
+        where 1=1
+        <if test="pd.search_item_name != null and pd.search_item_name != ''">
+            and item_name LIKE CONCAT(CONCAT('%', #{pd.search_item_name}),'%')
+        </if>
+        <if test="pd.ZL_TYPE != null and pd.ZL_TYPE != ''">
+            and (case when (select count(1) from tb_so_contract tcontract1 where tcontract1.HT_ITEM_ID=item_id )&lt;=0
+            and
+            (select count(1) from tb_e_offer tbjc1 where tbjc1.item_id=tb_item.item_id)&lt;=0 and IFNULL(item_status,0)
+            &lt;&gt; 11 and
+            TIMESTAMPDIFF(MONTH,input_date,DATE(now()))&gt;=3 then '滞留'
+            else '正常' end) LIKE CONCAT(CONCAT('%', #{pd.ZL_TYPE}),'%')
+        </if>
+        <if test="pd.input_name != null and pd.input_name != ''">
+            and u.`NAME` LIKE CONCAT(CONCAT('%', #{pd.input_name}),'%')
+        </if>
+        <if test="pd.item_area_name != null and pd.item_area_name != ''">
+            and idia.name LIKE CONCAT(CONCAT('%', #{pd.item_area_name}),'%')
+        </if>
+        <if test="pd.item_sub_branch_name != null and pd.item_sub_branch_name != ''">
+            and idis.name LIKE CONCAT(CONCAT('%', #{pd.item_sub_branch_name}),'%')
+        </if>
+        <if test="pd.search_item_approval != null and pd.search_item_approval != ''">
+            <if test="pd.search_item_approval == '-1'">
+                and tb_item.is_cross_region = '0'
+            </if>
+            <if test="pd.search_item_approval != '-1'">
+                and tb_item.is_cross_region = '1' and tb_item.item_approval = #{pd.search_item_approval}
+            </if>
+        </if>
+        <if test="pd.userList!=null and pd.userList.size()>0">
+            and input_user in
+            <foreach collection="pd.userList" item="user_id" index="index" open="(" close=")" separator=",">
+                ${user_id}
+            </foreach>
+        </if>
+        order by
+        input_date
+        desc
+
+    </select>
+
+    <select id="listPageAllItem" resultType="pd" parameterType="page">
+        select
+        item_id,
+        item_no,
+        item_name,
+        item_install_address,
+        end_user,
+        customer_no,
+        sale_type,
+        order_org,
+        order_org_contact,
+        order_org_phone,
+        item_area,
+        item_sub_branch,
+        is_cross_region,
+        item_install_sub_branch,
+        item_status,
+        market_flag,
+        mes_source,
+        enable_status,
+        elevator_info,
+        start_date,
+        plan_complete,
+        plan_comeinto,
+        plan_contract,
+        design_name,
+        design_address,
+        design_phone,
+        design_fax,
+        item_design,
+        item_design_phone,
+        item_engineer,
+        item_engineer_phone,
+        special_require,
+        filing_man,
+        input_date,
+        modified_date,
+        market_type,
+        self_inferiority,
+        agreement_possible,
+        item_total,
+        item_manager,
+        is_attention,
+        is_imporant,
+        item_org,
+        item_org_contact,
+        item_org_phone,
+        item_contact,
+        item_contact_phone,
+        plan_deposit,
+        manager_duty,
+        item_address,
+        manager_phone,
+        filing_area,
+        filing_sub_company,
+        filing_branch_company,
+        input_user,
+        modified_by,
+        remark,
+        cross_region_num,
+        contract_type
+        from
+        tb_item
+        where 1=1
+        <if test="pd.search_item_name != null and pd.search_item_name != ''">
+            and item_name LIKE CONCAT(CONCAT('%', #{pd.search_item_name}),'%')
+        </if>
+        order by
+        input_date
+        desc
+    </select>
+    <!-- 新增项目报备 -->
+    <insert id="saveItem" parameterType="pd">
+        insert into tb_item (item_id,
+                             item_no,
+                             item_name,
+                             item_install_address,
+                             end_user,
+                             customer_no,
+                             sale_type,
+                             order_org,
+                             order_org_contact,
+                             order_org_phone,
+                             item_area,
+                             item_sub_branch,
+                             is_cross_region,
+                             item_install_sub_branch,
+                             item_status,
+                             market_flag,
+                             mes_source,
+                             enable_status,
+                             elevator_info,
+                             start_date,
+                             plan_complete,
+                             plan_comeinto,
+                             plan_contract,
+                             design_name,
+                             design_address,
+                             design_phone,
+                             design_fax,
+                             item_design,
+                             item_design_phone,
+                             item_engineer,
+                             item_engineer_phone,
+                             special_require,
+                             filing_man,
+                             input_date,
+                             modified_date,
+                             market_type,
+                             self_inferiority,
+                             agreement_possible,
+                             item_total,
+                             item_manager,
+                             is_attention,
+                             is_imporant,
+                             item_org,
+                             item_org_contact,
+                             item_org_phone,
+                             item_contact,
+                             item_contact_phone,
+                             plan_deposit,
+                             manager_duty,
+                             item_address,
+                             manager_phone,
+                             filing_area,
+                             filing_sub_company,
+                             filing_branch_company,
+                             input_user,
+                             modified_by,
+                             remark,
+                             cross_region_num,
+                             contract_type)
+        values (#{item_id},
+                #{item_no},
+                #{item_name},
+                #{item_install_address},
+                #{end_user},
+                #{customer_no},
+                #{sale_type},
+                #{order_org},
+                #{order_org_contact},
+                #{order_org_phone},
+                #{item_area},
+                #{item_sub_branch},
+                #{is_cross_region},
+                #{item_install_sub_branch},
+                #{item_status},
+                #{market_flag},
+                #{mes_source},
+                #{enable_status},
+                #{elevator_info},
+                #{start_date},
+                #{plan_complete},
+                #{plan_comeinto},
+                #{plan_contract},
+                #{design_name},
+                #{design_address},
+                #{design_phone},
+                #{design_fax},
+                #{item_design},
+                #{item_design_phone},
+                #{item_engineer},
+                #{item_engineer_phone},
+                #{special_require},
+                #{filing_man},
+                now(),
+                #{modified_date},
+                #{market_type},
+                #{self_inferiority},
+                #{agreement_possible},
+                #{item_total},
+                #{item_manager},
+                #{is_attention},
+                #{is_imporant},
+                #{item_org},
+                #{item_org_contact},
+                #{item_org_phone},
+                #{item_contact},
+                #{item_contact_phone},
+                #{plan_deposit},
+                #{manager_duty},
+                #{item_address},
+                #{manager_phone},
+                #{filing_area},
+                #{filing_sub_company},
+                #{filing_branch_company},
+                #{input_user},
+                #{modified_by},
+                #{remark},
+                #{cross_region_num},
+                #{contract_type})
+
+    </insert>
+
+    <!-- 修改 -->
+    <update id="editItem" parameterType="pd">
+        update
+                tb_item
+        set item_no                 = #{item_no},
+            item_name               = #{item_name},
+            item_install_address    = #{item_install_address},
+            end_user                = #{end_user},
+            customer_no             = #{customer_no},
+            sale_type               = #{sale_type},
+            order_org               = #{order_org},
+            order_org_contact       = #{order_org_contact},
+            order_org_phone         = #{order_org_phone},
+            item_area               = #{item_area},
+            item_sub_branch         = #{item_sub_branch},
+            is_cross_region         = #{is_cross_region},
+            item_install_sub_branch = #{item_install_sub_branch},
+            item_status             = #{item_status},
+            market_flag             = #{market_flag},
+            mes_source              = #{mes_source},
+            enable_status           = #{enable_status},
+            elevator_info           = #{elevator_info},
+            start_date              = #{start_date},
+            plan_complete           = #{plan_complete},
+            plan_comeinto           = #{plan_comeinto},
+            plan_contract           = #{plan_contract},
+            design_name             = #{design_name},
+            design_address          = #{design_address},
+            design_phone            = #{design_phone},
+            design_fax              = #{design_fax},
+            item_design             = #{item_design},
+            item_design_phone       = #{item_design_phone},
+            item_engineer           = #{item_engineer},
+            item_engineer_phone     = #{item_engineer_phone},
+            special_require         = #{special_require},
+            filing_man              = #{filing_man},
+            modified_date           = now(),
+            market_type             = #{market_type},
+            self_inferiority        = #{self_inferiority},
+            agreement_possible      = #{agreement_possible},
+            item_total              = #{item_total},
+            item_manager            = #{item_manager},
+            is_attention            = #{is_attention},
+            is_imporant             = #{is_imporant},
+            item_org                = #{item_org},
+            item_org_contact        = #{item_org_contact},
+            item_org_phone          = #{item_org_phone},
+            item_contact            = #{item_contact},
+            item_contact_phone      = #{item_contact_phone},
+            plan_deposit            = #{plan_deposit},
+            manager_duty            = #{manager_duty},
+            item_address            = #{item_address},
+            manager_phone           = #{manager_phone},
+            filing_area             = #{filing_area},
+            filing_sub_company      = #{filing_sub_company},
+            filing_branch_company   = #{filing_branch_company},
+            modified_by             = #{input_user},
+            remark                  = #{remark},
+            cross_region_num        = #{cross_region_num},
+            contract_type           = #{contract_type}
+        where item_id = #{item_id}
+    </update>
+
+    <!-- 删除项目报备 -->
+    <delete id="delItem" parameterType="pd">
+        delete
+        from tb_item
+        where item_id = #{item_id}
+    </delete>
+
+    <!-- 删除项目报备关联的电梯数量信息 -->
+    <delete id="delElevatorNum" parameterType="pd">
+        delete
+        from tb_elevator_num
+        where item_id = #{item_id}
+    </delete>
+
+    <!-- 根据主键id删除电梯数量信息 -->
+    <delete id="delElevatorNumById" parameterType="pd">
+        delete
+        from tb_elevator_num
+        where id = #{id}
+    </delete>
+
+    <!-- 保存电梯数量信息 -->
+    <insert id="saveElevatorNum" parameterType="pd">
+        insert into tb_elevator_num (item_id, elevator_id, elevator_spec_id, num, elevator_total_price)
+        values (#{item_id}, #{elevator_id}, #{elevator_spec_id}, #{num}, #{elevator_total_price})
+    </insert>
+
+    <!-- 根据项目id查询电梯数量信息 -->
+    <select id="findElevatorNumByItemId" parameterType="pd" resultType="pd">
+        select *
+        from tb_elevator_num
+        where item_id = #{item_id}
+    </select>
+
+    <!-- 根据项目id查询项目报价总价 -->
+    <select id="findOfferCountPriceByItemId" parameterType="pd" resultType="pd">
+        select sum(elevator_total_price) as countPrice
+        from tb_elevator_num
+        where item_id = #{item_id}
+    </select>
+
+    <!-- 根据id查询电梯数量信息 -->
+    <select id="findElevatorNumById" parameterType="pd" resultType="pd">
+        select *
+        from tb_elevator_num
+        where id = #{id}
+    </select>
+
+    <!-- 修改项目报备时更新tb_elevator_num表的电梯数量信息 -->
+    <update id="updateElevatorNum" parameterType="pd">
+        update
+                tb_elevator_num
+        set elevator_id          = #{elevator_id},
+            elevator_spec_id     = #{elevator_spec_id},
+            num                  = #{num},
+            elevator_total_price = #{elevator_total_price},
+            models_id            = #{models_id}
+        where id = #{id}
+    </update>
+
+    <!-- 根据item_id查询 -->
+    <select id="findItemById" parameterType="pd" resultType="pd">
+        <!-- select * from tb_item where item_id=#{item_id} -->
+        select
+        b.*,
+        td.name as item_install_sub_branch_text
+        from(
+        select
+        a.*,
+        td.name as item_sub_branch_text
+        from(
+        select
+        ti.*,
+        td.name as item_area_text
+        from
+        tb_item ti
+        left join
+        tb_department td
+        on
+        ti.item_area=td.id
+        )a
+        left join
+        tb_department td
+        on
+        a.item_sub_branch=td.id
+        )b
+        left join
+        tb_department td
+        on
+        b.item_install_sub_branch=td.id
+        where b.item_id=#{item_id}
+    </select>
+
+    <!-- 根据item_id查询项目信息和地址信息 -->
+    <select id="findItemAndAddressById" parameterType="pd" resultType="pd">
+        <!-- select
+            ta.province_id as province_id3,
+            ta.city_id as city_id3,
+            ta.county_id as county_id3,
+            ta.address_info as address_info3,
+            b.*
+        from(
+            select
+                ta.province_id as province_id2,
+                ta.city_id as city_id2,
+                ta.county_id as county_id2,
+                ta.address_info as address_info2,
+                a.*
+            from(
+                select
+                    ta.province_id as province_id1,
+                    ta.city_id as city_id1,
+                    ta.county_id as county_id1,
+                    ta.address_info as address_info1,
+                    ti.*
+                from
+                    tb_item ti
+                left join
+                    tb_address ta
+                on ti.item_install_address=ta.id
+            )a
+            left join
+                tb_address ta
+            on
+                a.design_address=ta.id
+        )b
+        left join
+            tb_address ta
+        on
+            b.item_address=ta.id
+        where
+            item_id=#{item_id} -->
+        select ta.province_id as province_id3,ta.city_id as city_id3,ta.county_id as county_id3,ta.address_info as
+        address_info3,e.*,g.GJ_json
+        from(
+        select ta.province_id as province_id2,ta.city_id as city_id2,ta.county_id as county_id2,ta.address_info as
+        address_info2,d.*
+        from(
+        select ta.country_id as country_id1,ta.province_id as province_id1,ta.city_id as city_id1,ta.county_id as
+        county_id1,ta.address_info as address_info1,c.*
+        from(
+        select b.*,td.name as item_install_sub_branch_text from(
+        select a.*,td.name as item_sub_branch_text from(
+        select ti.*,td.name as item_area_text from tb_item ti
+        left join tb_department td on ti.item_area=td.id)a
+        left join tb_department td on a.item_sub_branch=td.id)b
+        left join tb_department td on b.item_install_sub_branch=td.id)c
+        left join tb_address ta on ta.id=c.item_install_address)d
+        left join tb_address ta on ta.id=d.design_address)e
+        left join tb_address ta on ta.id=e.item_address
+        left join (
+        select *
+        from tb_item_follow_up
+        where GJ_item_id=#{item_id}
+        limit 1
+        ) as g on e.item_id=g.GJ_item_id
+        where e.item_id=#{item_id}
+    </select>
+
+    <!-- 根据id查询项目的4个地址id -->
+    <select id="findAddressIdByItemId" parameterType="pd" resultType="pd">
+        select item_install_address as address1, design_address as address2, item_address as address3
+        from tb_item
+        where item_id = #{item_id}
+    </select>
+
+    <!-- 获取option集合 -->
+    <select id="findItemList" resultType="pd">
+        select *
+        from tb_item
+    </select>
+
+    <!-- 根据项目名称查询 -->
+    <select id="findItemByName" parameterType="pd" resultType="pd">
+        select *
+        from tb_item
+        where item_name = #{item_name}
+    </select>
+
+    <!-- 检测修改项目名称 -->
+    <select id="findItemByOldName" parameterType="pd" resultType="pd">
+        select *
+        from tb_item
+        where item_name != #{old_item_name}
+          and item_name = #{item_name}
+    </select>
+
+    <!-- 电梯分页查询 -->
+    <select id="elevatorlistPage" parameterType="page" resultType="pd">
+        SELECT a.id,
+               a.item_id,
+               a.elevator_id,
+               a.num,
+               a.elevator_total_price,
+               a.models_id,
+               b.elevator_name,
+               c.spec_name
+
+        FROM `tb_elevator_num` a
+                 LEFT JOIN tb_elevator b ON a.elevator_id = b.elevator_id
+                 LEFT JOIN tb_elevator_spec c ON a.elevator_spec_id = c.spec_id
+
+        WHERE a.item_id = #{pd.item_id}
+
+    </select>
+
+    <!-- 根据录入人查询项目列表 -->
+    <select id="findItemListByInputUser" parameterType="pd" resultType="pd">
+        select a.*, td.name as crossName
+        from (select ti.*, su.name
+              from tb_item ti
+                       left join sys_user su on su.user_id = ti.input_user
+              where ti.input_user = #{USER_ID})a
+                 left join tb_department td on a.item_install_sub_branch = td.id
+        order by a.input_user desc, a.input_date desc
+    </select>
+
+    <!-- 根据项目id查询电梯总数量 -->
+    <select id="findCountByItemId" parameterType="list" resultType="String">
+        select
+        sum(te.num) as count
+        from
+        tb_item ti,
+        tb_elevator_num te
+        where
+        ti.item_id=te.item_id
+        and
+        ti.item_id in
+        <foreach collection="list" item="item_id" index="index" open="(" close=")" separator=",">
+            #{item_id}
+        </foreach>
+    </select>
+
+    <!-- 根据id数组查询项目列表 -->
+    <select id="findItemListByIdList" parameterType="list" resultType="pd">
+        select a.*,td.name as crossName from(
+        select ti.*,su.name from tb_item ti left join sys_user su on ti.input_user=su.user_id where item_id in
+        <foreach collection="list" item="item_id" index="index" open="(" close=")" separator=",">
+            #{item_id}
+        </foreach>
+        )a
+        left join tb_department td
+        on a.item_install_sub_branch=td.id
+        order by a.input_user desc,a.input_date desc
+    </select>
+
+    <!-- 插入项目地址信息 -->
+    <insert id="saveItemAddress" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_address (province_id, city_id, county_id, country_id, address_info, address_name)
+        values (#{province_id}, #{city_id}, #{county_id}, #{country_id}, #{address_info}, #{address_name})
+    </insert>
+
+    <!-- 根据地址id修改项目地址信息 -->
+    <update id="editItemAddressById" parameterType="pd">
+        update
+                tb_address
+        set province_id  = #{province_id},
+            city_id      = #{city_id},
+            county_id    = #{county_id},
+            address_info = #{address_info},
+            address_name = #{address_name}
+        where id = #{id}
+    </update>
+
+    <!-- 修改项目为top10项目 -->
+    <update id="updateTopStatus" parameterType="pd">
+        update tb_item
+        set is_top = #{is_top}
+        where item_id = #{item_id}
+    </update>
+
+    <!-- 修改项目为重点关注项目 -->
+    <update id="updateAtnStatus" parameterType="pd">
+        update tb_item
+        set is_attention = #{is_attention}
+        where item_id = #{item_id}
+    </update>
+
+    <!-- 查询录入人还未进行预测的项目 -->
+    <select id="findItemListNotForecastByInputUser" parameterType="pd" resultType="pd">
+        select a.*,td.name as crossName from(
+        select ti.*,su.name from tb_item ti
+        left join
+        sys_user su
+        on
+        su.user_id=ti.input_user
+        where ti.input_user=#{USER_ID}
+        and ti.item_id not in
+        <foreach collection="itemIds" item="item_id" index="index" open="(" close=")" separator=",">
+            #{item_id}
+        </foreach>
+        )a
+        left join tb_department td on a.item_install_sub_branch=td.id order by a.input_user desc,a.input_date desc
+    </select>
+
+    <!-- 根据id查询电梯信息 -->
+    <select id="findElevatorInfoById" parameterType="String" resultType="String">
+        select elevator_info
+        from tb_item
+        where item_id = #{item_id}
+    </select>
+
+    <!-- 根据id集合查询所跨区域分公司列表 -->
+    <select id="findItemCrossAreaByIdList" parameterType="list" resultType="pd">
+        select
+        a.*,
+        td.name as crossArea
+        from
+        (
+        select
+        ti.item_name,
+        ti.item_sub_branch,
+        ti.item_install_sub_branch,
+        td.name as area
+        from
+        tb_item ti
+        left join
+        tb_department td
+        on
+        ti.item_sub_branch=td.id
+        )a
+        left join
+        tb_department td
+        on
+        a.item_install_sub_branch=td.id
+        where
+        a.item_id in
+        <foreach collection="list" item="item_id" index="index" open="(" close=")" separator=",">
+            #{item_id}
+        </foreach>
+    </select>
+
+    <!-- 根据项目id集合查询所跨分公司 -->
+    <select id="findAreaByItemIdList" parameterType="list" resultType="pd">
+        select
+        a.*,
+        td.name
+        from
+        (
+        select
+        item_sub_branch as area
+        from
+        tb_item
+        where
+        item_id in
+        <foreach collection="list" item="item_id" index="index" open="(" close=")" separator=",">
+            #{item_id}
+        </foreach>
+        union
+        select
+        item_install_sub_branch as area
+        from
+        tb_item
+        where
+        item_id in
+        <foreach collection="list" item="item_id" index="index" open="(" close=")" separator=",">
+            #{item_id}
+        </foreach>
+        )a
+        left join
+        tb_department td
+        on
+        a.area=td.id
+    </select>
+
+    <update id="updateItemOffer" parameterType="pd">
+        update
+                tb_item
+        set market_type        = #{market_type},
+            self_inferiority   = #{self_inferiority},
+            agreement_possible = #{agreement_possible},
+            item_total         = #{item_total},
+            item_manager       = #{item_manager}
+        where item_id = #{item_id}
+    </update>
+
+    <select id="findItemListByInputUserAndStatus" parameterType="pd" resultType="pd">
+        select * from tb_item where input_user=#{USER_ID}
+        <!-- and item_status=#{item_status} -->
+        and
+        item_id not in(
+        select distinct item_id from tb_discount_apply
+        )
+    </select>
+
+    <select id="findItemTotalById" parameterType="String" resultType="String">
+        select item_total
+        from tb_item
+        where item_id = #{item_id}
+    </select>
+
+
+    <select id="findItemListByIdArray" parameterType="list" resultType="pd">
+        select ti.*,su.username from tb_item ti
+        left join sys_user su on ti.input_user=su.user_id where ti.item_id in
+        <foreach collection="list" item="item_id" index="index" open="(" close=")" separator=",">
+            #{item_id}
+        </foreach>
+    </select>
+
+    <select id="findItemStatusByItemId" parameterType="String" resultType="String">
+        select item_status
+        from tb_item
+        where item_id = #{item_id}
+    </select>
+
+    <update id="updateItemStatus" parameterType="pd">
+        update tb_item
+        set item_status = #{item_status}
+        where item_id = #{item_id}
+    </update>
+
+    <insert id="saveElevatorDetails" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_elevator_details (eno, item_id, elevator_id, models_id, total, flag)
+        values (#{eno}, #{item_id}, #{elevator_id}, #{models_id}, #{total}, #{flag})
+    </insert>
+
+    <delete id="delElevatorDetails" parameterType="String">
+        delete
+        from tb_elevator_details
+        where item_id = #{item_id}
+    </delete>
+
+    <!-- 插入跟进记录 -->
+    <insert id="saveItemFollowUp" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_item_follow_up (GJ_RQ, GJ_CZR, GJ_REMARK, GJ_item_id, GJ_status, GJ_json)
+        values (#{genjindate}, #{genjinremark}, #{genjinmanager}, #{item_id}, #{genjinstatus}, #{genjinJsonStr})
+    </insert>
+
+    <!-- 删除跟进记录 -->
+    <delete id="delItemFollowUp" parameterType="String">
+        delete
+        from tb_item_follow_up
+        where GJ_item_id = #{item_id}
+    </delete>
+
+    <update id="updateElevatorDetailsProduct">
+        update tb_elevator_details e
+        set e.product_id = (select m.product_id
+                            from tb_models m
+                            where m.models_id = e.models_id)
+    </update>
+
+    <select id="itemYearNum" resultType="pd">
+        <!-- select count(*) as num,year(input_date) as date from tb_item -->
+        select count(*) as num,year(input_date) as date from tb_item where year(input_date) is not null
+        <if test="item_status != null and item_status != ''">
+            and item_status=#{item_status}
+        </if>
+        <if test="year != null and year != ''">
+            and year(input_date)=#{year}
+        </if>
+        group by date
+    </select>
+
+    <select id="itemMonthNum" parameterType="pd" resultType="pd">
+        select d.val as date,IFNULL(a.num, 0)as num from tb_date_std d left join(
+        select count(*) as num,month(input_date) as date from tb_item where year(input_date)=#{year}
+        <if test="item_status != null and item_status != ''">
+            and item_status=#{item_status}
+        </if>
+        <if test="year != null and year != ''">
+            and year(input_date)=#{year}
+        </if>
+        group by date
+        )a on a.date=d.val where d.type='month'
+    </select>
+
+    <select id="itemQuarterNum" parameterType="pd" resultType="pd">
+        select d.val as date,IFNULL(a.num, 0)as num from tb_date_std d left join(
+        select count(*) as num,quarter(input_date) as date from tb_item where year(input_date)=#{year}
+        <if test="item_status != null and item_status != ''">
+            and item_status=#{item_status}
+        </if>
+        <if test="year != null and year != ''">
+            and year(input_date)=#{year}
+        </if>
+        group by date
+        )a on a.date=d.val where d.type='quarter'
+    </select>
+
+    <insert id="saveItemImportExcel" parameterType="pd">
+        insert into tb_item (item_id, item_no, item_name, item_install_address, end_user, customer_no, sale_type)
+        values (#{item_id},
+                #{item_no},
+                #{item_name},
+                #{item_install_address},
+                #{end_user},
+                #{customer_no},
+                #{sale_type})
+    </insert>
+
+    <select id="findMinYearItem" resultType="String">
+        select min(year(input_date)) as date
+        from tb_item
+    </select>
+
+    <select id="findSaleTypeById" parameterType="String" resultType="String">
+        select sale_type
+        from tb_item
+        where item_id = #{item_id}
+    </select>
+
+
+    <!-- 导出 -->
+    <select id="findItemToExcel" resultType="pd" parameterType="pd">
+        select
+        ip.name as manager_duty_excel,
+        ido.name as order_org_excel,
+        idia.name as item_area_excel,
+        idis.name as item_sub_branch_excel,
+        idii.name as item_install_sub_branch_excel,
+        idfa.name as filing_area_excel,
+        idfs.name as filing_sub_company_excel,
+        idfb.name as filing_branch_company,
+        sue.customer_name as end_user_excel,
+        suf.name as filing_man_excel,
+        sui.name as input_user_excel,
+        sum.name as modified_by_excel,
+        sur.name as item_manager_excel,
+        ai.detailedAddress as item_install_address_excel,
+        ad.detailedAddress as design_address_excel,
+        aa.detailedAddress as item_address_excel,
+        (case when (select count(1) from tb_so_contract tcontract where tcontract.HT_ITEM_ID=i.item_id )>0 then '5'
+        when (select count(1) from tb_iteminoffer tbjc where tbjc.item_id=i.item_id)>0 then '2'
+        when item_status='11' then '11'
+        else '1' end) item_status_excel,
+        i.* from tb_item i
+        left join tb_position ip on ip.id = i.manager_duty
+        left join tb_department ido on ido.id = i.order_org
+        left join tb_department idia on idia.id = i.item_area
+        left join tb_department idis on idis.id = i.item_sub_branch
+        left join tb_department idii on idii.id = i.item_install_sub_branch
+        left join tb_department idfa on idfa.id = i.filing_area
+        left join tb_department idfs on idfs.id = i.filing_sub_company
+        left join tb_department idfb on idfb.id = i.filing_branch_company
+        left join (
+        select customer_id, customer_no, customer_name
+        from
+        tb_customer_ordinary
+        union
+        select
+        customer_id, customer_no, customer_name
+        from
+        tb_customer_merchant
+        union
+        select
+        customer_id, customer_no, customer_name
+        from
+        tb_customer_core
+        ) sue on sue.customer_id = i.end_user
+        left join sys_user suf on suf.user_id = i.filing_man
+        left join sys_user sui on sui.user_id = i.input_user
+        left join sys_user sum on sum.user_id = i.modified_by
+        left join sys_user sur on sur.user_id = i.item_manager
+        left join view_getaddressname ai on ai.id = i.item_install_address
+        left join view_getaddressname ad on ad.id = i.design_address
+        left join view_getaddressname aa on aa.id = i.item_address
+        <where>
+            <if test="search_item_name != null and search_item_name != ''">
+                and i.item_name LIKE CONCAT(CONCAT('%', #{search_item_name}),'%')
+            </if>
+            <if test="ZL_TYPE != null and ZL_TYPE != ''">
+                and (case when (select count(1) from tb_so_contract tcontract1 where tcontract1.HT_ITEM_ID=i.item_id )&lt;=0
+                and
+                (select count(1) from tb_e_offer tbjc1 where tbjc1.item_id=i.item_id)&lt;=0 and IFNULL(i.item_status,0)
+                &lt;&gt; 11 and
+                TIMESTAMPDIFF(MONTH,i.input_date,DATE(now()))&gt;=3 then '滞留'
+                else '正常' end) LIKE CONCAT(CONCAT('%', #{ZL_TYPE}),'%'))
+            </if>
+            <if test="userList!=null and userList.size()>0">
+                and i.input_user in
+                <foreach collection="userList" item="user_id" index="index" open="(" close=")" separator=",">
+                    ${user_id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="checkExistIName" parameterType="String" resultType="String">
+        select count(*) as num
+        from tb_item
+        where item_name = #{name}
+    </select>
+
+    <select id="checkExistAName" parameterType="String" resultType="String">
+        select count(*) as num
+        from tb_agent
+        where agent_name = #{name}
+    </select>
+
+    <select id="checkExistDName" parameterType="String" resultType="String">
+        select count(*) as num
+        from tb_department
+        where name = #{name}
+    </select>
+
+    <select id="findAgentId" parameterType="String" resultType="String">
+        select agent_id
+        from tb_agent
+        where agent_name = #{name}
+    </select>
+
+    <select id="findDepartmentId" parameterType="String" resultType="String">
+        select id
+        from tb_department
+        where name = #{name}
+    </select>
+
+    <select id="checkExistCName" parameterType="String" resultType="String">
+        select count(*) as num
+        from (select customer_name from tb_customer_ordinary
+              union select customer_name from tb_customer_merchant
+              union select customer_name from tb_customer_core)a
+        where a.customer_name = #{name}
+    </select>
+
+    <select id="findEndUesrId" parameterType="String" resultType="String">
+        select customer_id
+        from (select customer_id, customer_name from tb_customer_ordinary
+              union select customer_id, customer_name from tb_customer_merchant
+              union select customer_id, customer_name from tb_customer_core)a
+        where a.customer_name = #{name}
+        limit 1
+    </select>
+
+    <select id="findUserId" parameterType="String" resultType="String">
+        select user_id
+        from sys_user
+        where name = #{name}
+    </select>
+
+    <!-- 检测是否跨区 -->
+    <select id="findcitybranch" parameterType="pd" resultType="pd">
+        select *
+        from tb_city_itemsubbranch
+        where cityid = #{cityid}
+          and itemsubbranch = #{itemsubbranch}
+    </select>
+
+    <!-- 修改项目的关闭状态 -->
+    <update id="closeItem" parameterType="pd">
+        update tb_item
+        set item_status = 11
+        where item_id = #{item_id}
+    </update>
+
+
+    <update id="itemUpdate" parameterType="pd">
+        update tb_item
+        <set>
+            <if test="item_instance_id != null and item_instance_id !=''">
+                item_instance_id = #{item_instance_id},
+            </if>
+            <if test="item_approval != null and item_approval !=''">
+                item_approval = #{item_approval},
+            </if>
+        </set>
+        where item_id=#{item_id}
+    </update>
+
+    <update id="updateItemApproval" parameterType="pd">
+        update tb_item
+        <set>
+            <if test="item_instance_id != null and item_instance_id !=''">
+                item_instance_id = #{item_instance_id},
+            </if>
+            <if test="item_approval != null and item_approval !=''">
+                item_approval = #{item_approval},
+            </if>
+        </set>
+        where item_id=#{item_id}
+    </update>
+
+    <!-- 获取待办 -->
+    <select id="findItemByUUid" parameterType="pd" resultType="pd">
+        select item_id,
+               item_no,
+               item_name,
+               item_install_address,
+               end_user,
+               customer_no,
+               sale_type,
+               order_org,
+               order_org_contact,
+               order_org_phone,
+               item_area,
+               item_sub_branch,
+               is_cross_region,
+               item_install_sub_branch,
+               (case
+                    when (select count(1) from tb_so_contract tcontract where tcontract.HT_ITEM_ID = item_id) > 0
+                          then '5'
+                    when (select count(1) from tb_e_offer tbjc where tbjc.item_id = tb_item.item_id) > 0 then '2'
+                    when item_status = '11' then '11'
+                    else '1' end)  item_status,
+               market_flag,
+               mes_source,
+               enable_status,
+               elevator_info,
+               start_date,
+               plan_complete,
+               plan_comeinto,
+               plan_contract,
+               design_name,
+               design_address,
+               design_phone,
+               design_fax,
+               item_design,
+               item_design_phone,
+               item_engineer,
+               item_engineer_phone,
+               special_require,
+               filing_man,
+               input_date,
+               modified_date,
+               market_type,
+               self_inferiority,
+               agreement_possible,
+               item_total,
+               item_manager,
+               is_attention,
+               is_imporant,
+               item_org,
+               item_org_contact,
+               item_org_phone,
+               item_contact,
+               item_contact_phone,
+               plan_deposit,
+               manager_duty,
+               item_address,
+               manager_phone,
+               filing_area,
+               filing_sub_company,
+               filing_branch_company,
+               input_user,
+               modified_by,
+               remark,
+               cross_region_num,
+               contract_type,
+               item_instance_id,
+               item_approval,
+               (case
+                    when
+                       (select count(1) from tb_so_contract tcontract1 where tcontract1.HT_ITEM_ID = item_id)&lt;=0 and
+                       (select count(1) from tb_e_offer tbjc1 where tbjc1.item_id = tb_item.item_id)&lt;=0 and
+                       IFNULL(item_status, 0) &lt;&gt; 11 and
+                       TIMESTAMPDIFF(MONTH, input_date, DATE(now()))&gt;=3 then '滞留'
+                    else '正常' end) ZL_TYPE,
+               date(input_date) as HTLRSJ,
+               sys_user.`NAME`  as user_name
+        from tb_item
+                 LEFT JOIN sys_user ON tb_item.INPUT_USER = sys_user.USER_ID
+        where 1 = 1
+          AND tb_item.item_id = #{item_id}
+    </select>
+
+    <!-- 根据item_id获取项目所属分公司id -->
+    <select id="getFgsIdByItemId" parameterType="pd" resultType="pd">
+        SELECT tb_city_itemsubbranch.itemsubbranch
+        FROM tb_city_itemsubbranch
+        WHERE tb_city_itemsubbranch.cityid = (SELECT tb_address.city_id
+                                              FROM tb_item
+                                                       LEFT JOIN tb_address
+                                                           ON tb_item.item_install_address = tb_address.id
+                                              WHERE item_id = #{item_id})
+        limit 1
+    </select>
+
+    <!-- 根据user_Id获取登录人所属分公司id -->
+    <select id="getFgsIdByUserId" parameterType="pd" resultType="pd">
+        SELECT tb_position.parentId
+        FROM tb_position
+        WHERE tb_position.id = (SELECT sys_user.POSITION_ID FROM sys_user WHERE sys_user.USER_ID = #{user_id})
+    </select>
+
+
+    <select id="ItemByCount" parameterType="pd" resultType="String">
+        select
+        count(1)
+        from
+        tb_item
+        where 1=1
+        and (case when (select count(1) from tb_so_contract tcontract1 where tcontract1.HT_ITEM_ID=item_id )&lt;=0 and
+        (select count(1) from tb_e_offer tbjc1 where tbjc1.item_id=tb_item.item_id)&lt;=0 and IFNULL(item_status,0) &lt;&gt;
+        11 and
+        TIMESTAMPDIFF(MONTH,input_date,DATE(now()))&gt;=3 then '滞留'
+        else '正常' end) LIKE CONCAT(CONCAT('%', #{zltype}),'%')
+        <if test="userList!=null and userList.size()>0">
+            and input_user in
+            <foreach collection="userList" item="user_id" index="index" open="(" close=")" separator=",">
+                ${user_id}
+            </foreach>
+        </if>
+
+    </select>
+
+    <select id="cityName" parameterType="pd" resultType="String">
+        select b.`name` as departmentname
+        from tb_loc_city as a,
+             tb_department as b,
+             tb_city_itemsubbranch as c
+        where a.id = c.cityid
+          and b.id = c.itemsubbranch
+          and c.cityid = #{cityid}
+    </select>
+
+
+    <insert id="saveTempElevatorDetails" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_Temp_elevator_details (eno, item_id, elevator_id, models_id, total, flag, offer_version)
+        values (#{eno}, #{item_id}, #{elevator_id}, #{models_id}, #{total}, #{flag}, #{offer_version})
+    </insert>
+
+    <!-- 显示待我处理 -->
+    <select id="findAuditItemPage" parameterType="pd" resultType="pd">
+        call _listItemAudit(#{user_id}, #{project_name}, #{item_id});
+    </select>
+
+
+    <select id="findOrderOrg" parameterType="pd" resultType="pd">
+        <if test="sale_type != null and sale_type !='' and sale_type==1">
+            select *,agent_name as customer_name from tb_agent where agent_id =#{order_org}
+        </if>
+        <if test="sale_type != null and sale_type !='' and sale_type!=1">
+            select * from ( select customer_id,customer_name from
+            tb_customer_ordinary union select customer_id,customer_name
+            from tb_customer_merchant union select customer_id,customer_name
+            from tb_customer_core) as A where A.customer_id = #{order_org}
+        </if>
+
+
+    </select>
+</mapper>

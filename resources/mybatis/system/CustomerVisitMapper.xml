@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="customerVisitMapper">
+
+    <select id="listPageAllCustomerVisit"  parameterType="page" resultType="pd">
+		select 
+		cv.visit_id,
+		cv.visit_aims,
+		c.customer_name,
+		cv.visit_date,
+		cv.input_date,
+		cv.visit_customer_type,
+		cv.visit_company,
+		cv.visit_way,
+		cv.visit_member,
+		cv.visit_feedback,
+		cv.respond_plan
+		from 
+		tb_customer_visit cv,
+		<if test="pd.customer_type=='Ordinary'">
+		tb_customer_ordinary c
+		</if>
+		<if test="pd.customer_type=='Merchant'">
+		tb_customer_merchant c
+		</if>
+		<if test="pd.customer_type=='Core'">
+		tb_customer_core c
+		</if>
+		<if test="pd.customer_type=='all'">
+		(
+			select 
+			customer_id,
+			customer_no,
+			customer_name,
+			customer_type,
+			customer_contact,
+			contact_phone
+			from tb_customer_ordinary 
+			union
+			select
+			cc.customer_id,
+			cc.customer_no,
+			cc.customer_name,
+			cc.customer_type,
+			su.NAME as customer_contact,
+			cc.collector_phone as contact_phone
+			from tb_customer_core cc,sys_user su
+			where cc.collector=su.USER_ID
+			union
+			select
+			customer_id,
+			customer_no,
+			customer_name,
+			customer_type,
+			customer_name as customer_contact,
+			contact_way as contact_phone
+			from tb_customer_merchant 
+		) c
+		</if>
+		where 1=1 
+		<if test="pd.customer_id != null and pd.customer_id != ''">
+		and cv.visit_customer_id=#{pd.customer_id} 
+		</if>
+		and cv.visit_customer_id=c.customer_id 
+		<if test="pd.customer_type!='all'">
+		and cv.visit_customer_type=#{pd.customer_type} 
+		</if>
+		<if test="pd.search_visit_id != null and pd.search_visit_id != ''">
+        and cv.visit_id LIKE CONCAT(CONCAT('%', #{pd.search_visit_id}),'%') 
+        </if>
+        order by cv.visit_date desc
+	</select>
+	
+	<insert id="saveCustomerVisit" parameterType="pd">
+		insert into 
+			tb_customer_visit
+			(
+				visit_aims,
+				visit_customer_id,
+				visit_customer_type,
+				visit_company,
+				visit_way,
+				visit_member,
+				visit_feedback,
+				visit_date,
+				input_date,
+				respond_plan
+			)values(
+				#{visit_aims},
+				#{visit_customer_id},
+				#{visit_customer_type},
+				#{visit_company},
+				#{visit_way},
+				#{visit_member},
+				#{visit_feedback},
+				#{visit_date},
+				now(),
+				#{respond_plan}
+			)
+	</insert>
+	
+	<select id="findCustomerVisitById" parameterType="pd" resultType="pd">
+		select * from tb_customer_visit where visit_id=#{visit_id}
+	</select>
+	
+	<update id="editCustomerVisitById" parameterType="pd" >
+		update 
+			tb_customer_visit
+		set
+			visit_aims=#{visit_aims},
+			visit_company=#{visit_company},
+			visit_way=#{visit_way},
+			visit_member=#{visit_member},
+			visit_feedback=#{visit_feedback},
+			visit_date=#{visit_date},
+			respond_plan=#{respond_plan}
+		where
+			visit_id=#{visit_id}
+	</update>
+	
+	<delete id="delCustomerVisitById" parameterType="pd">
+		delete from tb_customer_visit where visit_id=#{visit_id}
+	</delete>
+	
+
+    
+</mapper>

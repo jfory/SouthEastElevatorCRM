@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://activiti.org/bpmn20">
+  <process id="discountSpecialN" name="特种梯销售折扣" isExecutable="true">
+    <startEvent id="Start" name="开始"></startEvent>
+    <userTask id="saleApplyTask" name="特种梯销售" activiti:priority="0">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.UserTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="start" name="启动" sourceRef="Start" targetRef="saleApplyTask"></sequenceFlow>
+    <userTask id="areaEngineerTask" name="区域工程经理" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.UserTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="submit" name="提交" sourceRef="saleApplyTask" targetRef="areaEngineerTask"></sequenceFlow>
+    <exclusiveGateway id="areaEngineerPass" name="区域工程经理审核"></exclusiveGateway>
+    <sequenceFlow id="areaEngineerSp" name="审核" sourceRef="areaEngineerTask" targetRef="areaEngineerPass"></sequenceFlow>
+    <userTask id="areaTask" name="区域总经理" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.UserTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="areaEngineerTaskHalfPass" name="通过" sourceRef="areaEngineerPass" targetRef="areaTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${areaEngineerTaskStatus==1}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="areaPass" name="区域总经理审核"></exclusiveGateway>
+    <sequenceFlow id="areaSp" name="审核" sourceRef="areaTask" targetRef="areaPass"></sequenceFlow>
+    <userTask id="chiefTask" name="特种梯销售总监" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.UserTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="areaTaskHalfPass" name="通过" sourceRef="areaPass" targetRef="chiefTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${areaTaskStatus==1}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="chiefPass" name="特种梯销售总监审核"></exclusiveGateway>
+    <sequenceFlow id="chiefSp" name="审核" sourceRef="chiefTask" targetRef="chiefPass"></sequenceFlow>
+    <userTask id="factoryTask" name="工厂总经理" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.UserTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="chiefTaskHalfPass" name="通过" sourceRef="chiefPass" targetRef="factoryTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${chiefTaskStatus==1}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="factoryPass" name="工厂总经理审核"></exclusiveGateway>
+    <sequenceFlow id="factorySp" name="审核" sourceRef="factoryTask" targetRef="factoryPass"></sequenceFlow>
+    <userTask id="companyTask" name="股份公司领导" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.UserTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="factoryTaskHalfPass" name="通过" sourceRef="factoryPass" targetRef="companyTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${factoryTaskStatus==1}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="companyPass" name="股份公司领导审核"></exclusiveGateway>
+    <sequenceFlow id="companySp" name="审核" sourceRef="companyTask" targetRef="companyPass"></sequenceFlow>
+    <endEvent id="End" name="结束"></endEvent>
+    <sequenceFlow id="companyTaskPass" name="通过" sourceRef="companyPass" targetRef="End">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${companyTaskStatus==2}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="areaEngineerTaskReject" name="驳回" sourceRef="areaEngineerPass" targetRef="saleApplyTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${areaEngineerTaskStatus==0}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="areaTaskReject" name="驳回" sourceRef="areaPass" targetRef="saleApplyTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${areaTaskStatus==0}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="chiefTaskReject" name="驳回" sourceRef="chiefPass" targetRef="saleApplyTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${chiefTaskStatus==0}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="factoryTaskReject" name="驳回" sourceRef="factoryPass" targetRef="saleApplyTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${factoryTaskStatus==0}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="companyTaskReject" name="驳回" sourceRef="companyPass" targetRef="saleApplyTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${companyTaskStatus==0}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="areaEngineerTaskPass" name="通过" sourceRef="areaEngineerPass" targetRef="End">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${areaEngineerTaskStatus==2}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="areaTaskPass" name="通过" sourceRef="areaPass" targetRef="End">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${areaTaskStatus==2}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="chiefTaskPass" name="通过" sourceRef="chiefPass" targetRef="End">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${chiefTaskStatus==2}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="factoryTaskPass" name="通过" sourceRef="factoryPass" targetRef="End">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${factoryTaskStatus==2}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_discountSpecialN">
+    <bpmndi:BPMNPlane bpmnElement="discountSpecialN" id="BPMNPlane_discountSpecialN">
+      <bpmndi:BPMNShape bpmnElement="Start" id="BPMNShape_Start">
+        <omgdc:Bounds height="35.0" width="35.0" x="20.0" y="190.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="saleApplyTask" id="BPMNShape_saleApplyTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="100.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="areaEngineerTask" id="BPMNShape_areaEngineerTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="250.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="areaEngineerPass" id="BPMNShape_areaEngineerPass">
+        <omgdc:Bounds height="40.0" width="40.0" x="400.0" y="188.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="areaTask" id="BPMNShape_areaTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="485.0" y="181.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="areaPass" id="BPMNShape_areaPass">
+        <omgdc:Bounds height="40.0" width="40.0" x="635.0" y="189.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="chiefTask" id="BPMNShape_chiefTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="720.0" y="182.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="chiefPass" id="BPMNShape_chiefPass">
+        <omgdc:Bounds height="40.0" width="40.0" x="870.0" y="190.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="factoryTask" id="BPMNShape_factoryTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="955.0" y="183.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="factoryPass" id="BPMNShape_factoryPass">
+        <omgdc:Bounds height="40.0" width="40.0" x="1105.0" y="191.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="companyTask" id="BPMNShape_companyTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="1180.0" y="184.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="companyPass" id="BPMNShape_companyPass">
+        <omgdc:Bounds height="40.0" width="40.0" x="1320.0" y="191.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="End" id="BPMNShape_End">
+        <omgdc:Bounds height="35.0" width="35.0" x="1390.0" y="193.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="start" id="BPMNEdge_start">
+        <omgdi:waypoint x="55.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="100.0" y="207.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="55.0" y="207.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="submit" id="BPMNEdge_submit">
+        <omgdi:waypoint x="205.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="250.0" y="207.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="205.0" y="207.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="areaEngineerSp" id="BPMNEdge_areaEngineerSp">
+        <omgdi:waypoint x="355.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="400.0" y="208.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="355.0" y="207.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="areaEngineerTaskHalfPass" id="BPMNEdge_areaEngineerTaskHalfPass">
+        <omgdi:waypoint x="440.0" y="208.0"></omgdi:waypoint>
+        <omgdi:waypoint x="485.0" y="208.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="440.0" y="208.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="areaSp" id="BPMNEdge_areaSp">
+        <omgdi:waypoint x="590.0" y="208.0"></omgdi:waypoint>
+        <omgdi:waypoint x="635.0" y="209.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="590.0" y="208.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="areaTaskHalfPass" id="BPMNEdge_areaTaskHalfPass">
+        <omgdi:waypoint x="675.0" y="209.0"></omgdi:waypoint>
+        <omgdi:waypoint x="720.0" y="209.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="675.0" y="209.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="chiefSp" id="BPMNEdge_chiefSp">
+        <omgdi:waypoint x="825.0" y="209.0"></omgdi:waypoint>
+        <omgdi:waypoint x="870.0" y="210.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="825.0" y="209.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="chiefTaskHalfPass" id="BPMNEdge_chiefTaskHalfPass">
+        <omgdi:waypoint x="910.0" y="210.0"></omgdi:waypoint>
+        <omgdi:waypoint x="955.0" y="210.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="910.0" y="210.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="factorySp" id="BPMNEdge_factorySp">
+        <omgdi:waypoint x="1060.0" y="210.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1105.0" y="211.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="1060.0" y="210.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="factoryTaskHalfPass" id="BPMNEdge_factoryTaskHalfPass">
+        <omgdi:waypoint x="1145.0" y="211.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1180.0" y="211.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="1145.0" y="211.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="companySp" id="BPMNEdge_companySp">
+        <omgdi:waypoint x="1285.0" y="211.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1320.0" y="211.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="1285.0" y="211.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="companyTaskPass" id="BPMNEdge_companyTaskPass">
+        <omgdi:waypoint x="1360.0" y="211.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1390.0" y="210.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="1360.0" y="211.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="areaEngineerTaskReject" id="BPMNEdge_areaEngineerTaskReject">
+        <omgdi:waypoint x="420.0" y="228.0"></omgdi:waypoint>
+        <omgdi:waypoint x="419.0" y="273.0"></omgdi:waypoint>
+        <omgdi:waypoint x="152.0" y="273.0"></omgdi:waypoint>
+        <omgdi:waypoint x="152.0" y="235.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="254.0" y="279.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="areaTaskReject" id="BPMNEdge_areaTaskReject">
+        <omgdi:waypoint x="655.0" y="229.0"></omgdi:waypoint>
+        <omgdi:waypoint x="654.0" y="306.0"></omgdi:waypoint>
+        <omgdi:waypoint x="152.0" y="306.0"></omgdi:waypoint>
+        <omgdi:waypoint x="152.0" y="235.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="411.0" y="309.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="chiefTaskReject" id="BPMNEdge_chiefTaskReject">
+        <omgdi:waypoint x="890.0" y="230.0"></omgdi:waypoint>
+        <omgdi:waypoint x="889.0" y="344.0"></omgdi:waypoint>
+        <omgdi:waypoint x="152.0" y="344.0"></omgdi:waypoint>
+        <omgdi:waypoint x="152.0" y="235.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="636.0" y="349.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="factoryTaskReject" id="BPMNEdge_factoryTaskReject">
+        <omgdi:waypoint x="1125.0" y="231.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1124.0" y="378.0"></omgdi:waypoint>
+        <omgdi:waypoint x="152.0" y="378.0"></omgdi:waypoint>
+        <omgdi:waypoint x="152.0" y="235.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="861.0" y="379.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="companyTaskReject" id="BPMNEdge_companyTaskReject">
+        <omgdi:waypoint x="1340.0" y="231.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1340.0" y="410.0"></omgdi:waypoint>
+        <omgdi:waypoint x="152.0" y="410.0"></omgdi:waypoint>
+        <omgdi:waypoint x="152.0" y="235.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="1120.0" y="419.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="areaEngineerTaskPass" id="BPMNEdge_areaEngineerTaskPass">
+        <omgdi:waypoint x="420.0" y="188.0"></omgdi:waypoint>
+        <omgdi:waypoint x="420.0" y="44.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1407.0" y="44.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1407.0" y="193.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="660.0" y="21.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="areaTaskPass" id="BPMNEdge_areaTaskPass">
+        <omgdi:waypoint x="655.0" y="189.0"></omgdi:waypoint>
+        <omgdi:waypoint x="654.0" y="75.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1407.0" y="75.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1407.0" y="193.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="881.0" y="61.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="chiefTaskPass" id="BPMNEdge_chiefTaskPass">
+        <omgdi:waypoint x="890.0" y="190.0"></omgdi:waypoint>
+        <omgdi:waypoint x="889.0" y="108.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1407.0" y="108.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1407.0" y="193.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="1047.0" y="91.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="factoryTaskPass" id="BPMNEdge_factoryTaskPass">
+        <omgdi:waypoint x="1125.0" y="191.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1125.0" y="143.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1407.0" y="143.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1407.0" y="193.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="1160.0" y="131.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="BasicPriceMapper">
+	<!-- 电梯标准价格分页列表 -->
+    <select id="regelevStandardlistPage" parameterType="page" resultType="pd">
+        SELECT * FROM tb_z_basicprice
+        where 1=1
+        <if test="pd.NAME != null and pd.NAME != ''">
+            and NAME LIKE CONCAT(CONCAT('%', #{pd.NAME}),'%')
+        </if>
+        <if test="pd.SD != null and pd.SD != ''">
+            and SD LIKE CONCAT(CONCAT('%', #{pd.SD}),'%')
+        </if>
+        <if test="pd.ZZ != null and pd.ZZ != ''">
+            and ZZ LIKE CONCAT(CONCAT('%', #{pd.ZZ}),'%')
+        </if>
+        <if test="pd.C != null and pd.C != ''">
+            and C LIKE CONCAT(CONCAT('%', #{pd.C}),'%')
+        </if>
+        <if test="pd.TSGD != null and pd.TSGD != ''">
+            and TSGD LIKE CONCAT(CONCAT('%', #{pd.TSGD}),'%')
+        </if>
+    </select>
+    
+    <!-- 根据ID获取数据 -->
+    <select id="findById" parameterType="pd" resultType="pd">
+    	SELECT * FROM tb_z_basicprice WHERE ID=#{ID}
+    </select>
+    
+    <!-- 根据基础参数 获取数据   ~直梯-->
+    <select id="setBasicPrice" parameterType="pd" resultType="pd">
+    	SELECT
+			*
+		FROM
+			tb_z_basicprice
+		WHERE
+		  tb_z_basicprice.`NAME`=#{NAME}
+		AND 
+		  tb_z_basicprice.SD=#{SD}
+		AND
+		  tb_z_basicprice.ZZ=#{ZZ}
+		AND
+		  tb_z_basicprice.C=#{C}
+    </select>
+    
+    <!-- 根据基础参数 获取数据   ~扶梯-->
+    <select id="setBasicPrice_F" parameterType="pd" resultType="pd">
+    	SELECT
+		  *
+		FROM
+		  tb_f_basicprice as f
+		WHERE
+		  f.TSGD=CAST(#{TSGD} AS DECIMAL(15,1))
+		AND
+		  f.QXJD=#{QXJD}
+		AND
+		  f.TJKD=#{TJKD}
+		AND
+		  f.NAME=#{NAME}
+    </select>
+    
+    <!-- 直梯标准价格添加 -->
+    <insert id="regelevStandardAdd" parameterType="pd">
+    	INSERT INTO tb_z_basicprice(
+    		ID,
+    		NAME,
+    		ZZ,
+    		SD,
+    		C,
+    		Z,
+    		M,
+    		PRICE,
+    		KS_TIME,
+    		END_TIME,
+    		TSGD,
+    		EWAI,
+    		JJ,
+    		BZDKS,
+    		BZDCG,
+    		BZJDG
+    	)values(
+    		#{ID},
+    		#{NAME},
+    		#{ZZ},
+    		#{SD},
+    		#{C},
+    		#{Z},
+    		#{M},
+    		#{PRICE},
+    		#{KS_TIME},
+    		#{END_TIME},
+    		#{TSGD},
+    		#{EWAI},
+    		#{JJ},
+    		#{BZDKS},
+    		#{BZDCG},
+    		#{BZJDG}
+    	)
+    </insert>
+    
+    <!-- 修改 -->
+	<update id="editS" parameterType="pd">
+		UPDATE tb_z_basicprice
+		SET
+		NAME         =#{NAME},
+		ZZ           =#{ZZ},
+		SD           =#{SD},
+	    C            =#{C},
+		Z            =#{Z},
+		M	         =#{M},
+		PRICE        =#{PRICE},
+        KS_TIME      =#{KS_TIME},
+        END_TIME     =#{END_TIME},
+        TSGD         =#{TSGD},
+        EWAI         =#{EWAI},
+        JJ           =#{JJ},
+        BZDKS        =#{BZDKS},
+    	BZDCG	     =#{BZDCG},
+    	BZJDG        =#{BZJDG}
+		WHERE
+		ID   = #{ID}
+	</update>
+    
+    <!-- 根据id删除数据 -->
+	<delete id="delete" parameterType="pd">
+		delete from tb_z_basicprice
+		where ID=#{ID}
+	</delete>
+	
+	<!-- 扶梯基础价格维护 -->
+	
+	<!-- 列表 -->
+    <select id="F_basicPricelistPage" parameterType="page" resultType="pd">
+        SELECT * FROM tb_f_basicprice
+        where 1=1
+        <if test="pd.NAME != null and pd.NAME != ''">
+            and NAME LIKE CONCAT(CONCAT('%', #{pd.NAME}),'%')
+        </if>
+        <if test="pd.GG != null and pd.GG != ''">
+            and TSGD LIKE CONCAT(CONCAT('%', #{pd.GG}),'%')
+        </if>
+        <if test="pd.XJ != null and pd.XJ != ''">
+            and QXJD LIKE CONCAT(CONCAT('%', #{pd.XJ}),'%')
+        </if>
+        <if test="pd.KD != null and pd.KD != ''">
+            and TJKD LIKE CONCAT(CONCAT('%', #{pd.KD}),'%')
+        </if>
+    </select>
+    
+    <!-- 根据ID获取数据 -->
+    <select id="findByF_BPId" parameterType="pd" resultType="pd">
+    	SELECT * FROM tb_f_basicprice WHERE ID=#{ID}
+    </select>
+    
+    <!-- 根据基础参数 获取数据 -->
+    <select id="setF_BasicPrice" parameterType="pd" resultType="pd">
+    	SELECT
+			*
+		FROM
+			tb_f_basicprice
+		WHERE
+		  tb_f_basicprice.`NAME`=#{NAME}
+		AND 
+		  tb_f_basicprice.TSGD=#{TSGD}
+		AND
+		  tb_f_basicprice.QXJD=#{QXJD}
+		AND
+		  tb_f_basicprice.TJKD=#{TJKD}
+    </select>
+    
+    <!-- 直梯标准价格添加 -->
+    <insert id="saveF" parameterType="pd">
+    	INSERT INTO tb_f_basicprice(
+    		ID,
+    		NAME,
+    		TSGD,
+    		QXJD,
+    		TJKD,
+    		KS_TIME,
+    		JS_TIME,
+    		PRICE
+    	)values(
+    		#{ID},
+    		#{NAME},
+    		#{TSGD},
+    		#{QXJD},
+    		#{TJKD},
+    		#{KS_TIME},
+    		#{JS_TIME},
+    		#{PRICE}
+    	)
+    </insert>
+    
+    <!-- 修改 -->
+	<update id="editF" parameterType="pd">
+		UPDATE tb_f_basicprice
+		SET
+		NAME         =#{NAME},
+		TSGD         =#{TSGD},
+		QXJD         =#{QXJD},
+	    TJKD         =#{TJKD},
+		KS_TIME      =#{KS_TIME},
+		JS_TIME	     =#{JS_TIME},
+		PRICE        =#{PRICE}
+		WHERE
+		ID   = #{ID}
+	</update>
+    
+    <!-- 根据id删除数据 -->
+	<delete id="deleteF" parameterType="pd">
+		delete from tb_f_basicprice
+		where ID=#{ID}
+	</delete>
+</mapper>	

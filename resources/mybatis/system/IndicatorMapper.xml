@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="IndicatorMapper">
+
+    <select id="selectIndicatorByCondition" parameterType="pd" resultType="pd">
+        select * from tb_indicator
+        <where>
+            <if test="department_id!=null and department_id!=''">
+                department_id = #{department_id}
+            </if>
+            <if test="indicator_year!=null and indicator_year!=''">
+                and indicator_year = #{indicator_year}
+            </if>
+        </where>
+        order by indicator_date desc
+    </select>
+
+    <insert id="insertIndicatorBatch" parameterType="java.util.List">
+        insert into tb_indicator (indicator_id, department_id, indicator_year, indicator_num, indicator_date)
+        values
+        <foreach collection="list" item="indicator" index="index" separator=",">
+            (#{indicator.indicator_id}, #{indicator.department_id}, #{indicator.indicator_year}
+            , #{indicator.indicator_num}, #{indicator.indicator_date,jdbcType=DATE})
+        </foreach>
+    </insert>
+
+</mapper>

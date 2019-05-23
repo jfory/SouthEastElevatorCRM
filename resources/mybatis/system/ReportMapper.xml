@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ReportMapper">
+	
+	<select id="customerYearNum" resultType="pd">
+		select date,
+			max(case type when 'Core' then num else 0 end) as coreNum,
+			max(case type when 'Merchant' then num else 0 end) as merchantNum,
+			max(case type when 'Ordinary' then num else 0 end) as ordinaryNum
+		from (
+		select customer_type as type,count(*) as num,input_date as date from (
+		select customer_id,customer_no,customer_type,year(input_date)as input_date from tb_customer_ordinary 
+		union select customer_id,customer_no,customer_type,year(input_date)as input_date from tb_customer_merchant 
+		union select customer_id,customer_no,customer_type,year(input_date)as input_date from tb_customer_core
+		)a group by type,date
+		)b group by date
+	</select>
+	
+	<select id="customerMonthNum"  parameterType="String" resultType="pd">
+		<!-- select date,
+			max(case type when 'Core' then num else 0 end) as coreNum,
+			max(case type when 'Merchant' then num else 0 end) as merchantNum,
+			max(case type when 'Ordinary' then num else 0 end) as ordinaryNum
+		from (
+		select customer_type as type,count(*) as num,input_date as date from (
+		select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_ordinary where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_merchant where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_core where year(input_date)=#{year}
+		)a group by type,date
+		)b group by date -->
+		
+		select ds.val as date,IFNULL(c.coreNum,0) as coreNum,IFNULL(c.merchantNum,0) as merchantNum,IFNULL(c.ordinaryNum,0) as ordinaryNum from tb_date_std ds 
+		left join
+		(
+		select date,
+			max(case type when 'Core' then num else 0 end) as coreNum,
+			max(case type when 'Merchant' then num else 0 end) as merchantNum,
+			max(case type when 'Ordinary' then num else 0 end) as ordinaryNum
+		from (
+		select customer_type as type,count(*) as num,input_date as date from (
+		select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_ordinary where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_merchant where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,month(input_date)as input_date from tb_customer_core where year(input_date)=#{year}
+		)a group by type,date
+		)b group by date
+		)c on c.date=ds.val where ds.type='month'
+	</select>
+	
+	<select id="customerQuarterNum"  parameterType="String" resultType="pd">
+		select date,
+			max(case type when 'Core' then num else 0 end) as coreNum,
+			max(case type when 'Merchant' then num else 0 end) as merchantNum,
+			max(case type when 'Ordinary' then num else 0 end) as ordinaryNum
+		from (
+		select customer_type as type,count(*) as num,input_date as date from (
+		select customer_id,customer_no,customer_type,quarter(input_date)as input_date from tb_customer_ordinary where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,quarter(input_date)as input_date from tb_customer_merchant where year(input_date)=#{year}
+		union select customer_id,customer_no,customer_type,quarter(input_date)as input_date from tb_customer_core where year(input_date)=#{year}
+		)a group by type,date
+		)b group by date
+	</select>
+	
+	<select id="findInputReport" resultType="pd" parameterType="pd">
+		call _inputDateReport(#{input_date_start},CONCAT(#{input_date_end},' 23:59:59'));
+	</select>
+	
+	<select id="findItemTrendRepor" resultType="pd" parameterType="pd">
+		call _projectTrendReport(#{input_date});
+	</select>
+	
+	<select id="findcontractRollingRepor" resultType="pd" parameterType="pd">
+		call _projectTrendReport(#{date});
+	</select>
+	<!-- 新增项目预测 -->
+		<!-- 新增楼盘 -->
+    <insert id="saveS" parameterType="pd">
+        insert into tb_projectForecast (
+        					   projectForecast_id,
+                               forecast_name,
+                               years,
+                               months,
+                               num,
+                               submitDate,
+                               dictVal
+                               )
+        values (
+        		#{projectForecast_id},
+                #{forecast_name},
+                #{years},
+                #{months},
+                #{num},
+                #{submit},
+                #{dictVal}
+                )
+    </insert>
+    
+	
+	<!-- 查询根据区域name获取id（导入）-->
+    <select id="findDepartmentByName" parameterType="pd" resultType="pd">
+        SELECT id
+        FROM tb_department
+        WHERE type = '8'
+          and name = #{Department_name}
+    </select>
+	
+	<select id="findProjectForecastReport" resultType="pd" parameterType="pd">
+		call _projectForecastReport(#{yymk},#{input_date});
+	</select>
+	
+	<select id="listContractReport" parameterType="pd" resultType="pd">
+		call listContractReport(#{StartDate},#{EndDate},#{ContractStatus});
+	</select>
+	<select id="listItemReport" parameterType="pd" resultType="pd">
+		call listItemReport(#{StartDate},#{EndDate},#{ContractStatus});
+	</select>
+	
+	<select id="listItemRollingByCondition" parameterType="pd" resultType="String">
+		SELECT item_id,item_area,dep.depname,gj.gjid,gj2.GJ_status AS gjstatus,it.`input_date` FROM tb_item it LEFT JOIN 
+			(SELECT id AS depid,NAME AS depname FROM tb_department) AS dep ON it.`item_area` = dep.`depid`
+			LEFT JOIN(SELECT MAX(id) AS gjid,GJ_item_id FROM tb_item_follow_up GROUP BY GJ_item_id) AS gj ON it.`item_id` =  gj.GJ_item_id
+			LEFT JOIN(SELECT GJ_status,GJ_item_id,id AS gjid FROM tb_item_follow_up) AS gj2 ON gj.gjid = gj2.gjid
+		WHERE it.`input_date` BETWEEN #{StartDate} AND #{EndDate} AND dep.depname = #{areaSelect}
+	</select>
+	
+	<select id="listItemRolling" parameterType="pd" resultType="pd">
+		 SELECT item_id,item_area,dep.depname,gj.gjid,gj2.GJ_status AS gjstatus,it.`input_date` FROM tb_item it LEFT JOIN 
+			(SELECT id AS depid,NAME AS depname FROM tb_department) AS dep ON it.`item_area` = dep.`depid`
+			LEFT JOIN(SELECT MAX(id) AS gjid,GJ_item_id FROM tb_item_follow_up GROUP BY GJ_item_id) AS gj ON it.`item_id` =  gj.GJ_item_id
+			LEFT JOIN(SELECT GJ_status,GJ_item_id,id AS gjid FROM tb_item_follow_up) AS gj2 ON gj.gjid = gj2.gjid
+		WHERE it.`input_date` BETWEEN #{StartDate} AND #{EndDate}
+<<<<<<< HEAD
+		<if test="areaSelect != null and areaSelect != ''">
+			AND dep.depname=#{areaSelect}
+		</if>
+		
+=======
+>>>>>>> 84ecd0dc1cb9b626ed6f32a72eec5d5a6005d642
+	</select>
+	
+</mapper>

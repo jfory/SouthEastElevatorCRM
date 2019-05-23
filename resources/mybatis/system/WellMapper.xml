@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="WellMapper">
+ <!-- 根据楼盘类型信息 -->
+    <select id="WelllistPage" parameterType="page" resultType="pd">
+        select 
+        * 
+        from 
+        tb_well
+        where 1=1
+        <if test="pd.well_name != null and pd.well_name != ''">
+			and well_name LIKE CONCAT(CONCAT('%', #{pd.well_name}),'%')
+		</if>
+    </select>
+    <!-- 根据楼盘类型编号查询信息 -->
+	<select id="findWellpeById" parameterType="page" resultType="pd">
+		select * from tb_well where well_id=#{well_id}
+	</select>
+	 <!-- 根据楼盘类型名称查询信息 -->
+	<select id="findWellpeByName" parameterType="page" resultType="pd">
+		select * from tb_well where well_name=#{well_name}
+	</select>
+	<!-- 根据楼盘类型编号删除信息 -->
+	<delete id="deleteWell" parameterType="pd">
+		DELETE from tb_well where well_id=#{well_id}
+	</delete>
+    <!-- 新增楼盘 类型信息 -->
+	<insert id="saveS" parameterType="pd">
+	    insert into tb_well(
+		well_id,
+		well_name,
+		well_describe
+		)
+		values
+		(
+		#{well_id},
+		#{well_name},
+		#{well_describe}
+		)
+	</insert>
+	<!-- 修改 -->
+	<update id="editS" parameterType="pd">
+		UPDATE tb_well
+		SET
+		well_name       =#{well_name},
+		well_describe   =#{well_describe}
+		WHERE
+		well_id   = #{well_id}
+	</update>
+	<!-- 获取option集合 -->
+    <select id="findWellList"  resultType="pd">
+    	select * from tb_well
+    </select>
+	
+</mapper>

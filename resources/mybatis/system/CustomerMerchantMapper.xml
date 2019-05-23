@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="customerMerchantMapper">
+
+
+    <insert id="saveCustomerMerchant" parameterType="pd">
+    	insert into tb_customer_merchant(
+    		customer_id,
+    		customer_no,
+    		customer_type,
+    		customer_name,
+    		customer_hobby,
+    		customer_birthday,
+    		customer_company,
+    		customer_ratings,
+    		customer_project,
+    		customer_contact,
+    		contact_phone,
+    		contact_way,
+    		contact_address,
+    		contact_emergency_one,
+    		em_one_phone,
+    		contact_emergency_two,
+    		em_two_phone,
+    		respond_salesman,
+    		service_man,
+    		project_source,
+    		type_specifiaction,
+    		config,
+    		design_sketch,
+    		price,
+    		agent_company,
+    		agent_name,
+    		agent_brand,
+    		agent_ratings,
+    		agent_property,
+    		remark,
+    		modified_by,
+    		modified_date,
+    		customer_status,
+    		input_date,
+    		input_user,
+    		is_core,
+    		customer_org,
+    		customer_email,
+    		house_no
+    	)values(
+    		#{customer_id},
+    		#{customer_no},
+    		#{customer_type_merchant},
+    		#{customer_name_merchant},
+    		#{customer_hobby_merchant},
+    		#{customer_birthday_merchant},
+    		#{customer_company_merchant},
+    		#{customer_ratings_merchant},
+    		#{customer_project_merchant},
+    		#{customer_contact_merchant},
+    		#{contact_phone_merchant},
+    		#{contact_way_merchant},
+    		#{contact_address_merchant},
+    		#{contact_emergency_one_merchant},
+    		#{em_one_phone_merchant},
+    		#{contact_emergency_two_merchant},
+    		#{em_two_phone_merchant},
+    		#{respond_salesman_merchant},
+    		#{service_man_merchant},
+    		#{project_source_merchant},
+    		#{type_specifiaction_merchant},
+    		#{config_merchant},
+    		#{design_sketch_merchant},
+    		#{price_merchant},
+    		#{agent_company_merchant},
+    		#{agent_name_merchant},
+    		#{agent_brand_merchant},
+    		#{agent_ratings_merchant},
+    		#{agent_property_merchant},
+    		#{remark_merchant},
+            #{input_user},
+    		now(),
+            #{customer_status_merchant},
+    		now(),
+    		#{input_user},
+    		#{is_core_merchant},
+    		#{customer_org_merchant},
+    		#{customer_email_merchant},
+    		#{house_no_merchant}
+    	)
+    </insert>
+    
+    <update id="editCustomerMerchant" parameterType="pd">
+		update  tb_customer_merchant
+			set 
+	    		customer_no=#{customer_no},
+	    		customer_type=#{customer_type_merchant},
+	    		customer_name=#{customer_name_merchant},
+	    		customer_hobby=#{customer_hobby_merchant},
+	    		customer_birthday=#{customer_birthday_merchant},
+	    		customer_company=#{customer_company_merchant},
+	    		customer_ratings=#{customer_ratings_merchant},
+	    		customer_project=#{customer_project_merchant},
+	    		customer_contact=#{customer_contact_merchant},
+	    		contact_phone=#{contact_phone_merchant},
+	    		contact_way=#{contact_way_merchant},
+	    		contact_address=#{contact_address_merchant},
+	    		contact_emergency_one=#{contact_emergency_one_merchant},
+	    		em_one_phone=#{em_one_phone_merchant},
+	    		contact_emergency_two=#{contact_emergency_two_merchant},
+	    		em_two_phone=#{em_two_phone_merchant},
+	    		respond_salesman=#{respond_salesman_merchant},
+	    		service_man=#{service_man_merchant},
+	    		project_source=#{project_source_merchant},
+	    		type_specifiaction=#{type_specifiaction_merchant},
+	    		config=#{config_merchant},
+	    		design_sketch=#{design_sketch_merchant},
+	    		price=#{price_merchant},
+	    		agent_company=#{agent_company_merchant},
+	    		agent_name=#{agent_name_merchant},
+	    		agent_brand=#{agent_brand_merchant},
+	    		agent_ratings=#{agent_ratings_merchant},
+	    		agent_property=#{agent_property_merchant},
+	    		remark=#{remark_merchant},
+	    		modified_by=#{modified_by},
+	    		modified_date=now(),
+	    		customer_status=#{customer_status_merchant},
+	    		is_core=#{is_core_merchant},
+	    		customer_org=#{customer_org_merchant},
+	    		customer_email=#{customer_email_merchant},
+	    		house_no=#{house_no_merchant}
+			where 
+				customer_id=#{customer_id_merchant}
+	</update>
+    
+    <delete id="deleteCustomerMerchant" parameterType="pd">
+		delete from 
+			tb_customer_merchant
+		where
+			customer_id=#{customer_id}
+	</delete>
+	<select id="findCustomerMerchantById" parameterType="pd" resultType="pd">
+		select * from tb_customer_merchant where customer_id=#{customer_id}
+	</select>
+	<select id="findCustomerMerchant" parameterType="pd" resultType="pd">
+		select
+			cc.customer_id as customer_company,
+			cm.*
+		from 
+			tb_customer_merchant cm
+		left join
+			tb_customer_core cc
+		on
+			cm.customer_company=cc.customer_id
+		where cm.customer_id=#{customer_id}
+	</select>
+	
+	<select id="findCustomerByNameMerchant" parameterType="pd" resultType="pd">
+		select * from tb_customer_merchant where customer_name=#{customer_name}
+	</select>
+	
+	<select id="findCustomerByOldNameMerchant" parameterType="pd" resultType="pd">
+		select * from tb_customer_merchant where customer_name!=#{old_customer_name} and customer_name=#{customer_name}
+	</select>
+	
+	<select id="findMerchantCustomerId" resultType="pd">
+		select customer_id,customer_name from tb_customer_merchant
+	</select>
+</mapper>

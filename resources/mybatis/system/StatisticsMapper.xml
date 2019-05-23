@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="StatisticsMapper">
+	<!-- 查询单元基本信息 -->
+	<select id="statisticslistPage" parameterType="page" resultType="pd">
+		SELECT
+		h.houses_no AS houses_no,
+		h.houses_name AS houses_name,
+		COUNT(p.cell_id) AS cell_num,
+		COUNT(IF(p.comp_id IS NOT NULL,p.comp_id,NULL)) AS assembleNum,
+		COUNT(IF(p.comp_id='dn001',p.comp_id,NULL)) AS dn_assembleNum,
+		COUNT(IF(p.comp_id  &lt;&gt; 'dn001',p.comp_id,NULL)) AS comp_assembleNum
+		FROM
+		tb_houses AS h
+		LEFT JOIN tb_comp_price AS p ON h.houses_no = p.houses_no
+		GROUP BY
+		h.houses_no
+	</select>
+	
+	<!-- 统计每个城市东南装梯数量和对手装梯数量-->
+	<select id="statisticsList" parameterType="page" resultType="pd">
+	    SELECT
+          pid.name as c,
+          COUNT(IF(p.comp_id IS NOT NULL,p.comp_id,NULL)) as d,
+	      COUNT(IF(p.comp_id = 'dn001',p.comp_id,NULL)) as a,
+	      COUNT(IF(p.comp_id  &lt;&gt; 'dn001',p.comp_id,NULL)) as b
+        FROM
+		  tb_houses AS h
+		  LEFT JOIN tb_comp_price AS p ON h.houses_no = p.houses_no
+          LEFT JOIN tb_loc_province AS pid ON h.province_id=pid.id
+		GROUP BY
+		  pid.name
+		   ORDER BY d DESC 
+	</select>
+	</mapper>

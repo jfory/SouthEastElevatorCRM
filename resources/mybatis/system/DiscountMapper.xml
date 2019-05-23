@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="DiscountMapper">
+
+	<insert id="saveDiscountApply" parameterType="pd">
+		insert into tb_discount_apply
+			(
+				user_id,
+				item_id,
+				info_id,
+				discount,
+				input_date,
+				status,
+				discount_instance,
+				descript
+			)values(
+				#{USER_ID},
+				#{item_id},
+				#{info_id},
+				#{discount},
+				now(),
+				#{status},
+				#{discount_instance},
+				#{descript}
+			)
+	</insert>
+	
+	<insert id="saveDiscountUsed" parameterType="pd">
+		insert into tb_discount_used
+			(
+				user_id,
+				input_date,
+				limit_used,
+				year_no
+			)values(
+				#{USER_ID},
+				now(),
+				#{limit_used},
+				#{year_no}
+			)
+	</insert>
+	
+	<update id="editDiscountInstance" parameterType="pd">
+		update tb_discount_apply set discount_instance=#{discount_instance},status=#{status} where id=#{id}
+	</update>
+	
+	<update id="editDiscountStatus" parameterType="pd">
+		update tb_discount_apply set status=#{status} where id=#{id}
+	</update>
+	
+	<select id="findDiscountApplyListByUserId" parameterType="String" resultType="pd">
+		<!-- select * from tb_discount_apply where user_id=#{USER_ID} -->
+		<!-- select da.*,ei.elevator_id from tb_discount_apply da
+			left join tb_elevator_info ei on da.info_id=ei.id where user_id=#{USER_ID} -->
+			select c.*,te.elevator_name from (
+				select b.*,ti.item_name from (
+					select a.*,su.username from (
+					select da.*,ei.elevator_id from tb_discount_apply da
+					left join tb_elevator_info ei on da.info_id=ei.id where user_id=#{USER_ID}  )a
+				left join sys_user su on su.user_id=a.user_id )b
+			left join tb_item ti on ti.item_id=b.item_id )c
+			left join tb_elevator te on te.elevator_id=c.elevator_id
+	</select>
+	
+	<select id="findDiscountPend" parameterType="pd"  resultType="pd">
+		select c.*,te.elevator_name from (
+		select b.*,ti.item_name from (
+		select a.*,su.username from (
+		select da.*,ei.elevator_id from tb_discount_apply da
+					left join tb_elevator_info ei on da.info_id=ei.id where da.id =#{id} )a
+		left join sys_user su on su.user_id=a.user_id )b
+		left join tb_item ti on ti.item_id=b.item_id )c
+		left join tb_elevator te on te.elevator_id=c.elevator_id
+		
+		
+	</select>
+	
+	<select id="findItemDiscountListByUserId" parameterType="String" resultType="pd">
+		select ti.item_id,ti.item_name,su.username from tb_item ti left join sys_user su on su.user_id=ti.input_user
+		where ti.item_id in(select distinct item_id from tb_discount_apply where user_id=#{USER_ID})
+	</select>
+	
+	<select id="findDiscountConfigByUserId" parameterType="String" resultType="pd">
+		<!-- select * from tb_discount_config where user_id=#{USER_ID} -->
+		select dc.*,su.name from tb_discount_config dc 
+			left join sys_user su on dc.user_id=su.user_id 
+				where su.user_id=#{USER_ID}
+	</select>
+	
+	<select id="findDiscountConfigById" parameterType="String" resultType="pd">
+		select * from tb_discount_config where id=#{id}
+	</select>
+	
+	<select id="findDiscountUsedByUserIdAndYearNo" parameterType="pd" resultType="pd">
+		select * from tb_discount_used where user_id=#{USER_ID} and year_no=#{year_no}
+	</select>
+	
+	<select id="findApplyById" parameterType="pd" resultType="pd">
+		select * from tb_discount_apply where id=#{id} 
+	</select>
+	
+	<select id="findApplyDiscountById" parameterType="String" resultType="String">
+		select discount from tb_discount_apply where id=#{id}
+	</select>
+	
+	<select id="findDiscountApplyByItemId" parameterType="String" resultType="Pd">
+		<!-- select * from tb_discount_apply where item_id=#{item_id} -->
+		select c.*,te.elevator_name from (
+				select b.*,ti.item_name from (
+					select a.*,su.username from (
+					select da.*,ei.elevator_id from tb_discount_apply da
+					left join tb_elevator_info ei on da.info_id=ei.id where da.item_id=#{item_id}  )a
+				left join sys_user su on su.user_id=a.user_id )b
+			left join tb_item ti on ti.item_id=b.item_id )c
+			left join tb_elevator te on te.elevator_id=c.elevator_id
+	</select>
+	
+	<select id="findDiscountTreeList" resultType="pd">
+		select id,name,orderNo,parentId,create_time,type from tb_department
+		union
+		select id,name,orderNo,parentId,create_time,type from tb_position
+		union
+		select user_id COLLATE utf8_general_ci as id,name,'0' as orderNo,position_id as parentId,'' as create_time, '0' as type from sys_user where user_id!='1' and position_id!=''
+	</select>
+	
+	<insert id="saveDiscountConfig" parameterType="pd" >
+		insert into tb_discount_config
+			(
+				user_id,
+				discount,
+				limit_config
+			)values(
+				#{user_id},
+				#{discount},
+				#{limit_config}
+			)
+	</insert>
+	
+	<update id="editDiscountConfig" parameterType="pd">
+		update tb_discount_config set 
+		discount=#{discount},
+		limit_config=#{limit_config}
+		where id=#{id}
+	</update>
+	
+</mapper>

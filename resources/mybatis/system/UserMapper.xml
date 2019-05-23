@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UserMapper">
+    <sql id="userColumns">USERNAME,NAME,PASSWORD,RIGHTS,STATUS,ROLE_ID</sql>
+
+    <resultMap type="User" id="userAndRoleResultMap">
+        <id column="USER_ID" property="USER_ID"/>
+        <result column="USERNAME" property="USERNAME"/>
+        <result column="PASSWORD" property="PASSWORD"/>
+        <result column="NAME" property="NAME"/>
+        <result column="RIGHTS" property="RIGHTS"/>
+        <result column="LAST_LOGIN" property="LAST_LOGIN"/>
+        <result column="IP" property="IP"/>
+        <result column="STATUS" property="STATUS"/>
+        <result column="SKIN" property="SKIN"/>
+        <result column="AVATAR" property="AVATAR"/>
+        <result column="HX_USERNAME" property="HX_USERNAME"/>
+        <result column="HX_PASSWORD" property="HX_PASSWORD"/>
+        <result column="POSITION_ID" property="POSITION_ID"/>
+        <association property="role" column="ROLE_ID" javaType="Role">
+            <id column="ROLE_ID" property="ROLE_ID"/>
+            <result column="ROLE_NAME" property="ROLE_NAME"/>
+            <result column="ROLE_RIGHTS" property="RIGHTS"/>
+        </association>
+    </resultMap>
+    <resultMap type="User" id="userResultMap">
+        <id column="USER_ID" property="USER_ID"/>
+        <result column="USERNAME" property="USERNAME"/>
+        <result column="PASSWORD" property="PASSWORD"/>
+        <result column="NAME" property="NAME"/>
+        <result column="RIGHTS" property="RIGHTS"/>
+        <result column="LAST_LOGIN" property="LAST_LOGIN"/>
+        <result column="IP" property="IP"/>
+        <result column="STATUS" property="STATUS"/>
+        <result column="ROLE_ID" property="ROLE_ID"/>
+        <result column="SKIN" property="SKIN"/>
+        <result column="AVATAR" property="AVATAR"/>
+        <result column="POSITION_ID" property="POSITION_ID"/>
+        <result column="HX_USERNAME" property="HX_USERNAME"/>
+        <result column="HX_PASSWORD" property="HX_PASSWORD"/>
+    </resultMap>
+
+    <!-- 判断用户名和密码 -->
+    <select id="getUserInfo" parameterType="User" resultMap="userResultMap">
+        select * from sys_user
+        where 1=1
+        <if test="USERNAME!=null and PASSWORD!=null">
+            and USERNAME = #{USERNAME} and PASSWORD=#{PASSWORD}
+        </if>
+        <if test="USER_ID!=null and USER_ID>0">
+            and USER_ID = #{USER_ID}
+        </if>
+    </select>
+
+    <select id="getUserAndRoleById" parameterType="String" resultMap="userAndRoleResultMap">
+		select  u.USER_ID,
+				u.USERNAME,
+				u.NAME,
+				u.RIGHTS as USER_RIGHTS,
+				u.PASSWORD,
+				u.SKIN,
+				r.ROLE_ID,
+				r.ROLE_NAME,
+				r.RIGHTS as ROLE_RIGHTS,
+				u.AVATAR,
+				u.HX_USERNAME,
+				u.HX_PASSWORD
+		from sys_user u 
+		left join sys_role r 
+		on u.ROLE_ID=r.ROLE_ID 
+		where
+            u.USER_ID=#{USER_ID}
+	</select>
+	
+	<select id="getUserAndRoleByPd" parameterType="pd" resultMap="userAndRoleResultMap">
+		select  u.USER_ID,
+				u.USERNAME,
+				u.NAME,
+				u.RIGHTS as USER_RIGHTS,
+				u.PASSWORD,
+				u.SKIN,
+				r.ROLE_ID,
+				r.ROLE_NAME,
+				r.RIGHTS as ROLE_RIGHTS,
+				u.AVATAR,
+				u.HX_USERNAME,
+				u.HX_PASSWORD
+		from sys_user u 
+		left join sys_role r 
+		on r.ROLE_ID=#{ROLE_ID} 
+		where
+            u.USER_ID=#{USER_ID}
+	</select>
+    <update id="updateLastLogin" parameterType="User">
+		update sys_user set 
+		LAST_LOGIN=#{LAST_LOGIN} 
+		where USER_ID=#{USER_ID}
+	</update>
+	
+	<update id="updateAuto" parameterType="pd">
+		update sys_user set
+			NAME = #{Name},
+			STATUS = #{STATUS}
+		where USERNAME=#{Code}
+	</update>
+	
+	<delete id="deleteAuto" parameterType="pd">
+		delete from sys_user where USERNAME in
+		<foreach collection="list"  item="Code" index="index"
+            open="(" close=")" separator=",">
+            #{Code}
+        </foreach>
+	</delete>
+	
+	<select id="getUserIdByPosition" parameterType="pd" resultType="pd">
+		select USER_ID from sys_user where POSITION_ID=#{POSITION_ID}
+	</select>
+	
+	<select id="getUserIdByPositionList" parameterType="list" resultType="String">
+		select user_id from sys_user where position_id in
+		<foreach collection="list"  item="position_id" index="index"
+            open="(" close=")" separator=",">
+            #{position_id}
+        </foreach>
+	</select>
+	
+	
+	
+
+</mapper>

@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CollectMapper">
+	
+	<select id="collectListByRole" parameterType="page" resultType="pd">
+		select tc.*,su.name,ti.item_no from tb_collect tc 
+			left join sys_user su on tc.input_user=su.user_id 
+			left join tb_item ti on tc.item_id=ti.item_id
+		where 1=1
+		<if test="pd.roleType!='4'">
+			<if test="pd.userList!=null and pd.userList.size()>0">
+				and tc.input_user in
+				<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+		            ${user_id}
+		        </foreach>
+	        </if>
+        </if>
+	</select>
+	
+	<select id="collectList" parameterType="page" resultType="pd">
+		select * from tb_collect
+	</select>
+	
+	<delete id="delCollectById" parameterType="String">
+		delete from tb_collect where id=#{id}
+	</delete>
+	
+	<insert id="saveCollect" parameterType="pd">
+		insert into tb_collect(
+			id,
+			item_id,
+			collect_total,
+			input_date,
+			input_user,
+			status,
+			descript,
+			item_type
+		)values(
+			#{id},
+			#{item_id},
+			#{collect_total},
+			now(),
+			#{USER_ID},
+			#{status},
+			#{descript},
+			#{item_type}
+		)
+	</insert>
+	
+	<select id="findCollectById" parameterType="String" resultType="pd">
+		select * from tb_collect where id=#{id}
+	</select>
+	
+	<select id="findCollectMoneyById" parameterType="String" resultType="pd">
+		select * from tb_collect_money where id=#{id}
+	</select>
+	
+	<select id="findCollectMoneyByCid" parameterType="String" resultType="pd">
+		select * from tb_collect_money where c_id=#{c_id}
+	</select>
+	
+	<insert id="saveCollectSet" parameterType="pd">
+		insert into tb_collect_set(
+			id,
+			item_id,
+			contract,
+			product,
+			shipment,
+			install,
+			arrival,
+			adjust,
+			accept,
+			remit,
+			quality,
+			total
+		)values(
+			#{id},
+			#{item_id},
+			#{contract},
+			#{product},
+			#{shipment},
+			#{install},
+			#{arrival},
+			#{adjust},
+			#{accept},
+			#{remit},
+			#{quality},
+			#{total}
+		)
+	</insert>
+	
+	<select id="findTotalById" parameterType="String" resultType="String">
+		select IFNULL(collect_total,0) from tb_collect where id=#{id}
+	</select>
+	
+	<select id="findItemTypeById" parameterType="String" resultType="String">
+		select item_type from tb_collect where id=#{id}
+	</select>
+	
+	<select id="findAgentIdById" parameterType="String" resultType="String">
+		select i.order_org from tb_item i left join tb_collect c on c.item_id=i.item_id where c.id=#{id}
+	</select>
+	
+	
+	<select id="findAgentQuota" parameterType="String" resultType="String">
+		select IFNULL(quota,0) from tb_agent_quota where agent_id=#{agent_id}
+	</select>
+	
+	
+	<select id="findUsedTotalByAgentId" parameterType="String" resultType="String">
+		select IFNULL(SUM(total),0) from tb_his_agent where type=1 and status=0 and agent_id=#{agent_id}
+	</select>
+	
+	<insert id="saveHisAgent" parameterType="pd">
+		insert into tb_his_agent(
+			id,
+			agent_id,
+			cm_id,
+			total,
+			date,
+			type,
+			status
+		)values(
+			#{id},
+			#{agent_id},
+			#{cm_id},
+			#{total},
+			now(),
+			#{type},
+			#{status}
+		)
+	</insert>
+	
+	
+	<update id="editCmId" parameterType="pd">
+		update tb_his_agent set cm_id=#{cm_id} where id=#{id}
+	</update>
+	
+	<select id="findPayTotal" parameterType="String" resultType="String">
+		select IFNULL(SUM(total),0) as total from tb_collect_money where c_id=#{c_id}
+	</select>
+	
+	<select id="findOffset" parameterType="String" resultType="pd">
+		select * from tb_his_agent where cm_id in(
+			select id from tb_collect_money where c_id=#{c_id}
+		)
+	</select>
+	
+	<update id="editHisAgentStatus" parameterType="String">
+		update tb_his_agent set status=1 where id=#{id}
+	</update>
+
+	<select id="findElevatorByItemId" parameterType="String" resultType="pd">
+		select * from tb_elevator_details where item_id=#{item_id}
+	</select>
+	
+	<insert id="saveStage" parameterType="pd">
+		insert into tb_collect_stage(
+			id,
+			details_id,
+			stage,
+			total
+		)values(
+			#{id},
+			#{details_id},
+			#{stage},
+			#{total}
+		)
+	</insert>
+	
+	<select id="findCollectSetByItemId" parameterType="String" resultType="pd">
+		select * from tb_collect_set where item_id=#{item_id}
+	</select>
+	
+	<select id="findCollectInfoByPd" parameterType="pd" resultType="pd">
+		select * from tb_collect_info where item_id=#{item_id} and stage=#{stage}
+	</select>
+	
+	<insert id="saveCollectInfo" parameterType="pd">
+		insert into tb_collect_info(
+			id,
+			item_id,
+			payman,
+			total,
+			payee,
+			stage,
+			input_date,
+			input_user,
+			descript,
+			payment
+		)values(
+			#{id},
+			#{item_id},
+			#{payman},
+			#{total},
+			#{payee},
+			#{stage},
+			now(),
+			#{USER_ID},
+			#{descript},
+			#{payment}
+		)
+	</insert>
+	
+	<select id="findCollectEleByPd" parameterType="pd" resultType="pd">
+		select ed.id,ed.no from tb_collect_stage cs,tb_elevator_details ed
+		where cs.details_id=ed.id and ed.item_id=#{item_id} and cs.stage=#{stage}
+	</select>
+	
+	<select id="findQuotaSetByPd" parameterType="pd" resultType="String">
+		select quota from tb_quota_set where f_id=#{f_id} and type=#{type} 
+	</select>
+	
+	<select id="findCollectSetByInfoId" parameterType="String" resultType="pd">
+		select * from tb_collect_set where id=#{id}
+	</select>
+	
+	<update id="editQuotaSet" parameterType="pd">
+		update tb_quota_set quota=#{quota} where f_id=#{f_id} and type=#{type}
+	</update>
+	
+	<!-- 1.16  -->
+	<select id="findCollectInfoForQuota" resultType="pd">
+		select * from tb_collect_info where status in(1,2)
+	</select>
+	
+	<update id="editInfoStatus" parameterType="String">
+		update tb_collect_info set status=2 where uuid=#{uuid}
+	</update>
+	
+	<insert id="saveCollectClaim" parameterType="pd">
+		insert into tb_collect_claim(
+			id,
+			info_id
+		)values(
+			#{id},
+			#{info_id}
+		)
+	</insert>
+	
+	<select id="findCollectClaimList" resultType="pd">
+		select * from tb_collect_claim
+	</select>
+	
+	
+	<select id="findOffsetListByInfo" parameterType="String" resultType="pd">
+		select * from tb_collect_info where item_id in(
+		select item_id from tb_collect_info where uuid=#{info_id}) and status=0
+		and come_fund_id in(
+			select com_no from tb_come_fund where com_type in(1,2)
+		)
+	</select>
+	
+	<insert id="saveOffsetStage" parameterType="pd">
+		insert into tb_offset_stage(
+			id,
+			info_id,
+			input_date,
+			input_user
+		)values(
+			#{id},
+			#{info_id},
+			now(),
+			#{USER_ID}
+		)
+	</insert>
+	
+	<update id="updateQuotaSet" parameterType="pd">
+		update tb_quota_set set quota=#{quota} where f_id=#{f_id} and type=#{type}
+	</update>
+	
+	<select id="findQuotaSet" parameterType="pd" resultType="String">
+		select quota from tb_quota_set where f_id=#{f_id} and type=#{type}
+	</select>
+	
+	<select id="findAgentByInfoId" parameterType="String" resultType="String">
+		select order_org from tb_item where sale_type in(2,3) and item_id in(
+			select item_id from tb_collect_info where uuid=#{info_id}
+		)
+	</select>
+	
+	<select id="findMoneyByInfoId" parameterType="String" resultType="String">
+		select money from tb_collect_info where uuid=#{info_id}
+	</select>
+	
+	
+	<update id="updateInfoStatus" parameterType="String">
+		update tb_collect_info set status=3 where uuid=#{info_id}
+	</update>
+	
+	<select id="findElevatorStage" parameterType="pd" resultType="pd">
+		select e.id,e.no,c.stage,c.total from tb_elevator_details e
+			left join (select * from tb_collect_stage where stage=#{stage}) c on e.id=c.details_id where e.item_id=#{item_id}
+	</select>
+	
+	<update id="editCollectSet" parameterType="pd">
+		update tb_collect_set set contract=#{contract},product=#{product},shipment=#{shipment},install=#{install},arrival=#{arrival},adjust=#{adjust},accept=#{accept},remit=#{remit},quality=#{quality},total=#{total} where item_id=#{item_id}
+	</update>
+	
+	<delete id="deleteCollectStage" parameterType="pd">
+		delete from tb_collect_stage where details_id=#{details_id} and stage=#{stage}
+	</delete>
+	
+	<select id="findElevatorStageForEdit" parameterType="pd" resultType="pd">
+		select e.id as details_id,c.total as total from tb_elevator_details e
+			left join (select * from tb_collect_stage where stage=#{stage}) c on e.id=c.details_id where e.item_id=#{item_id}
+	</select>
+	
+	<!-- 查询项目合同类型 -->
+	<select id="findItemContractType" parameterType="String" resultType="String">
+		select contract_type from tb_item where item_id=#{item_id}
+	</select>
+	
+	<!-- 根据合同类型查询项目列表 -->
+	<select id="findItemListByContractType" parameterType="String" resultType="pd">
+		select item_id,item_no,item_name from tb_item where contract_type=#{contract_type}
+	</select>
+	
+</mapper>

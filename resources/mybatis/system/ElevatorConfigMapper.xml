@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="ElevatorConfigMapper">
+
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+	
+	
+	<!-- 电梯标准配置分页列表 -->
+    <select id="elevatorBaselistPage" parameterType="page" resultType="pd" useCache="false">
+        select *
+        	   from tb_elevator_base a where 1=1
+        	 
+        <if test="pd.elevator_base_name!=null and pd.elevator_base_name !=''">
+        	 AND (elevator_base_name LIKE CONCAT(CONCAT('%', #{pd.elevator_base_name}),'%'))
+        </if>
+        
+      
+    </select>
+    
+    
+    
+    <!-- 根据ID查询电梯标准配置对象 -->
+    <select id="findElevatorBaseById"  resultType="pd">
+		select * from tb_elevator_base where 1=1
+		<if test="elevator_base_id!=null and elevator_base_id!=''">
+			and elevator_base_id = #{elevator_base_id}
+		</if>
+	</select>
+	
+	<!-- 根据ID查询电梯标准配置集合 -->
+	<select id="findElevatorBaseListById" parameterType="pd" resultType="pd">
+		SELECT
+		eb.*, e.elevator_name
+		FROM
+		tb_elevator_base AS eb
+		LEFT JOIN tb_elevator AS e ON eb.elevator_id = e.elevator_id where 1=1
+		<if test="elevator_base_id!=null and elevator_base_id!=''">
+			and eb.elevator_base_id = #{elevator_base_id}
+		</if>
+		<if test="elevator_id != null and elevator_id != '' ">
+			and e.elevator_id = #{elevator_id}
+		</if>
+	</select>
+	
+	
+	<!-- 电梯标准配置名称是否存在重复 -->
+    <select id="existsElevatorBaseName" parameterType="pd" resultType="pd">
+    	select * from tb_elevator_base where elevator_base_name=#{elevator_base_name} 
+    	<if test="elevator_base_id !=null and elevator_base_id !=''">
+    		and elevator_base_id not in (#{elevator_base_id})
+    	</if>
+    </select>
+    
+    <!-- 电梯标准配置添加 -->
+    <insert id="elevatorBaseAdd" parameterType="pd">
+    	insert into tb_elevator_base(
+    		elevator_base_name,
+    		
+    		elevator_base_description,
+    		elevator_id
+    		
+    	)values(
+    		#{elevator_base_name},
+    		
+    		#{elevator_base_description},
+    		#{elevator_id}
+    	)
+    </insert>
+    
+    <!-- 电梯标准配置更新 -->
+    <update id="elevatorBaseUpdate" parameterType="pd">
+    	update tb_elevator_base
+    	<set>
+    		elevator_base_name = #{elevator_base_name},
+ 
+    		elevator_base_description = #{elevator_base_description},
+    		
+    		elevator_id = #{elevator_id},
+    	</set>
+    	where elevator_base_id=#{elevator_base_id}
+    </update>
+    
+     <!-- 电梯标准配置删除 -->
+     <delete id="elevatorBaseDeleteById">
+		delete from tb_elevator_base
+    	where elevator_base_id = #{elevator_base_id}
+
+	</delete>
+	
+	
+	<!-- **************************************电梯可选配置分割线************************************************** -->
+	
+	<!-- 电梯可选配置分页列表 -->
+    <select id="elevatorOptionallistPage" parameterType="page" resultType="pd" useCache="false">
+      
+        	  select a.*,
+				b.name AS oneMenuName,
+				c.name AS twoMenuName,
+				d.name AS threeMenuName,
+				e.name AS fourMenuName 
+				from tb_elevator_optional a 
+				LEFT JOIN tb_elevator_cascade b ON a.one_menu_id = b.id
+				left JOIN tb_elevator_cascade c ON a.two_menu_id = c.id
+				LEFT JOIN tb_elevator_cascade d ON a.three_menu_id = d.id
+				LEFT JOIN tb_elevator_cascade e ON a.four_menu_id = e.id
+        	 	where 1=1
+        <if test="pd.elevator_optional_name !=null and pd.elevator_optional_name !=''">
+        	 AND (b.name LIKE CONCAT(CONCAT('%', #{pd.elevator_optional_name}),'%'))
+        </if>
+         <if test="pd.elevator_id !=null and pd.elevator_id !=''">
+        	 AND a.elevator_id = #{pd.elevator_id}
+        </if>
+    </select>
+	
+	<!-- 根据电梯类型Id查询电梯可选配置集合 -->
+	<select id="findElevatorOptionalListByElevatorId" parameterType="pd" resultType="pd">
+		select a.*,
+				b.name AS oneMenuName,
+				c.name AS twoMenuName,
+				d.name AS threeMenuName,
+				e.name AS fourMenuName,
+				f.elevator_unit_name 
+				from tb_elevator_optional a 
+				LEFT JOIN tb_elevator_cascade b ON a.one_menu_id = b.id
+				left JOIN tb_elevator_cascade c ON a.two_menu_id = c.id
+				LEFT JOIN tb_elevator_cascade d ON a.three_menu_id = d.id
+				LEFT JOIN tb_elevator_cascade e ON a.four_menu_id = e.id
+				LEFT JOIN tb_elevator_unit f ON a.elevator_unit_id = f.elevator_unit_id
+        	 	where 1=1
+        <if test="elevator_id != null and elevator_id != '' ">
+        	and a.elevator_id = #{elevator_id}
+        </if>	 	
+	</select>
+	
+     <!-- 根据ID查询电梯可选配置对象 -->
+    <select id="findElevatorOptionalById"  resultType="pd">
+		select a.*,b.`name` FROM tb_elevator_optional a
+		LEFT JOIN tb_elevator_cascade b ON a.id=b.id WHERE 1=1
+		<if test="elevator_optional_id!=null and elevator_optional_id!=''">
+			and a.elevator_optional_id = #{elevator_optional_id}
+		</if>
+		<if test="id != null and id != '' ">
+			and a.id = #{id}
+		</if>
+	</select>
+	
+	<!-- 根据ID查询电梯可选配置集合 -->
+	<select id="findElevatorOptionalListById" parameterType="pd" resultType="pd">
+		select * from tb_elevator_optional where 1=1
+		<if test="elevator_optional_id!=null and elevator_optional_id!=''">
+			and elevator_optional_id = #{elevator_optional_id}
+		</if>
+	</select>
+	
+	
+	<!-- 电梯可选配置名称是否存在重复 -->
+    <select id="existsElevatorWeightName" parameterType="pd" resultType="pd">
+    	select * from tb_elevator_optional where elevator_optional_name=#{elevator_optional_name} 
+    	<if test="elevator_optional_id !=null and elevator_optional_id !=''">
+    		and elevator_optional_id not in (#{elevator_optional_id})
+    	</if>
+    </select>
+    
+    <!-- 电梯可选配置添加 -->
+    <insert id="elevatorOptionalAdd" parameterType="pd">
+    	insert into tb_elevator_optional(
+    		id,
+    		elevator_optional_price,
+    		elevator_unit_id,
+    		elevator_optional_delivery,
+    		elevator_optional_description,
+    		elevator_id,
+    		one_menu_id,
+    		two_menu_id,
+    		three_menu_id,
+    		four_menu_id,
+    		elevator_optional_type
+    	)values(
+    		#{id},
+    		#{elevator_optional_price},
+    		#{elevator_unit_id},
+    		#{elevator_optional_delivery},
+    		#{elevator_optional_description},
+    		#{elevator_id},
+    		#{one_menu_id},
+    		#{two_menu_id},
+    		#{three_menu_id},
+    		#{four_menu_id},
+    		#{elevator_optional_type}
+    	)
+    </insert>
+    
+    <!-- 电梯可选配置更新 -->
+    <update id="elevatorOptionalUpdate" parameterType="pd">
+    	update tb_elevator_optional
+    	<set>
+    		id = #{id},
+    		elevator_optional_price = #{elevator_optional_price},
+    		elevator_unit_id = #{elevator_unit_id},
+    		elevator_optional_delivery = #{elevator_optional_delivery},
+    		elevator_optional_description = #{elevator_optional_description},
+    		elevator_id	= #{elevator_id},
+    		one_menu_id = #{one_menu_id},
+    		two_menu_id = #{two_menu_id},
+    		three_menu_id = #{three_menu_id},
+    		four_menu_id = #{four_menu_id},
+    		elevator_optional_type = #{elevator_optional_type},
+    	</set>
+    	where elevator_optional_id=#{elevator_optional_id}
+    </update>
+    
+     <!-- 电梯可选配置删除 -->
+     <delete id="elevatorOptionalDeleteById">
+		delete from tb_elevator_optional
+    	where elevator_optional_id = #{elevator_optional_id}
+
+	</delete>
+	
+	
+	<!-- **************************************电梯非标配置分割线************************************************** -->
+	
+	
+	<!-- 电梯非标配置分页列表 -->
+    <select id="elevatorNonstandardlistPage" parameterType="page" resultType="pd" useCache="false">
+        select a.*,
+		b.name AS oneMenuName,
+		c.name AS twoMenuName,
+		d.name AS threeMenuName,
+		e.name AS fourMenuName,
+		f.elevator_unit_name
+		from tb_elevator_nonstandard a 
+		LEFT JOIN tb_elevator_cascade b ON a.one_menu_id = b.id
+		left JOIN tb_elevator_cascade c ON a.two_menu_id = c.id
+		LEFT JOIN tb_elevator_cascade d ON a.three_menu_id = d.id
+		LEFT JOIN tb_elevator_cascade e ON a.four_menu_id = e.id
+		LEFT JOIN tb_elevator_unit f ON a.elevator_unit_id = f.elevator_unit_id
+		WHERE 1=1
+        	 
+        <if test="pd.elevator_nonstandard_name!=null and pd.elevator_nonstandard_name !=''">
+        	 AND (b.name LIKE CONCAT(CONCAT('%', #{pd.elevator_nonstandard_name}),'%'))
+        </if>
+        
+        <if test="pd.elevator_nonstandard_state !=null and pd.elevator_nonstandard_state !=''">
+        	AND a.elevator_nonstandard_state = #{pd.elevator_nonstandard_state}
+        </if>
+    </select>
+    
+    
+     <!-- 根据ID查询电梯非标配置对象 -->
+    <select id="findElevatorNonstandardById"  resultType="pd">
+		select a.*,b.`name` FROM tb_elevator_nonstandard a
+		LEFT JOIN tb_elevator_cascade b ON a.id=b.id WHERE 1=1 
+		<if test="elevator_nonstandard_id!=null and elevator_nonstandard_id!=''">
+			and a.elevator_nonstandard_id = #{elevator_nonstandard_id}
+		</if>
+		and a.elevator_nonstandard_state = 1
+		<if test="id != null and id != '' ">
+			and a.id = #{id}
+		</if>
+	</select>
+	
+	<!-- 根据ID查询电梯非标配置集合 -->
+	<select id="findElevatorNonstandardListById" parameterType="pd" resultType="pd">
+		select * from tb_elevator_nonstandard where 1=1
+		<if test="elevator_nonstandard_id!=null and elevator_nonstandard_id!=''">
+			and elevator_nonstandard_id = #{elevator_nonstandard_id}
+		</if>
+		<if test="elevator_base_id!=null and elevator_base_id!=''">
+			and elevator_base_id = #{elevator_base_id}
+		</if>
+		<if test="elevator_nonstandard_state != null and elevator_nonstandard_state != '' ">
+			and elevator_nonstandard_state = #{elevator_nonstandard_state}
+		</if>
+	</select>
+	
+	<!-- 根据电梯类型Id查询电梯非标配置集合 -->
+	<select id="findElevatorNonstandardListByElevatorId" parameterType="pd" resultType="pd">
+		select a.*,
+				b.name AS oneMenuName,
+				c.name AS twoMenuName,
+				d.name AS threeMenuName,
+				e.name AS fourMenuName,
+				f.elevator_unit_name 
+				from tb_elevator_nonstandard a 
+				LEFT JOIN tb_elevator_cascade b ON a.one_menu_id = b.id
+				left JOIN tb_elevator_cascade c ON a.two_menu_id = c.id
+				LEFT JOIN tb_elevator_cascade d ON a.three_menu_id = d.id
+				LEFT JOIN tb_elevator_cascade e ON a.four_menu_id = e.id
+				LEFT JOIN tb_elevator_unit f ON a.elevator_unit_id = f.elevator_unit_id
+        	 	where 1=1
+        	 	and elevator_nonstandard_state = 1
+        <if test="elevator_id != null and elevator_id != '' ">
+        	and a.elevator_id = #{elevator_id}
+        </if>	 	
+	</select>
+	
+	<!-- 查询电梯非标配置集合 -->
+	<select id="findElevatorNonstandardList" parameterType="pd" resultType="pd">
+		SELECT
+			a.*, b.`name`
+		FROM
+			`tb_elevator_nonstandard` a
+		LEFT JOIN tb_elevator_cascade b ON a.id = b.id
+		WHERE
+			1 = 1
+		AND a.elevator_id = #{elevator_id}
+		AND a.elevator_nonstandard_state = #{elevator_nonstandard_state}
+	</select>
+	
+	
+	<!-- 电梯非标配置名称是否存在重复 -->
+    <select id="existsElevatorNonstandardName" parameterType="pd" resultType="pd">
+    	select * from tb_elevator_nonstandard where elevator_nonstandard_name=#{elevator_nonstandard_name} 
+    	<if test="elevator_nonstandard_id !=null and elevator_nonstandard_id !=''">
+    		and elevator_nonstandard_id not in (#{elevator_nonstandard_id})
+    	</if>
+    </select>
+    
+    <!-- 电梯非标配置添加 -->
+    <insert id="elevatorNonstandardAdd" parameterType="pd">
+    	insert into tb_elevator_nonstandard(
+    		id,
+    		elevator_id,
+    		elevator_unit_id,
+    		elevator_nonstandard_state,
+    		elevator_nonstandard_delivery,
+    		elevator_nonstandard_price,
+    		elevator_nonstandard_description,
+    		one_menu_id,
+    		two_menu_id,
+    		three_menu_id,
+    		four_menu_id
+    	)values(
+    		#{id},
+    		#{elevator_id},
+    		#{elevator_unit_id},
+    		#{elevator_nonstandard_state},
+    		#{elevator_nonstandard_delivery},
+    		#{elevator_nonstandard_price},
+    		#{elevator_nonstandard_description}
+    		#{one_menu_id},
+    		#{two_menu_id},
+    		#{three_menu_id},
+    		#{four_menu_id}
+    	)
+    </insert>
+    
+    <!-- 电梯非标配置更新 -->
+    <update id="elevatorNonstandardUpdate" parameterType="pd">
+    	update tb_elevator_nonstandard
+    	<set>
+    		id = #{id},
+    		elevator_id = #{elevator_id},
+    		elevator_unit_id = #{elevator_unit_id},
+    		<if test="elevator_nonstandard_state != null and elevator_nonstandard_state != '' ">
+    			elevator_nonstandard_state = #{elevator_nonstandard_state},
+    		</if>
+    		elevator_nonstandard_delivery = #{elevator_nonstandard_delivery},
+    		elevator_nonstandard_price = #{elevator_nonstandard_price},
+    		elevator_nonstandard_description = #{elevator_nonstandard_description},
+    		one_menu_id = #{one_menu_id},
+    		two_menu_id = #{two_menu_id},
+    		three_menu_id = #{three_menu_id},
+    		four_menu_id = #{four_menu_id},
+    		
+    	</set>
+    	where elevator_nonstandard_id=#{elevator_nonstandard_id}
+    </update>
+    
+     <!-- 电梯非标配置删除 -->
+     <delete id="elevatorNonstandardDeleteById">
+		delete from tb_elevator_nonstandard
+    	where elevator_nonstandard_id = #{elevator_nonstandard_id}
+	</delete>
+	
+	
+	
+</mapper>	

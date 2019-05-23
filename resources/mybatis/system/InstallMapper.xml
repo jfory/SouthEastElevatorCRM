@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="InstallMapper">
+	
+	<select id="findInstallList"  parameterType="page" resultType="pd">
+		<!-- select * from tb_install -->
+		select a.*,b.item_no,b.item_name from tb_install a
+			left join tb_item b on a.item_id=b.item_id
+	</select>	
+	
+	<insert id="saveInstall" parameterType="pd">
+		insert into tb_install(
+			item_id,
+			contractor_id,
+			status,
+			tow,
+			hyd,
+			authorize,
+			buyout
+		)values(
+			#{item_id},
+			#{contractor_id},
+			#{status},
+			#{tow},
+			#{hyd},
+			#{authorize},
+			#{buyout}
+		)
+	</insert>
+	
+	<select id="findInstallById" parameterType="pd" resultType="pd">
+		select * from tb_install where id=#{id}
+	</select>
+	
+	<delete id="deleteInstall" parameterType="pd">
+		delete from tb_install where id=#{id}
+	</delete>
+	
+	<select id="findConsigneeList"  parameterType="String" resultType="pd" >
+		select * from tb_consignee where item_id=#{item_id}
+	</select>
+	
+	<select id="findShipmentsList" parameterType="String" resultType="pd">
+		select * from tb_shipments where item_id=#{item_id}
+	</select>
+	
+	<update id="updateShipmentsState" parameterType="pd">
+		update tb_shipments set state=#{state} where shipments_id=#{shipments_id}
+	</update>
+	
+	<select id="findEncasementListByShipments" parameterType="String"  resultType="pd">
+		select * from tb_encasement where shipments_id=#{shipments_id}
+	</select>
+	
+	<select id="findEncasementListByReceive" parameterType="String"  resultType="pd">
+		<!-- select * from tb_encasement where receive_id=#{receive_id} -->
+		select e.*,u.status from tb_encasement e left join tb_unbox u on u.encasement_id=e.encasement_id
+		where e.receive_id=#{receive_id}
+	</select>
+	
+	<select id="findEncasement" parameterType="String"  resultType="pd">
+		select * from tb_encasement where encasement_id=#{encasement_id}
+	</select>
+	
+	<insert id="saveReceive" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+		insert into tb_receive(
+			item_id,
+			shipments_id,
+			send_user,
+			recv_user,
+			recv_date,
+			status,
+			descript
+		)values(
+			#{item_id},
+			#{shipments_id},
+			#{send_user},
+			#{recv_user},
+			now(),
+			#{status},
+			#{descript}
+		)
+	</insert>
+	
+	<select id="findReceiveList" parameterType="String" resultType="pd">
+		select r.*,u.name from tb_receive r left join sys_user u on r.recv_user = u.user_id
+		where r.item_id=#{item_id}
+	</select>
+	
+	<update id="updateEncasementReceive" parameterType="pd">
+		update tb_encasement set receive_id=#{receive_id} where shipments_id=#{shipments_id}
+	</update>
+	
+	<insert id="saveUnbox" parameterType="pd">
+		insert into tb_unbox(
+			recv_id,
+			encasement_id,
+			unbox_user,
+			is_defect,
+			bill_defect,
+			status,
+			remark
+		)values(
+			#{recv_id},
+			#{encasement_id},
+			#{unbox_user},
+			#{is_defect},
+			#{bill_defect},
+			#{status},
+			#{remark}
+		)
+	</insert>
+	
+	<select id="findUnboxListByUser" parameterType="String" resultType="pd" >
+		<!-- select * from tb_unbox where unbox_user=#{USER_ID} -->
+		select e.consignee_id,e.receive_id,u.* from tb_unbox u
+			left join tb_encasement e on u.encasement_id=e.encasement_id
+				where u.unbox_user=#{USER_ID}
+	</select>
+	
+	<select id="findSupplementList" parameterType="String" resultType="pd">
+		select s.*,u.name from tb_supplement s left join sys_user u on s.input_user=u.user_id
+		where s.input_user=#{USER_ID}
+	</select>
+	
+	<select id="findUnboxSupplement" parameterType="pd" resultType="pd">
+		select b.*,u.name from tb_unbox b left join sys_user u on u.user_id=b.unbox_user 
+		where b.is_defect=#{is_defect} and b.status=#{status} and b.unbox_user=#{USER_ID}
+	</select>
+	
+	<insert id="saveSupplement" parameterType="pd">
+		insert into tb_supplement(
+			unbox_id,
+			input_user,
+			input_date,
+			status,
+			remark,
+			instance_id
+		)values(
+			#{unbox_id},
+			#{USER_ID},
+			now(),
+			#{status},
+			#{remark},
+			#{instance_id}
+		)
+	</insert>
+	
+	<update id="updateUnboxStatus" parameterType="pd">
+		update tb_unbox set status=#{status} where id=#{id}
+	</update>
+	
+	<update id="updateUnboxStatusBySupplement" parameterType="pd">
+		update tb_unbox set status=#{status} where id=
+		(select unbox_id from tb_supplement where id=#{id})
+	</update>
+	
+	<update id="updateUnboxStatusByDetails" parameterType="pd">
+		update tb_unbox set status=#{status} where id in
+		(select a.* from (select u.id from tb_unbox u left join tb_encasement e
+		on e.encasement_id=u.encasement_id where e.details_id=#{details_id})a)
+	</update>
+	
+	<update id="updateUnboxStatusByWork" parameterType="pd">
+		update tb_unbox set status=#{status} where id in
+		(select m.* from (select u.id from tb_unbox u left join tb_encasement e
+		on e.encasement_id=u.encasement_id where e.details_id=(
+		select details_id from tb_standard_qc q
+		left join tb_adjust_apply a on a.qc_id=q.id
+		left join tb_adjust_work w on w.apply_id=a.id
+		where w.id=#{work_id}
+		))m)
+	</update>
+	
+	<select id="findFactoryTypeByBoxId" parameterType="String" resultType="String">
+		select elevator_id from tb_encasement where encasement_id in(
+			select encasement_id from tb_unbox where id=#{id}
+		)
+	</select>
+	
+	<update id="updateSupplementInstance" parameterType="pd">
+		update tb_supplement set instance_id=#{instance_id},status=#{status} where id=#{id}
+	</update>
+	
+	<select id="findSupplementById" parameterType="pd" resultType="pd">
+		select s.*,u.name from tb_supplement s left join sys_user u on s.input_user=u.user_id
+		where s.id=#{id}
+	</select>
+	
+	<select id="findStandard" parameterType="pd" resultType="pd">
+		select * from tb_standard
+	</select>
+	
+	<select id="findInstallElevator" parameterType="String" resultType="pd">
+		<!-- select r.item_id,a.* from (
+			select u.status,e.* from tb_encasement e left join tb_unbox u on u.encasement_id=e.encasement_id 
+				)a left join tb_receive r on r.id=a.receive_id
+					where r.item_id=#{item_id} -->
+		select e.*,te.elevator_name,tm.models_name from (
+			select * from (
+				select c.details_id,c.status,count(*)as num from (
+						select b.status,b.details_id from (
+							select r.item_id,a.* from (
+								select u.status,e.* from tb_encasement e 
+									left join tb_unbox u on u.encasement_id=e.encasement_id 
+								)a 
+							left join tb_receive r on r.id=a.receive_id 
+							where r.item_id=#{item_id}
+						)b
+				)c
+				group by c.status,c.details_id
+			)m 
+			where m.details_id in(
+				select details_id from (
+					select details_id,count(*) as num from (
+						select c.details_id,c.status,count(*)as num from (
+							select b.status,b.details_id from (
+								select r.item_id,a.* from (
+									select u.status,e.* from tb_encasement e 
+										left join tb_unbox u on u.encasement_id=e.encasement_id 
+									)a 
+									left join tb_receive r on r.id=a.receive_id 
+									where r.item_id=#{item_id}
+								)b
+						)c
+						group by c.status,c.details_id
+					)d group by details_id having num=1
+				)n
+			) and m.status=2
+		)l
+		left join tb_elevator_details e
+		on e.id=l.details_id
+		left join tb_elevator te
+		on e.elevator_id=te.elevator_id
+		left join (
+			select *,1 as flag from tb_models union
+			select *,2 as flag from tb_models_info
+		)tm
+		on e.models_id=tm.models_id and e.flag=tm.flag and e.flag=2
+	</select>
+	
+	<select id="findCheckJsonByModelsId" parameterType="String" resultType="String">
+		select check_json from tb_standard where models_id=#{models_id}
+	</select>
+	
+	<insert id="saveStandardQC" parameterType="pd">
+		insert into tb_standard_qc(
+			details_id,
+			check_json,
+			check_date,
+			check_user,
+			remark
+		)values(
+			#{details_id},
+			#{check_json},
+			now(),
+			#{USER_ID},
+			#{remark}
+		)
+	</insert>
+	
+	<select id="findInstallDetailsByItemId" parameterType="String" resultType="pd">
+		<!-- select i.*,te.elevator_name,tm.models_name from(
+		select distinct d.* from tb_unbox u,tb_elevator_details d,tb_encasement e
+		where u.encasement_id = e.encasement_id and e.details_id = d.id and u.status=3 and d.item_id=#{item_id})i
+		left join tb_elevator te on i.elevator_id=te.elevator_id
+		left join (
+		select *,1 as flag from tb_models union
+		select *,2 as flag from tb_models_info)tm 
+		on i.models_id=tm.models_id and i.flag=tm.flag -->
+		
+		select i.*,q.id as qc_id,q.details_id,te.elevator_name,tm.models_name from(
+		select distinct d.*,u.status from tb_unbox u,tb_elevator_details d,tb_encasement e
+		where u.encasement_id = e.encasement_id and e.details_id = d.id and u.status in(3,4,5,6,7,30,50,70,71,72) 
+		and d.item_id=#{item_id})i
+		left join tb_elevator te on i.elevator_id=te.elevator_id
+		left join (
+		select *,1 as flag from tb_models union
+		select *,2 as flag from tb_models_info)tm 
+		on i.models_id=tm.models_id and i.flag=tm.flag
+		left join tb_standard_qc q
+		on i.id = q.details_id
+		where i.flag=2
+	</select>
+	
+	<insert id="saveAdjustApply" parameterType="pd">
+		insert into tb_adjust_apply(
+			qc_id,
+			factory,
+			status,
+			descript,
+			apply_user,
+			examin_user,
+			input_date,
+			type
+		)values(
+			#{qc_id},
+			#{factory},
+			#{status},
+			#{descript},
+			#{USER_ID},
+			#{examin_user},
+			now(),
+			#{type}
+		)
+	</insert>
+	
+	<select id="findModelsList" resultType="pd">
+		select * from tb_models
+	</select>
+	
+	<select id="findModelsInfoList" resultType="pd">
+		select * from tb_models_info
+	</select>
+	
+	<select id="findModelsListByElevatorType" parameterType="String" resultType="pd">
+		select * from tb_models_info where elevator_id=#{elevator_id}
+	</select>
+	
+	<insert id="saveStandard" parameterType="pd">
+		insert into tb_standard(
+			models_id,
+			check_json,
+			status,
+			remark
+		)values(
+			#{models_id},
+			#{check_json},
+			#{status},
+			#{remark}
+		)
+	</insert>
+	
+	<select id="findAdjustApplyList" resultType="pd">
+		select * from tb_adjust_apply where status!=2
+	</select>
+	
+	<select id="findAdjustApplyListDone" resultType="pd">
+		select * from tb_adjust_apply where status not in(0,1)
+	</select>
+	
+	<update id="claimAdjustApply" parameterType="pd">
+		update tb_adjust_apply set status=#{status},examin_user=#{USER_ID} where id=#{id}
+	</update>
+	
+	<update id="updateAdjustApplyStatus" parameterType="pd">
+		update tb_adjust_apply set status=#{status} where id=#{id}
+	</update>
+	
+	<insert id="saveWorkAdjust" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+		insert into tb_adjust_work(
+			apply_id,
+			work_user,
+			work_date,
+			work_address,
+			remark,
+			input_date
+		)values(
+			#{apply_id},
+			#{work_user},
+			#{work_date},
+			#{work_address},
+			#{remark},
+			now()
+		)
+	</insert>
+	
+	<select id="findUserList" resultType="pd">
+		select user_id,name from sys_user where user_id!=1
+	</select>
+	
+	<select id="findWorkIdByApplyAndDetails" parameterType="pd" resultType="String">
+		select w.id from tb_adjust_work w
+		left join tb_adjust_apply a on a.id=w.apply_id
+		left join tb_standard_qc q on q.id=a.qc_id
+		where a.type=#{type} and q.details_id=#{details_id}
+	</select>
+	
+	<select id="findModelsIdByDetails" parameterType="String" resultType="String">
+		select models_id from tb_elevator_details where id=#{id}
+	</select>
+	
+	<insert id="saveAdjustReport" parameterType="pd">
+		insert into tb_adjust_report(
+			work_id,
+			check_json,
+			std_json,
+			unstd_json,
+			input_date,
+			input_user,
+			operater
+		)values(
+			#{work_id},
+			#{check_json},
+			#{std_json},
+			#{unstd_json},
+			now(),
+			#{USER_ID},
+			#{operater}
+		)
+	</insert>
+	
+	<insert id="saveCorrectDefault" parameterType="pd">
+		insert into tb_correct(
+			details_id,
+			status,
+			init
+		)values(
+			#{details_id},
+			#{status},
+			#{init}
+		)
+	</insert>
+	
+	<select id="findCorrectList" parameterType="page" resultType="pd">
+		<!-- select * from tb_correct where status=1 -->
+		select c.*,i.item_name,e.elevator_name,d.no from tb_correct c 
+		left join tb_elevator_details d on c.details_id = d.id
+		left join tb_elevator e on d.elevator_id = e.elevator_id
+		left join tb_item i on d.item_id = i.item_id
+		where c.status=1
+	</select>
+	
+	<select id="findCorrectDoneList" parameterType="page" resultType="pd">
+		<!-- select * from tb_correct where status=1 -->
+		select c.*,i.item_name,e.elevator_name,d.no from tb_correct c 
+		left join tb_elevator_details d on c.details_id = d.id
+		left join tb_elevator e on d.elevator_id = e.elevator_id
+		left join tb_item i on d.item_id = i.item_id
+		where (c.status=0)or(c.status=1 and c.init!=0)
+	</select>
+	
+	<update id="updateCorrectInit" parameterType="pd">
+		update tb_correct set init=#{init} where id=#{id}
+	</update>
+	
+	<update id="updateCorrectStatus" parameterType="pd">
+		update tb_correct set status=#{status} where id=#{id}
+	</update>
+	
+	<insert id="saveCorrectReport" parameterType="pd">
+		insert into tb_correct_report(
+			correct_id,
+			descript
+		)values(
+			#{correct_id},
+			#{descript}
+		)
+	</insert>
+	
+	<insert id="saveGovAccept" parameterType="pd">
+		insert into tb_gov_accept(
+			details_id,
+			apply_date,
+			check_date,
+			license_date,
+			correct_report,
+			gov_report,
+			coq
+		)values(
+			#{details_id},
+			#{apply_date},
+			#{check_date},
+			#{license_date},
+			#{correct_report},
+			#{gov_report},
+			#{coq}
+		)
+	</insert>
+	
+	
+	
+</mapper>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="RatingMapper">
+	
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+	<!-- 信用等级分页列表 -->
+    <select id="ratinglistPage" parameterType="page" resultType="pd" useCache="false">
+        select *
+        	   from tb_credit_rating  where 1=1
+        	  
+        <if test="pd.rating!=null and pd.rating !=''">
+        	 AND (rating LIKE CONCAT(CONCAT('%', #{pd.rating}),'%'))
+        </if>
+       	order by rating asc
+    </select>
+    
+    <select id="findAllRating"  resultType="pd" >
+        select *
+        	   from tb_credit_rating  where 1=1
+        	  
+        
+       	order by rating asc
+    </select>
+    
+   
+    <!-- 根据ID查找当前信用等级对象 -->
+    <select id="findRatingById" parameterType="String" resultType="pd">
+    	select * from tb_credit_rating where id = #{id}
+    </select>
+    
+    <select id="findById" resultType="pd" parameterType="pd">
+		SELECT *
+		  FROM tb_agent
+		 WHERE agent_id=#{agent_id}
+	</select>
+    
+    <!-- 信用等级添加 -->
+    <insert id="ratingAdd" parameterType="pd">
+    	insert into tb_credit_rating(
+    		id,
+    		rating,
+    		description
+    	)values(
+    		#{id},
+    		#{rating},
+    		#{description}
+    	)
+    </insert>
+    
+    
+    
+    <!-- 信用等级修改 -->
+    <update id="ratingUpdate" parameterType="pd">
+    	update tb_credit_rating 
+    	<set>
+    	rating=#{rating},
+    	description=#{description},
+    	
+    	</set>
+    	where id=#{id}
+    </update>
+    
+    <!-- 信用等级是否存在重复 -->
+    <select id="existsRating" parameterType="pd" resultType="pd">
+    	select * from tb_credit_rating where rating=#{rating} 
+    	<if test="id !=null and id !=''">
+    		and id not in (#{id})
+    	</if>
+    </select>
+    
+     <!-- 信用等级删除 -->
+    <delete id="ratingDeleteById" parameterType="String">
+    	delete from tb_credit_rating
+    	where id = #{id}
+    </delete>
+    
+    <!-- 信用等级批量删除 -->
+    <delete id="ratingDeleteAll" parameterType="String">
+    	delete from tb_credit_rating
+    	where id in
+    	<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+</mapper>

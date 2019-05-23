@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ContractNewAzMapper">
+    <!-- 查询全部设备 合同 信息 -->
+	<select id="SoContractlistPage" parameterType="page" resultType="pd">
+		SELECT
+			tb_so_contract.*,
+			eo.offer_version,
+			sys_user.`NAME` AS USER_NAME
+		FROM
+			tb_so_contract
+		LEFT JOIN
+			sys_user
+		ON
+			tb_so_contract.INPUT_USER=sys_user.USER_ID
+		LEFT JOIN
+			(SELECT offer_id,offer_version FROM tb_iteminoffer) AS eo ON tb_so_contract.`HT_OFFER_ID`= eo.offer_id 
+		WHERE 1=1
+		<if test="pd.item_name != null and pd.item_name != ''">
+			and tb_so_contract.item_name LIKE CONCAT(CONCAT('%',#{pd.item_name}),'%')
+		</if>
+		<if test="pd.HT_NO != null and pd.HT_NO != ''">
+			and tb_so_contract.HT_NO LIKE CONCAT(CONCAT('%',#{pd.HT_NO}),'%')
+		</if>
+		<if test="pd.ACT_STATUS != null and pd.ACT_STATUS != ''">
+			and tb_so_contract.ACT_STATUS LIKE CONCAT(CONCAT('%',#{pd.ACT_STATUS}),'%')
+		</if>
+		<if test="pd.userList!=null and pd.userList.size()>0">
+			and tb_so_contract.INPUT_USER in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+        </if>
+		order by INPUT_TIME DESC
+	</select>
+	
+	<!-- 查询全部安装合同 信息 -->
+	<select id="AzContractlistPage" parameterType="page" resultType="pd">
+		SELECT
+			tb_az_contract.*,
+			eo.offer_version,
+			sys_user.`NAME` AS USER_NAME
+		FROM
+			tb_az_contract
+		LEFT JOIN
+			sys_user
+		ON
+			tb_az_contract.INPUT_USER=sys_user.USER_ID
+		LEFT JOIN
+			(SELECT offer_id,offer_version FROM tb_iteminoffer) AS eo ON tb_az_contract.`AZ_OFFER_ID`= eo.offer_id 
+		WHERE 1=1
+		<if test="pd.item_name != null and pd.item_name != ''">
+			and tb_az_contract.item_name LIKE CONCAT(CONCAT('%',#{pd.item_name}),'%')
+		</if>
+		<if test="pd.AZ_NO != null and pd.AZ_NO != ''">
+			and tb_az_contract.AZ_NO LIKE CONCAT(CONCAT('%',#{pd.AZ_NO}),'%')
+		</if>
+		<if test="pd.ACT_STATUS != null and pd.ACT_STATUS != ''">
+			and tb_az_contract.ACT_STATUS LIKE CONCAT(CONCAT('%',#{pd.ACT_STATUS}),'%')
+		</if>
+		<if test="pd.userList!=null and pd.userList.size()>0">
+			and tb_az_contract.INPUT_USER in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+        </if>
+        order by INPUT_TIME DESC
+	</select>
+	
+    <!-- 根据 安装 合同 UUid获取 合同信息 -->
+	<select id="findAzConByUUid" parameterType="pd" resultType="pd">
+		SELECT
+		  tb_az_contract.*,
+		  sys_user.`NAME` as user_name
+		FROM
+		  tb_az_contract
+		LEFT JOIN
+		  sys_user
+		ON
+		  tb_az_contract.INPUT_USER=sys_user.USER_ID
+        WHERE tb_az_contract.AZ_UUID=#{AZ_UUID}
+        <if test="userList!=null and userList.size()>0">
+			and tb_az_contract.INPUT_USER in
+			<foreach collection="userList"  item="user_id" index="index" open="(" close=")" separator=",">
+				${user_id}
+			</foreach>
+		</if>
+	</select>
+
+	<!-- 根据合同id获取 tb_so_fkfs -->
+	<select id="findFkfsByHtId" parameterType="pd" resultType="pd">
+		SELECT
+		  *
+		FROM
+		  tb_so_fkfs
+		WHERE 
+		  FKFS_HT_UUID=#{AZ_UUID}
+	</select>
+    
+	<!-- 根据AZ_UUID 删除tb_so_fkfs -->
+	<delete id="deleteFkfs" parameterType="pd">
+		delete from tb_so_fkfs where FKFS_HT_UUID=#{AZ_UUID}
+	</delete>
+	
+	<!-- 根据AZ_UUID 删除tb_az_contract -->
+	<delete id="deleteContract" parameterType="pd">
+		delete from tb_az_contract where AZ_UUID=#{AZ_UUID}
+	</delete>
+    
+    <!-- 保存合同信息 -->
+	<insert id="save" parameterType="pd">
+		insert into tb_az_contract
+		(
+			AZ_UUID,
+			AZ_NO,
+			AZ_ITEM_ID,
+			AZ_OFFER_ID,
+			AZ_QDRQ,
+			AZ_MBQX,
+			AZ_JHFS,
+			AZ_ZBJBL,
+			AZ_LXR,
+			AZ_LXDH,
+			AZ_YJKGRQ,
+			AZ_FJSC,
+			AZ_WJLX,
+			AZ_YJSGZQ,
+			AZ_BZ,
+			ACT_KEY,
+			ACT_STATUS,
+			INPUT_USER,
+			INPUT_TIME,
+			customer_name,
+			item_name,
+			DT_NUM,
+			TOTAL,
+			HT_UUID,
+			PRICE,
+			AZ_YJFFRQ,
+			AZ_YJYSRQ,
+			AZ_YJZBJRQ
+		)values(
+			#{AZ_UUID},
+			#{AZ_NO},
+			#{item_id},
+			#{offer_id},
+			#{AZ_QDRQ},
+			#{AZ_MBQX},
+			#{AZ_JHFS},
+			#{AZ_ZBJBL},
+			#{AZ_LXR},
+			#{AZ_LXDH},
+			#{AZ_YJKGRQ},
+			#{AZ_FJSC},
+			#{AZ_WJLX},
+			#{AZ_YJSGZQ},
+			#{AZ_BZ},
+			#{ACT_KEY},
+			#{ACT_STATUS},
+			#{INPUT_USER},
+			#{INPUT_TIME},
+			#{customer_name},
+			#{item_name},
+			#{DTNUM},
+			#{TOTAL},
+			#{HT_UUID},
+			#{PRICE},
+			#{AZ_YJFFRQ},
+			#{AZ_YJYSRQ},
+			#{AZ_YJZBJRQ}
+		)
+	</insert>
+
+    <!-- 根据AZ_UUID 修改合同信息 -->
+	<update id="edit" parameterType="pd">
+	    UPDATE tb_az_contract
+		SET
+		  AZ_QDRQ        =#{AZ_QDRQ},
+		  AZ_MBQX         =#{AZ_MBQX},
+		  AZ_JHFS         =#{AZ_JHFS},
+		  AZ_ZBJBL        =#{AZ_ZBJBL},
+		  AZ_LXR         =#{AZ_LXR},
+		  AZ_LXDH         =#{AZ_LXDH},
+		  AZ_YJKGRQ        =#{AZ_YJKGRQ},
+		  AZ_FJSC         =#{AZ_FJSC},
+		  AZ_WJLX         =#{AZ_WJLX},
+		  AZ_YJSGZQ       =#{AZ_YJSGZQ},
+		  AZ_BZ           =#{AZ_BZ},
+		  PRICE           =#{PRICE},
+			AZ_YJFFRQ           =#{AZ_YJFFRQ},
+			AZ_YJYSRQ           =#{AZ_YJYSRQ},
+			AZ_YJZBJRQ          =#{AZ_YJZBJRQ}
+		Where
+		  AZ_UUID = #{AZ_UUID}
+	</update>
+	
+	 <!-- 根据Ht_UUID 修改安装合同总价 -->
+	<update id="editPrice" parameterType="pd">
+	    UPDATE tb_az_contract
+		SET
+		  PRICE        =#{AzPrice}
+		Where
+		  HT_UUID = #{HT_UUID}
+	</update>
+	
+	<!-- 修改流程Key -->
+    <update id="editAct_Key" parameterType="pd">
+        UPDATE tb_az_contract
+        SET
+        ACT_KEY    =#{ACT_KEY}
+        Where
+        AZ_UUID = #{AZ_UUID}
+    </update>
+    
+    <!-- 修改流程状态 -->
+    <update id="editAct_Status" parameterType="pd">
+        UPDATE tb_az_contract
+        SET
+        ACT_STATUS    =#{ACT_STATUS}
+        Where
+        AZ_UUID = #{AZ_UUID}
+    </update>
+    
+        <!-- 修改流程状态 -->
+    <update id="editAct_StatusEnd" parameterType="pd">
+        UPDATE tb_az_contract
+        SET
+        ACT_STATUS    =#{ACT_STATUS},
+        act_parallel_type = IFNULL(act_parallel_type,'0')+'1'
+        Where
+        AZ_UUID = #{AZ_UUID}
+    </update>
+    
+         <!-- 修改流程状态 -->
+    <update id="editAct_StatusError" parameterType="pd">
+        UPDATE tb_az_contract
+        SET
+        ACT_STATUS    =#{ACT_STATUS},
+        act_parallel_type = '0'
+        Where
+        AZ_UUID = #{AZ_UUID}
+    </update>
+    
+     <!-- 保存应收款信息 -->
+	<insert id="saveYsk" parameterType="pd">
+		insert into tb_so_ysk
+		(
+			YSK_UUID,
+			YSK_HT_ID,
+			YSK_ITEM_ID,
+			YSK_FKFS_ID,
+			YSK_QS,
+			YSK_KX,
+			YSK_YSJE,
+			YSK_YSRQ,
+			YSK_PCTS,
+			YSK_KP_ID,
+			YSK_LK_ID,
+			YSK_BZ,
+			YSK_AZ_NO,
+			item_name
+		)values(
+			#{YSK_UUID},
+			#{YSK_HT_ID},
+			#{YSK_ITEM_ID},
+			#{YSK_FKFS_ID},
+			#{YSK_QS},
+			#{YSK_KX},
+			#{YSK_YSJE},
+			#{YSK_YSRQ},
+			#{YSK_PCTS},
+			#{YSK_KP_ID},
+			#{YSK_LK_ID},
+			#{YSK_BZ},
+			#{YSK_AZ_NO},
+			#{item_name}
+		)
+	</insert>
+	
+	<!-- 应收款信息 列表 -->
+	<select id="SoYsklistPage" parameterType="page" resultType="pd">
+		SELECT
+		    ysk.*,
+    (case when ysk_AZ_no like 'AZ%' and YSK_KX ='1' then azcon.AZ_QDRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='6' then azcon.AZ_YJKGRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='7' then azcon.AZ_YJYSRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='8' then azcon.AZ_YJZBJRQ 
+          when ysk_AZ_no like 'TO%' and YSK_KX ='1' then con.HT_QDRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='2' then con.HT_YJFHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='3' then con.HT_JHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='4' then con.HT_JHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='7' then con.HT_YJYSRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='8' then con.HT_YJZBJRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='9' then con.HT_YJXYZRQ
+            else  NULL end) KX_YSRQ,
+TO_DAYS((case when ysk_AZ_no like 'AZ%' and YSK_KX ='1' then azcon.AZ_QDRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='6' then azcon.AZ_YJKGRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='7' then azcon.AZ_YJYSRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='8' then azcon.AZ_YJZBJRQ 
+          when ysk_AZ_no like 'TO%' and YSK_KX ='1' then con.HT_QDRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='2' then con.HT_YJFHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='3' then con.HT_JHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='4' then con.HT_JHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='7' then con.HT_YJYSRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='8' then con.HT_YJZBJRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='9' then con.HT_YJXYZRQ
+            else  NULL end))-TO_DAYS(NOW()) as DQTS
+            ,(case when ysk_AZ_no like 'AZ%'  then user1.NAME
+          when ysk_AZ_no like 'TO%' then user2.NAME
+else null end) as input_users,i.inv_price,lk.LK_LKJE
+		FROM
+		  tb_so_ysk as ysk
+    LEFT JOIN tb_so_contract as con
+      on ysk.ysk_AZ_no=con.HT_NO
+   LEFT JOIN tb_az_contract as azcon
+      on ysk.ysk_AZ_no=azcon.az_NO
+    LEFT JOIN sys_user as user1
+      on user1.USER_ID=azcon.INPUT_USER
+    LEFT JOIN sys_user as user2
+      on user2.USER_ID=con.INPUT_USER
+          LEFT JOIN (SELECT ht_uuid,inv_id,price_type,act_status,sum(inv_price) as inv_price FROM tb_invoice as a
+left join tb_invoice_info as b
+on a.id=b.inv_id where act_status=4
+GROUP BY ht_uuid,inv_id,price_type,act_status) as i
+    on i.ht_uuid=YSK_HT_ID AND i.price_type=YSK_KX
+    LEFT JOIN tb_so_lk lk ON ysk.YSK_LK_ID = lk.LK_UUID
+		where 1=1
+		<if test="pd.item_name != null and pd.item_name != ''">
+			and ysk.item_name LIKE CONCAT(CONCAT('%',#{pd.item_name}),'%')
+		</if>
+		<if test="pd.YSK_AZ_NO != null and pd.YSK_AZ_NO != ''">
+			and ysk.YSK_AZ_NO LIKE CONCAT(CONCAT('%',#{pd.YSK_AZ_NO}),'%')
+		</if>
+		<if test="pd.YSK_KX != null and pd.YSK_KX != ''">
+			and ysk.YSK_KX LIKE CONCAT(CONCAT('%',#{pd.YSK_KX}),'%')
+		</if>
+		<if test="pd.YSK_PCTS != null and pd.YSK_PCTS != ''">
+			and ysk.YSK_PCTS LIKE CONCAT(CONCAT('%',#{pd.YSK_PCTS}),'%')
+		</if>
+		<if test="pd.DQTS!= null and pd.DQTS != ''">
+			and IFNULL(TO_DAYS((case when ysk_AZ_no like 'AZ%' and YSK_KX ='1' then azcon.AZ_QDRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='6' then azcon.AZ_YJKGRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='7' then azcon.AZ_YJYSRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='8' then DATE_ADD(AZ_QDRQ,INTERVAL AZ_MBQX YEAR) 
+          when ysk_AZ_no like 'TO%' and YSK_KX ='1' then con.HT_QDRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='2' then con.HT_YJFHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='3' then con.HT_JHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='4' then con.HT_JHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='7' then con.HT_YJYSRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='8' then DATE_ADD(HT_QDRQ,INTERVAL HT_MBQX YEAR) 
+          when ysk_AZ_no like 'TO%' and YSK_KX ='9' then con.HT_YJXYZRQ
+            else  NULL end))-TO_DAYS(NOW()),0) &lt;= #{pd.DQTS}
+		</if>
+		<!-- <if test="pd.input_user!=null">
+			and (case when ysk_AZ_no like 'AZ%'  then azcon.INPUT_USER
+          when ysk_AZ_no like 'TO%' then con.INPUT_USER
+else null end) =
+	            #{pd.input_user}
+	      </if> -->
+	      <if test="pd.userList!=null and pd.userList.size()>0">
+			and (case when ysk_AZ_no like 'AZ%'  then azcon.INPUT_USER
+			          when ysk_AZ_no like 'TO%' then con.INPUT_USER
+			else null end) in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+				${user_id}
+			</foreach>
+		</if>
+	</select>
+	
+	<!-- 根据id获取 tb_so_ysk 应收款信息-->
+	<select id="findYskById" parameterType="pd" resultType="pd">
+		SELECT
+		  *
+		FROM
+		  tb_so_ysk
+		WHERE 
+		  YSK_UUID=#{YSK_UUID}
+	</select>
+	
+	<!-- 根据 id获取 tb_so_fkfs -->
+	<select id="findFkfsById" parameterType="pd" resultType="pd">
+		SELECT
+		  *
+		FROM
+		  tb_so_fkfs
+		WHERE 
+		  FKFS_UUID=#{YSK_FKFS_ID}
+	</select>
+	
+	<!-- 根据 id获取 tb_invoice -->
+	<select id="findInvoiceById" parameterType="pd" resultType="pd">
+		SELECT 
+		  tb_invoice.*,
+		  sys_user.`NAME` as user_name
+		FROM 
+		  tb_invoice
+		LEFT JOIN
+		 sys_user
+		ON
+		 tb_invoice.input_user=sys_user.USER_ID
+		WHERE 
+		tb_invoice.ysk_id=#{YSK_UUID}
+	</select>
+	
+	<!-- 安装合同输出 -->
+    <select id="printContractInstallation" parameterType="page" resultType="pd">
+		select 
+			*
+		from
+			tb_so_contract
+		where 1=1 limit 1
+	</select>
+	
+	
+	
+	<!-- 应收款信息 列表 -->
+	<select id="yskCount" parameterType="pd" resultType="String">
+		SELECT count(1)
+		  FROM
+		       tb_so_ysk as ysk
+     LEFT JOIN tb_so_contract as con
+            on ysk.ysk_AZ_no=con.HT_NO
+     LEFT JOIN tb_az_contract as azcon
+            on ysk.ysk_AZ_no=azcon.az_NO
+		 where 1=1 and IFNULL(TO_DAYS((case when ysk_AZ_no like 'AZ%' and YSK_KX ='1' then azcon.AZ_QDRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='6' then azcon.AZ_YJKGRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='7' then azcon.AZ_YJYSRQ
+          when ysk_AZ_no like 'AZ%' and YSK_KX ='8' then DATE_ADD(AZ_QDRQ,INTERVAL AZ_MBQX YEAR) 
+          when ysk_AZ_no like 'TO%' and YSK_KX ='1' then con.HT_QDRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='2' then con.HT_YJFHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='3' then con.HT_JHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='4' then con.HT_JHRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='7' then con.HT_YJYSRQ
+          when ysk_AZ_no like 'TO%' and YSK_KX ='8' then DATE_ADD(HT_QDRQ,INTERVAL HT_MBQX YEAR) 
+            else  NULL end))-TO_DAYS(NOW()),0) &lt;= #{DQTS}
+           <if test="input_user!=null">
+			and (case when ysk_AZ_no like 'AZ%'  then azcon.INPUT_USER
+          when ysk_AZ_no like 'TO%' then con.INPUT_USER
+else null end) =
+	            #{input_user}
+	      </if>
+		
+	</select>
+	
+	<!-- 显示待我处理的合同 -->
+	<select id="findAuditContractNewAzPage" parameterType="pd" resultType="pd">
+		select distinct con.*,RES.NAME_ as task_name,RES.ID_ as task_id,(case when RES.ASSIGNEE_ is not null then 1 else 0 end) as type,con.INPUT_TIME as TASK_TIME,'5' as TASK_TYPE  from ACT_RU_TASK RES
+		left join ACT_RU_IDENTITYLINK I on I.TASK_ID_ = RES.ID_ left join act_re_procdef proc on proc.ID_ = RES.PROC_DEF_ID_ 
+		left join act_ru_execution exe on RES.PROC_INST_ID_=exe.PROC_INST_ID_ 
+		right join (
+			SELECT
+			  a.*,
+			  u.`NAME` as user_name
+			FROM
+			  tb_az_contract a
+			LEFT JOIN sys_user u ON a.INPUT_USER=u.USER_ID
+			<where>
+				<if test="userList!=null and userList.size()>0">
+					and a.INPUT_USER in
+					<foreach collection="userList"  item="userId" index="index" open="(" close=")" separator=",">
+						${userId}
+					</foreach>
+				</if>
+			</where>
+		) con on con.AZ_UUID = substring_index(exe.BUSINESS_KEY_,'.', -1)
+		WHERE (
+		  RES.ASSIGNEE_ = #{user_id}
+		  or (
+			RES.ASSIGNEE_ is null
+			and (
+			  I.USER_ID_ = #{user_id}
+			  or
+			  I.GROUP_ID_ IN (
+				select g.GROUP_ID_ from ACT_ID_MEMBERSHIP g where g.USER_ID_ = #{user_id}
+			  )
+			)
+		  )
+		) and proc.KEY_ = 'ContractNewAZ' and exe.BUSINESS_KEY_  like 'tb_az_contract.AZ_UUID.%'
+		<if test="project_name != null and project_name != ''">
+			and con.item_name like CONCAT('%',#{project_name},'%')
+		</if>
+		order by RES.CREATE_TIME_ desc
+		<if test="firstResult != null and firstResult != '' and maxResults!=null and maxResults != ''">
+			limit #{firstResult},#{maxResults}
+		</if>
+	</select>
+	
+	<!-- 导出安装合同信息 -->
+	<select id="findContractNewAzExcel" parameterType="pd" resultType="pd">
+		SELECT
+			c.*,
+			customer.customer_no,
+			customer.customer_name as customer_name2,
+			u.`NAME` as USER_NAME,
+			ai.detailedAddress as item_install_address_excel,
+			eo.offer_no,
+			eo.offer_version,
+            so.HT_NO
+		FROM
+		  tb_az_contract AS c
+		LEFT JOIN 
+			tb_iteminoffer AS eo on eo.offer_id = c.AZ_OFFER_ID
+		LEFT JOIN 
+			tb_so_contract AS so on so.HT_UUID = c.HT_UUID 
+		LEFT JOIN (
+			SELECT
+				customer_no,
+				customer_name
+			FROM
+				tb_customer_core
+			UNION
+				SELECT
+					customer_no,
+					customer_name
+				FROM
+					tb_customer_merchant
+				UNION
+					SELECT
+						customer_no,
+						customer_name
+					FROM
+						tb_customer_ordinary
+		) AS customer ON eo.customer_no = customer.customer_no
+		LEFT JOIN
+		  sys_user AS u
+		ON
+		  c.INPUT_USER=u.USER_ID
+		LEFT JOIN view_getaddressname ai on ai.id = eo.item_install_address
+		where 1=1
+		<if test="item_name != null and item_name != ''">
+			and c.item_name LIKE CONCAT(CONCAT('%',#{item_name}),'%')
+		</if>
+		<if test="AZ_NO != null and AZ_NO != ''">
+			and c.AZ_NO LIKE CONCAT(CONCAT('%',#{AZ_NO}),'%')
+		</if>
+		<if test="ACT_STATUS != null and ACT_STATUS != ''">
+			and c.ACT_STATUS LIKE CONCAT(CONCAT('%',#{ACT_STATUS}),'%')
+		</if>
+		<if test="userList!=null and userList.size()>0">
+			and c.INPUT_USER in
+			<foreach collection="userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+        </if>
+		order by INPUT_TIME DESC
+	</select>
+	
+	<insert id="saveLk" parameterType="pd">
+		insert into tb_so_lk
+		(
+			LK_UUID,
+			LK_HT_ID,
+			LK_ITEM_ID,
+			LK_FKFS_ID,
+			LK_QS,
+			LK_KX,
+			LK_LKJE,
+			LK_LKRQ,
+			LK_BOND,
+			LK_REMARKS,
+			LK_INPUT_NAME,
+			LK_INPUT_DATE
+		)values(
+			#{LK_UUID},
+			#{LK_HT_ID},
+			#{LK_ITEM_ID},
+			#{LK_FKFS_ID},
+			#{LK_QS},
+			#{LK_KX},
+			#{LK_LKJE},
+			#{LK_LKRQ},
+			#{LK_BOND},
+			#{LK_REMARKS},
+			#{LK_INPUT_NAME},
+			now()
+		)
+	</insert>
+	
+	<update id="updateLk" parameterType="pd">
+		UPDATE tb_so_lk
+        SET
+        LK_LKJE    =#{LK_LKJE},
+        LK_LKRQ    =#{LK_LKRQ},
+        LK_BOND    =#{LK_BOND},
+        LK_REMARKS    =#{LK_REMARKS}
+        Where
+        LK_UUID = #{LK_UUID}
+	</update>
+	
+	<update id="updateYskLK" parameterType="pd">
+		UPDATE tb_so_ysk
+        SET
+        YSK_LK_ID    =#{YSK_LK_ID}
+        Where
+        YSK_UUID = #{YSK_UUID}
+	</update>
+	
+		<!-- 根据id获取 tb_so_lk 应收款信息-->
+	<select id="findLkById" parameterType="pd" resultType="pd">
+		SELECT
+		  *
+		FROM
+		  tb_so_lk
+		WHERE 
+		  LK_UUID=#{YSK_LK_ID}
+	</select>
+	
+</mapper>

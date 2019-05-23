@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="OfferMapper">
+	
+    <!-- 报价分页列表 -->
+    <select id="offerlistPage" resultType="pd" parameterType="page">
+    	SELECT * FROM tb_offer WHERE 1=1 
+    	<if test="pd.offer_name !=null and pd.offer_name !=''">
+	    	 AND (offer_name LIKE CONCAT(CONCAT('%',#{pd.offer_name}),'%'))
+    	</if>
+    </select>
+    
+    <!-- 根据ID查找报价 -->
+    <select id="findOfferById" parameterType="pd" resultType="pd">
+    	select * from tb_offer where 1=1
+    	<if test="offer_id !=null and offer_id !='' ">
+    		and  offer_id = #{offer_id}
+    	</if>
+    	<if test="item_id != null and item_id != ''">
+    		and item_id = #{item_id}
+    	</if>
+    </select>
+    
+     <!-- 报价添加 -->
+    <insert id="offerAdd" parameterType="pd">
+    	insert into tb_offer(
+    		
+    		offer_name,
+    		item_id,
+    		item_name,
+    		
+    		create_time
+    	)values(
+    		
+    		#{offer_name},
+    		#{item_id},
+    		#{item_name},
+    		
+    		now()
+    	)
+    </insert>
+    
+     <!-- 报价编辑-->
+    <update id="offerUpdate" parameterType="pd">
+    	update  tb_offer
+    	<set>
+    		offer_name = #{offer_name},
+    		item_id = #{item_id},
+    		item_name = #{item_name},
+    		
+    	</set>
+    	where offer_id = #{offer_id}
+    </update>
+    
+     <!-- 报价删除-->
+    <delete id="offerDelete" parameterType="pd">
+    	delete from tb_offer 
+    	where offer_id = #{offer_id}
+    </delete>
+    
+    <!-- 报价批量删除-->
+    <delete id="offerDeleteAll" parameterType="String">
+    	delete from tb_offer
+    	where offer_id in
+    	<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+    
+    <!-- 根据项目id修改总价 -->
+    <update id="offerUpdateByItemId" parameterType="pd">
+    	update
+    		tb_offer
+    	set
+    		offer_total_price=#{offer_total_price}
+    	where
+    		item_id=#{item_id}
+    </update>
+    
+    <!-- 查询时间详情 -->
+    <select id="findYearInfoList" resultType="pd" parameterType="pd">
+    	select * from tb_year_info where 1=1
+    </select>
+   
+   <!-- 根据项目item_id 查询所有电梯列表 -->
+    <select id="elevatorDetailsByItemIdList" resultType="pd" parameterType="pd">
+    	select * from tb_elevator_details where 1=1
+    	<if test="item_id != null and item_id != '' ">
+    		and item_id = #{item_id}
+    	</if>
+    </select>
+    
+    <!-- 根据Id查找产品线 -->
+    <select id="findProductByProductId" resultType="pd" parameterType="pd">
+    	select * from tb_product where 1=1
+    	<if test="product_id != null and product_id != '' ">
+    		and product_id = #{product_id}
+    	</if>
+    </select>
+    
+    <!-- 根据Id更新产品线 -->
+    <update id="productUpdateByProductId" parameterType="pd">
+    	update tb_product
+    	<set>
+    		product_no = #{num}
+    	</set>
+    	where product_id = #{product_id}
+    </update>
+    
+    <!-- 统计所有流水号 -->
+    <select id="sumProductNo" resultType="pd">
+    	select sum(product_no)as product_no from tb_product
+    </select>
+    
+    <!-- 报价相关,导出用 -->
+    <select id="findElevatorList" resultType="pd">
+    	select * from tb_elevator
+    </select>
+    <select id="findElevatorAuditList" resultType="pd">
+    	select * from tb_elevator_audit
+    </select>
+    <select id="findElevatorBaseList" resultType="pd">
+    	select * from tb_elevator_base
+    </select>
+    <select id="findElevatorDetailsList" resultType="pd">
+    	select * from tb_elevator_details
+    </select>
+    <select id="findElevatorHeightList" resultType="pd">
+    	select * from tb_elevator_height
+    </select>
+    <select id="findElevatorInfoList" resultType="pd">
+    	select * from tb_elevator_info
+    </select>
+    <select id="findElevatorNonstandardList" resultType="pd">
+    	select * from tb_elevator_nonstandard
+    </select>
+    <select id="findElevatorNumList" resultType="pd">
+    	select * from tb_elevator_num
+    </select>
+    <select id="findElevatorOptionalList" resultType="pd">
+    	select * from tb_elevator_optional
+    </select>
+    <select id="findElevatorSpecList" resultType="pd">
+    	select * from tb_elevator_spec
+    </select>
+    <select id="findModelsList" resultType="pd">
+    	select * from tb_models
+    </select>
+    <select id="findModelsInfoList" resultType="pd">
+    	select * from tb_models_info
+    </select>
+    <select id="findProductInfoList" resultType="pd">
+    	select * from tb_product_info
+    </select>
+    <!-- 根据项目id查询报价信息 -->
+    <select id="findOfferByItemId" parameterType="String" resultType="pd">
+    	select * from tb_offer where item_id=#{item_id}
+    </select>
+    <!-- 查询所有报价 -->
+    <select id="findOfferList" resultType="pd">
+    	select * from tb_offer
+    </select>
+    
+    <!-- 添加报价,导入用 -->
+    <insert id="saveOffer" parameterType="pd">
+    	insert into tb_offer(
+    		offer_name,
+    		item_id,
+    		item_name,
+    		offer_total_price,
+    		create_time
+    	)values(
+    		#{offer_name},
+    		#{item_id},
+    		#{item_name},
+    		#{offer_total_price},
+    		#{create_time}
+    	)    	
+    </insert>
+    <insert id="saveElevator" parameterType="pd">
+    	insert into tb_elevator(
+    		elevator_id,
+    		elevator_name,
+    		elevator_descript,
+    		elevator_status
+    	)values(
+    		#{elevator_id},
+    		#{elevator_name},
+    		#{elevator_descript},
+    		#{elevator_status}
+    	)
+    </insert>
+    <insert id="saveElevatorAudit" parameterType="pd">
+    	insert into tb_elevator_audit(
+    		id,
+    		elevator_approval,
+    		elevator_instance_id,
+    		create_time,
+    		requester_id
+    	)values(
+    		#{id},
+    		#{elevator_approval},
+    		#{elevator_install_id},
+    		#{create_time},
+    		#{requester_id}
+    	)
+    </insert>
+    <insert id="saveElevatorBase" parameterType="pd">
+    	insert into tb_elevator_base(
+	    	elevator_base_name,
+	    	elevator_base_description,
+	    	elevator_id
+    	)values(
+    		#{elevator_base_name},
+    		#{elevator_base_description},
+    		#{elevator_id}
+    	)
+    </insert>
+    <insert id="saveElevatorDetails" parameterType="pd">
+    	insert into tb_elevator_details(
+    		no,
+    		item_id,
+    		elevator_id,
+    		product_id,
+    		models_id,
+    		total,
+    		flag
+    	)values(
+    		#{no},
+    		#{item_id},
+    		#{elevator_id},
+    		#{product_id},
+    		#{models_id},
+    		#{total},
+    		#{flag}
+    	)
+    </insert>
+    <insert id="saveElevatorHeight" parameterType="pd" >
+    	insert into tb_elevator_height(
+    		elevator_height_money,
+    		elevator_speed_id,
+    		elevator_weight_id,
+    		elevator_id
+    	)values(
+    		#{elevator_height_money},
+    		#{elevator_speed_id},
+    		#{elevator_weight_id},
+    		#{elevator_id}
+    	)
+    </insert>
+    <insert id="saveElevatorInfo" parameterType="pd">
+    	insert into tb_elevator_info(
+			    item_id,
+			    elevator_id,
+			    models_id,
+			    num,
+			    total,
+			    flag
+    	)values(
+    		#{item_id},
+    		#{elevator_id},
+    		#{models_id},
+    		#{num},
+    		#{total},
+    		#{flag}
+    	)
+    </insert>
+    <insert id="saveElevatorNonstandard" parameterType="pd">
+    	insert into tb_elevator_nonstandard(
+    		one_menu_id,
+    		two_menu_id,
+    		three_menu_id,
+    		four_menu_id,
+    		id,
+    		elevator_id,
+    		elevator_unit_id,
+    		elevator_nonstandard_state,
+    		elevator_nonstandard_delivery,
+    		elevator_nonstandard_price,
+    		elevator_nonstandard_description
+    	)
+    </insert>
+    <insert id="saveElevatorNum" parameterType="pd">
+    	insert into tb_elevator_num(
+    		item_id,
+    		elevator_id,
+    		elevator_spec_id,
+    		num,
+    		elevator_total_price,
+    		models_id
+    	)values(
+    		#{item_id},
+    		#{elevator_id},
+    		#{elevator_spec_id},
+    		#{num},
+    		#{elevator_total_price},
+    		#{models_id}
+    	)
+    </insert>
+    <insert id="saveElevatorOptional" parameterType="pd">
+    	insert into tb_elevator_optional(
+    		one_menu_id,
+    		two_menu_id,
+    		three_menu_id,
+    		four_menu_id,
+    		id,
+    		elevator_optional_price,
+    		elevator_unit_id,
+    		elevator_optional_delivery,
+    		elevator_optional_description,
+    		elevator_id,
+    		elevator_optional_type
+    	)values(
+    		#{one_menu_id},
+    		#{two_menu_id},
+    		#{three_menu_id},
+    		#{four_menu_id},
+    		#{id},
+    		#{elevator_optional_price},
+    		#{elevator_unit_id},
+    		#{elevator_optional_delivery},
+    		#{elevator_optional_description},
+    		#{elevator_id},
+    		#{elevator_optional_type}
+    	)
+    </insert>
+    <insert id="saveElevatorSpec" parameterType="pd">
+    	insert into tb_elevator_spec(
+    		spec_id,
+    		spec_name,
+    		spec_descript,
+    		spec_status
+    	)values(
+    		#{spec_id},
+    		#{spec_name},
+    		#{spec_descript},
+    		#{spec_status}
+    	)
+    </insert>
+    <insert id="saveModels" parameterType="pd">
+    	insert into tb_models(
+    		models_name,
+    		models_description,
+    		elevator_id,
+    		product_id,
+    		models_price,
+    		elevator_speed_id,
+    		elevator_weight_id,
+    		elevator_storey_id,
+    		elevator_standard_price,
+    		elevator_base_id,
+    		elevator_base_price,
+    		elevator_optional_json,
+    		elevator_nonstandard_price,
+    		elevator_height_add,
+    		elevator_hieght_money,
+    		rise,
+    		top_height,
+    		pit_depth,
+    		crbsp,
+    		rail_bracket_price,
+    		cable_height,
+    		cable_price
+    	)values(
+    		#{models_id},
+    		#{models_name},
+    		#{models_description},
+    		#{elevator_id},
+    		#{product_id},
+    		#{models_price},
+    		#{elevator_speed_id},
+    		#{elevator_weight_id},
+    		#{elevator_storey_id},
+    		#{elevator_standard_price},
+    		#{elevator_base_id},
+    		#{elevator_base_price},
+    		#{elevator_option_json},
+    		#{elevator_nonstandard_json},
+    		#{elevator_optional_price},
+    		#{elevator_nonstandard_price},
+    		#{elevator_hieght_add},
+    		#{elevator_height_money},
+    		#{rise},
+    		#{top_hieght},
+    		#{pit_depth},
+    		#{crbsp},
+    		#{rail_bracket_price},
+    		#{cable_height},
+    		#{cable_price}
+    	)
+    </insert>
+    <insert id="saveProductInfo" parameterType="pd">
+    	insert into tb_product_info(
+    		models_id,
+    		product_id,
+    		product_info_name,
+    		product_info_type,
+    		product_info_price
+    	)values(
+    		#{models_id},
+    		#{product_id},
+    		#{product_info_name},
+    		#{product_info_type},
+    		#{product_info_price}
+    	)
+    </insert>
+    
+    <select id="findItemStatusByItemId" parameterType="String" resultType="String">
+    	select item_status from tb_item where item_id=#{item_id}
+    </select>
+    
+    
+    <!-- zTree版 -->
+    <select id="findCascadeListByElevator" resultType="pd" parameterType="String">
+    	select * from tb_elevator_cascade where elevator_id=#{elevator_id}
+    	union
+    	select * from tb_elevator_cascade where id='1'
+    </select>
+    
+    <!-- 根据电梯id查询非标描述信息 -->
+    <select id="findNonstandardCentreByItemId" parameterType="String" resultType="pd">
+    	select * from tb_nonstandard_centre where elevator_no in(
+		select id from tb_elevator_details where item_id=#{item_id}
+		)
+    </select>
+</mapper>

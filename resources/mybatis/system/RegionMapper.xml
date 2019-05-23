@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="RegionMapper">
+    <select id="regionlistPage" resultType="pd" parameterType="page">
+        SELECT * FROM 
+        tb_region 
+        ORDER BY request_time DESC
+
+    </select>
+    <select id="listAllRegions" resultType="pd">
+        SELECT * FROM 
+        tb_region 
+    </select>
+    <!-- 新增一条记录，插入成功后返回主键 暂时未实现-->
+    <insert id="insertRegion" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            select LAST_INSERT_ID()
+        </selectKey>
+		insert into tb_region
+		(
+		     pId,
+		     name
+		)values(
+			 #{pId},
+		     #{name}
+		)
+	
+	</insert>
+	<!-- 获取最大值 -->
+    <select id="getMaxId" parameterType="pd" resultType="Integer">
+      
+        select max(id)  from tb_region 
+		
+	</select>
+    <update id="updateRegion" parameterType="pd">
+		UPDATE tb_region 
+		   SET name =#{name}
+	     WHERE id =#{id}
+	</update>
+
+    <delete id="deleteRegion">
+		DELETE FROM tb_region 
+			  WHERE id = #{id}
+	</delete>
+	
+	<select id="findRegionById" resultType="pd" parameterType="pd">
+		select * from tb_region where id=#{customer_area}
+	</select>
+	
+	<!-- 导入导出用 -->
+	<select id="findRegionList" resultType="pd">
+		select * from tb_region
+	</select>
+	<insert id="saveRegion" parameterType="pd">
+		insert into tb_region(
+			id,
+			name,
+			pId
+		)values(
+			#{id},
+			#{name},
+			#{pId}
+		)
+	</insert>
+
+</mapper>

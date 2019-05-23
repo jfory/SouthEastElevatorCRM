@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ConsigneeMapper">
+	<select id="listPageAllItemByRole" parameterType="pd" resultType="pd">
+		select
+			item_id,
+			item_no,
+			item_name,
+			item_install_address,
+			end_user,
+			customer_no,
+			sale_type,
+			order_org,
+			order_org_contact,
+			order_org_phone,
+			item_area,
+			item_sub_branch,
+			is_cross_region,
+			item_install_sub_branch,
+			item_status,
+			market_flag,
+			mes_source,
+			enable_status,
+			elevator_info,
+			start_date,
+			plan_complete,
+			plan_comeinto,
+			plan_contract,
+			design_name,
+			design_address,
+			design_phone,
+			design_fax,
+			item_design,
+			item_design_phone,
+			item_engineer,
+			item_engineer_phone,
+			special_require,
+			filing_man,
+			input_date,
+			modified_date,
+			market_type,
+			self_inferiority,
+			agreement_possible,
+			item_total,
+			item_manager,
+			is_attention,
+			is_imporant,
+			item_org,
+			item_org_contact,
+			item_org_phone,
+			item_contact,
+			item_contact_phone,
+			plan_deposit,
+			manager_duty,
+			item_address,
+			manager_phone,
+			filing_area,
+			filing_sub_company,
+			filing_branch_company,
+			input_user,
+			modified_by,
+			remark,
+			cross_region_num
+	from
+			tb_item
+	where 1=1
+		<if test="pd.search_item_name != null and pd.search_item_name != ''">
+            and item_name LIKE CONCAT(CONCAT('%', #{pd.search_item_name}),'%')
+        </if>
+        <if test="pd.item_status != null and pd.item_status != '' ">
+        	and item_status = #{pd.item_status}
+        </if>
+        <if test="pd.userList!=null and pd.userList.size()>0">
+			and input_user in
+			<foreach collection="pd.userList"  item="user_id" index="index" open="(" close=")" separator=",">
+	            ${user_id}
+	        </foreach>
+        </if>
+        order by
+        	input_date
+        desc
+	</select>
+
+	<select id="listPageAllItem" resultType="pd" parameterType="page">
+		select
+			item_id,
+			item_no,
+			item_name,
+			item_install_address,
+			end_user,
+			customer_no,
+			sale_type,
+			order_org,
+			order_org_contact,
+			order_org_phone,
+			item_area,
+			item_sub_branch,
+			is_cross_region,
+			item_install_sub_branch,
+			item_status,
+			market_flag,
+			mes_source,
+			enable_status,
+			elevator_info,
+			start_date,
+			plan_complete,
+			plan_comeinto,
+			plan_contract,
+			design_name,
+			design_address,
+			design_phone,
+			design_fax,
+			item_design,
+			item_design_phone,
+			item_engineer,
+			item_engineer_phone,
+			special_require,
+			filing_man,
+			input_date,
+			modified_date,
+			market_type,
+			self_inferiority,
+			agreement_possible,
+			item_total,
+			item_manager,
+			is_attention,
+			is_imporant,
+			item_org,
+			item_org_contact,
+			item_org_phone,
+			item_contact,
+			item_contact_phone,
+			plan_deposit,
+			manager_duty,
+			item_address,
+			manager_phone,
+			filing_area,
+			filing_sub_company,
+			filing_branch_company,
+			input_user,
+			modified_by,
+			remark,
+			cross_region_num
+	from
+			tb_item
+	where 1=1
+		<if test="pd.search_item_name != null and pd.search_item_name != ''">
+            and item_name LIKE CONCAT(CONCAT('%', #{pd.search_item_name}),'%')
+        </if>
+        <if test="pd.item_status != null and pd.item_status != '' ">
+        	and item_status = #{pd.item_status}
+        </if>
+        order by
+        	input_date
+        desc
+	</select>
+	
+	<!-- 根据项目ID查询出货单列表 -->
+	<select id="listPageAllConsignee" parameterType="page" resultType="pd">
+		select * from tb_consignee where 1=1
+		<if test="pd.item_id != null and pd.item_id != '' ">
+			and item_id = #{pd.item_id}
+		</if>
+		<if test="pd.consignee_state != null and pd.consignee_state != '' ">
+			and consignee_state = #{pd.consignee_state}
+		</if>
+		<if test="pd.search_consignee_no != null and pd.search_consignee_no != '' ">
+			and consignee_no = #{pd.search_consignee_no}
+		</if>
+	
+	</select>
+	
+	<!-- 根据主键ID查询出货单对象 -->
+	<select id="findConsigneeObjById" resultType="pd" parameterType="pd">
+		select * from tb_consignee where consignee_id = #{consignee_id}
+	</select>
+	
+	<!-- 保存出货单 -->
+	<insert id="saveConsignee" parameterType="pd" >
+		insert into 
+			tb_consignee(
+				consignee_no,
+				consignee_name,
+				consignee_address,
+				consignee_contact,
+				consignee_type,
+				consignee_state,
+				item_id,
+				create_time,
+				elevator_id
+			)values(
+				#{consignee_no},
+				#{consignee_name},
+				#{consignee_address},
+				#{consignee_contact},
+				#{consignee_type},
+				1,
+				#{item_id},
+				now(),
+				#{elevator_id}
+			)
+	</insert>
+	
+	<!-- 修改出货单 -->
+	<update id="editConsignee" parameterType="pd">
+		update
+			tb_consignee
+		<set>
+			consignee_no = #{consignee_no},
+			consignee_name = #{consignee_name},
+			consignee_address = #{consignee_address},
+			consignee_contact = #{consignee_contact},
+			consignee_type = #{consignee_type},
+			elevator_id = #{elevator_id},
+		</set>
+		where
+			consignee_id=#{consignee_id}
+	</update>
+	
+	<!-- 删除出货单 -->
+	<delete id="delConsignee" parameterType="pd">
+		delete from tb_consignee where consignee_id=#{consignee_id}
+	</delete>
+    
+   <update id="updateConsigneeState" parameterType="pd">
+   		update tb_consignee
+   		<set>
+   			consignee_state = #{consignee_state},
+   		</set>
+   		where consignee_id = #{consignee_id}
+   </update>
+    
+    
+   <!-- 根据项目ID查询二排电梯详情列表 -->
+	<select id="findElevatorDetailsListByItemId" parameterType="list" resultType="pd">
+	
+		select * from tb_plan_elevator WHERE 1=1 
+		<if test="list != null and list.size() > 0">
+			and elevator_id not in 
+			<foreach collection="list"  item="elevator_id" index="index" open="(" close=")" separator=",">
+	            #{elevator_id}
+	        </foreach>
+		</if>
+				and type = 2
+	</select>
+    
+    <!-- 根据项目ID查询二排电梯详情列表  (编辑版) -->
+	<select id="findElevatorDetailsListByItemIds" parameterType="list" resultType="pd">
+		select * from tb_plan_elevator WHERE 1=1
+		<if test="list != null and list.size() > 0">
+			and elevator_id not in 
+			<foreach collection="list"  item="elevator_id" index="index" open="(" close=")" separator=",">
+		         #{elevator_id}
+		    </foreach>
+        </if> 
+			and type = 2
+	</select>
+    
+    <!-- 根据项目ID查询所有选中的电梯列表 -->
+    <select id="findElevatorDetailsListCheckedByItemId" parameterType="pd" resultType="pd">
+    	select elevator_id from tb_consignee where 1=1 and item_id = #{item_id}
+    </select>
+    
+    <select id="findEditElevatorIds" parameterType="pd" resultType="String">
+    	select group_concat(elevator_id) as ids from tb_consignee where item_id=#{item_id} and consignee_id !=#{consignee_id}
+    </select>
+    
+    <select id="findElevatorDetailsListForEdit" parameterType="pd" resultType="pd">
+    	select * from tb_elevator_details where item_id=#{item_id}
+    	<if test="list != null and list.size() > 0">
+			and elevator_id not in 
+			<foreach collection="list"  item="elevator_id" index="index" open="(" close=")" separator=",">
+		         #{elevator_id}
+		    </foreach>
+        </if> 
+    </select>
+    
+    
+</mapper>

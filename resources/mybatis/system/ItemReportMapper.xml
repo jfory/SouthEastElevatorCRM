@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="itemReportMapper">
+
+	<select id="listPageAllItemReport" resultType="pd" parameterType="page">
+		select 
+			id,
+			num,
+			position,
+			status,
+			content
+		from
+			tb_item_report
+		<!-- select 
+				i.id,
+				i.num,
+				p.name as position,
+				i.status,
+				i.content
+			from 
+				tb_item_report i,
+				tb_position p
+			where
+				p.id=i.position -->
+	</select>
+	
+	<select id="findItemReportById" resultType="pd" parameterType="pd">
+		select 
+			id,
+			num,
+			position,
+			status,
+			content
+		from 
+			tb_item_report
+		where id=#{id}
+	</select>
+	
+	<insert id="saveItemReport" parameterType="pd">
+		insert into tb_item_report (id,num,position,status,content)
+		values(#{id},#{num},#{position},#{status},#{content})
+	</insert>
+	
+	<delete id="deleteItemReport" parameterType="pd">
+		delete from tb_item_report where id = #{id}
+	</delete>
+	
+	<update id="editItemReport" parameterType="pd">
+		update 
+			tb_item_report
+		set
+			num=#{num},
+			position=#{position},
+			status=#{status},
+			content=#{content}
+		where
+			id=#{id}
+	</update>
+	
+	<!-- 查询抄送通知,启用状态为启用,按照台数多至少排序 -->
+	<select id="findItemReportConfig" resultType="pd">
+		select * from tb_item_report where status=1 order by num desc
+	</select>
+
+    
+</mapper>

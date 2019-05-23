@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="DepartmentMapper">
+    <select id="departmentlistPage" resultType="pd" parameterType="page">
+        SELECT *
+        FROM tb_department
+        ORDER BY request_time DESC
+
+    </select>
+    <select id="listAllDepartments" resultType="pd">
+        SELECT *
+        FROM tb_department
+    </select>
+    <select id="listAllDepartmentsAndPositions" resultType="pd">
+        SELECT id, name, parentId, type, orderNo, "department"as nodeType
+        FROM tb_department
+        UNION
+        SELECT id, name, parentId, type, orderNo, "position" as nodeType
+        FROM tb_position
+    </select>
+    <!-- 新增一条记录，插入成功后返回主键 暂时未实现-->
+    <insert id="insertDepartment" parameterType="pd" useGeneratedKeys="true" keyProperty="id">
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            select LAST_INSERT_ID()
+        </selectKey>
+        insert into tb_department
+        (
+        id,
+        parentId,
+        name,
+        orderNo,
+        create_time
+        )values(
+        #{id},
+        #{parentId},
+        #{name},
+        #{orderNo},
+        now()
+        )
+
+    </insert>
+    <!-- 获取最大值 -->
+    <select id="getMaxId" parameterType="pd" resultType="String">
+
+        select id
+        from tb_department
+        order by create_time desc
+        limit 1
+
+    </select>
+
+    <!-- 根据条件获取数据 -->
+    <select id="selectDepartmentByCondition" parameterType="pd" resultType="pd">
+        select * from tb_department where 1=1
+        <if test="parentId!=null || parentId!=''">
+            and parentId = #{parentId}
+        </if>
+        <if test="type!=null || type!=''">
+            and type = #{type}
+        </if>
+    </select>
+
+    <!-- 根据父类ID获取数据 -->
+    <select id="getDepartmentByParentId" parameterType="pd" resultType="pd">
+
+        select *
+        from tb_department
+        where parentId = #{parentId}
+
+    </select>
+    <!-- 根据ID获取数据 -->
+    <select id="getDepartmentById" parameterType="pd" resultType="pd">
+
+        select *
+        from tb_department
+        where id = #{id}
+
+    </select>
+
+    <!-- 根据名称精确获取数据 -->
+    <select id="getDepartmentByName" parameterType="pd" resultType="pd">
+        select *
+        from tb_department
+        where name = #{name}
+    </select>
+
+    <!-- 根据ID获取数据 -->
+    <select id="getDepartmentById1" parameterType="pd" resultType="pd">
+        select c.id, a.`name` as cityname, b.`name` as departmentname, c.cityid, c.itemsubbranch
+        from tb_loc_city as a,
+             tb_department as b,
+             tb_city_itemsubbranch as c
+        where a.id = c.cityid
+          and b.id = c.itemsubbranch
+          and c.cityid = #{cityid}
+
+    </select>
+    <update id="updateDepartment" parameterType="pd">
+        UPDATE tb_department
+        SET name    = #{name},
+            orderNo = #{orderNo}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateParentDepartment" parameterType="pd">
+        update
+                tb_department
+        set name     = #{name},
+            orderNo  = #{orderNo},
+            parentId = #{parentId},
+            type     = #{type}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDepartment">
+        DELETE
+        FROM tb_department
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 根据type获取数据 -->
+    <select id="getDepartmentsByType" parameterType="pd" resultType="pd">
+        select *
+        from tb_department
+        where type = #{type}
+    </select>
+
+    <!-- 获取部门节点数据类型列表 -->
+    <select id="findAllOrgType" resultType="pd">
+        select *
+        from tb_org_type
+        order by id + 0
+    </select>
+
+    <!-- 插入一条带类型的机构数据 -->
+    <insert id="insertOrganize" parameterType="pd">
+        insert into tb_department (id, name, orderNo, parentId, create_time, type)
+        values (#{id}, #{name}, #{orderNo}, #{parentId}, now(), #{type})
+    </insert>
+
+    <!-- 查询穿入节点是否有其他子节点 -->
+    <select id="findChildDepartment" parameterType="pd" resultType="pd">
+        select *
+        from tb_department
+        where parentId = #{id}
+    </select>
+
+    <!-- 查询该节点所有父节点 -->
+    <select id="findAllParentDepartments" parameterType="pd" resultType="pd">
+        select *
+        from tb_department
+        where id = #{parentId}
+    </select>
+
+    <!-- 查询该节点所有子节点 -->
+    <select id="findAllChildDepartments" parameterType="pd" resultType="pd">
+        select *
+        from (select id, parentId, type from tb_department
+              union
+              select id, parentId, type from tb_position)a
+        where a.parentId = #{id}
+    </select>
+
+    <!-- 查询除开该节点的所有其他节点 -->
+    <select id="findOtherDepartments" parameterType="pd" resultType="pd">
+        select * from tb_department where id not in
+        <foreach collection="list" item="id" index="index"
+                 open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 查询所有区域节点 -->
+    <select id="findAllAreaNode" resultType="pd">
+        select *
+        from tb_department
+        where type = 8
+    </select>
+
+    <!-- 查询所有分公司节点 -->
+    <select id="findAllSubCompanyNode" resultType="pd">
+        select *
+        from tb_department
+        where type = 10
+    </select>
+
+    <!-- 查询所属区域下所有分公司节点 -->
+    <select id="findAllBranchNodeByParentId" parameterType="pd" resultType="pd">
+        select *
+        from tb_department
+        where type = 10
+          and parentId = #{parentId}
+    </select>
+
+    <!-- 查询分公司下的所有职位 -->
+    <select id="findAllPositionNodeByBranchId" parameterType="String" resultType="pd">
+        select *
+        from tb_position
+        where parentId = #{id}
+    </select>
+
+    <!-- 查询区域下的所有职位 -->
+    <select id="findAllPositionNodeByAreaId" parameterType="String" resultType="pd">
+        select *
+        from tb_position
+        where parentId in(select id from tb_department where parentId = #{id}
+                                                          or id = #{id})
+    </select>
+
+    <!-- 查询除开该分公司的其他分公司节点 -->
+    <select id="findOtherAllBranchNode" parameterType="pd" resultType="pd">
+        select *
+        from tb_department
+        where type = 10
+          and id != #{id}
+    </select>
+
+    <!-- 获取该节点的父级节点 -->
+    <select id="findParentDepartment" parameterType="pd" resultType="pd">
+        select *
+        from tb_department
+        where id = #{parentId}
+    </select>
+
+    <!-- 根据用户id获取职位的所属分公司 -->
+    <select id="findBranchByPosition" parameterType="String" resultType="pd">
+        select *
+        from tb_department
+        where type = 10
+          and id = (select parentId
+                    from tb_position
+                    where id = (select position_id from sys_user where user_id = #{USER_ID}))
+    </select>
+
+    <!-- 根据用户id获取职位的所属区域 -->
+    <select id="findAreaByPosition" parameterType="String" resultType="pd">
+        select *
+        from tb_department
+        where type = 8
+          and id = (select parentId
+                    from tb_position
+                    where id = (select position_id from sys_user where user_id = #{USER_ID}))
+    </select>
+
+    <!-- 根据分公司id获取所属区域 -->
+    <select id="findAreaByBranch" parameterType="String" resultType="pd">
+        select *
+        from tb_department
+        where type = 8
+          and id = (select parentId from tb_department where id = #{id})
+    </select>
+
+    <!-- 导入导出用 -->
+    <select id="findDepartmentList" resultType="pd">
+        select *
+        from tb_department
+    </select>
+    <insert id="saveDepartment" parameterType="pd">
+        insert into tb_department (id, name, orderNo, parentId, create_time, type)
+        values (#{id}, #{name}, #{orderNo}, #{parentId}, #{create_time}, #{type})
+    </insert>
+
+    <!-- 根据部门id查询子级职位 -->
+    <select id="findPosition" parameterType="pd" resultType="pd">
+        select *
+        from tb_position
+        where parentId = #{id}
+    </select>
+
+</mapper>

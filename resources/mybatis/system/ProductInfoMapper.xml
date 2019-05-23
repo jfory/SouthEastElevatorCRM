@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="ProductInfoMapper">
+	
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+	
+    
+    <!-- 产品信息分页列表 -->
+    <select id="productInfolistPage" resultType="pd" parameterType="page">
+    	SELECT * FROM tb_product_info_info WHERE 1=1 
+    	<if test="pd.product_info_name !=null and pd.product_info_name !=''">
+	    	 AND (product_info_name LIKE CONCAT(CONCAT('%',#{pd.product_info_name}),'%'))
+    	</if>
+    	<if test="pd.product_info_type !=null and pd.product_info_type !=''">
+	    	AND product_info_type = #{pd.product_info_type}
+    	</if>
+    </select>
+    
+    <!-- 根据ID查找产品信息 -->
+    <select id="findProductInfoById" parameterType="pd" resultType="pd">
+    	select * from tb_product_info where 1=1
+    	<if test="product_info_id !=null and product_info_id !='' ">
+    		and  product_info_id = #{product_info_id}
+    	</if>
+    	<if test="product_info_type !=null and product_info_type !='' ">
+    		and product_info_type = #{product_info_type}
+    	</if>
+    	<if test="id !=null and id!='' ">
+    		and id = #{id};
+    	</if>
+    </select>
+    
+    <!-- 根据类型查找产品信息列表 -->
+    <select id="findProductInfoByTypeList" parameterType="pd" resultType="pd">
+    	select * from tb_product_info where 1=1
+    	<if test="product_info_id !=null and product_info_id !='' ">
+    		and  product_info_id = #{product_info_id}
+    	</if>
+    	<if test="product_info_type !=null and product_info_type !='' ">
+    		and product_info_type = #{product_info_type}
+    	</if>
+    	<if test="models_id !=null and models_id!='' ">
+    		and models_id = #{models_id};
+    	</if>
+    </select>
+    
+     <!-- 产品信息添加 -->
+    <insert id="productInfoAdd" parameterType="pd">
+    	insert into tb_product_info(
+    		models_id,
+    		product_id,
+    		product_info_name,
+    		product_info_type,
+    		product_info_price
+    	)values(
+    		#{models_id},
+    		#{product_id},
+    		#{product_info_name},
+    		#{product_info_type},
+    		#{product_info_price}
+    	)
+    </insert>
+    
+     <!-- 产品信息编辑-->
+    <update id="productInfoUpdate" parameterType="pd">
+    	update  tb_product_info
+    	<set>
+    		product_info_name = #{product_info_name},
+    		product_info_type = #{product_info_type},
+    		product_info_price = #{product_info_price},
+    	</set>
+    	where product_info_id = #{product_info_id}
+    </update>
+    
+     <!-- 产品信息删除-->
+    <delete id="productInfoDelete" parameterType="pd">
+    	delete from tb_product_info 
+    	where product_info_id = #{product_info_id}
+    </delete>
+    
+    <!-- 产品信息批量删除-->
+    <delete id="productInfoDeleteAll" parameterType="String">
+    	delete from tb_product_info
+    	where models_id in
+    	<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+    
+    
+    <!-- 根据电梯数量表id查询产品信息列表总价 -->
+    <select id="findProductInfoCountPriceById" parameterType="pd" resultType="pd">
+    	select sum(product_info_price) as countPrice from tb_product_info
+    	where id=#{id}
+    </select>
+    
+    <!-- 根据电梯数量表id删除产品信息 -->
+    <delete id="ProductInfoDeleteById" parameterType="pd">
+    	delete from tb_product_info where id=#{id}
+    </delete>
+    
+    
+   
+    
+    
+    
+   
+</mapper>

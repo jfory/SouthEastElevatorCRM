@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://activiti.org/bpmn20">
+  <process id="supplement" name="补件投诉" isExecutable="true">
+    <startEvent id="Start" name="开始"></startEvent>
+    <userTask id="applyTask" name="发起申请" activiti:priority="0">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.UserTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="start" name="启动" sourceRef="Start" targetRef="applyTask"></sequenceFlow>
+    <userTask id="factoryTask" name="工厂总经理" activiti:priority="1">
+      <extensionElements>
+        <activiti:taskListener event="create" class="com.dncrm.listener.workflow.UserTaskListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="submit" name="提交" sourceRef="applyTask" targetRef="factoryTask"></sequenceFlow>
+    <exclusiveGateway id="factoryPass" name="工厂总经理审核"></exclusiveGateway>
+    <sequenceFlow id="factorySp" name="审核" sourceRef="factoryTask" targetRef="factoryPass"></sequenceFlow>
+    <endEvent id="End" name="结束"></endEvent>
+    <sequenceFlow id="factoryTaskPass" name="通过" sourceRef="factoryPass" targetRef="End">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${factoryTaskStatus==true}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="factoryTaskReject" name="驳回" sourceRef="factoryPass" targetRef="applyTask">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${factoryTaskStatus==false}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_supplement">
+    <bpmndi:BPMNPlane bpmnElement="supplement" id="BPMNPlane_supplement">
+      <bpmndi:BPMNShape bpmnElement="Start" id="BPMNShape_Start">
+        <omgdc:Bounds height="35.0" width="35.0" x="40.0" y="190.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="applyTask" id="BPMNShape_applyTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="120.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="factoryTask" id="BPMNShape_factoryTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="270.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="factoryPass" id="BPMNShape_factoryPass">
+        <omgdc:Bounds height="40.0" width="40.0" x="420.0" y="188.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="End" id="BPMNShape_End">
+        <omgdc:Bounds height="35.0" width="35.0" x="505.0" y="191.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="start" id="BPMNEdge_start">
+        <omgdi:waypoint x="75.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="120.0" y="207.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="75.0" y="207.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="submit" id="BPMNEdge_submit">
+        <omgdi:waypoint x="225.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="270.0" y="207.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="225.0" y="207.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="factorySp" id="BPMNEdge_factorySp">
+        <omgdi:waypoint x="375.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="420.0" y="208.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="375.0" y="207.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="factoryTaskPass" id="BPMNEdge_factoryTaskPass">
+        <omgdi:waypoint x="460.0" y="208.0"></omgdi:waypoint>
+        <omgdi:waypoint x="505.0" y="208.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="460.0" y="208.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="factoryTaskReject" id="BPMNEdge_factoryTaskReject">
+        <omgdi:waypoint x="440.0" y="188.0"></omgdi:waypoint>
+        <omgdi:waypoint x="440.0" y="126.0"></omgdi:waypoint>
+        <omgdi:waypoint x="172.0" y="126.0"></omgdi:waypoint>
+        <omgdi:waypoint x="172.0" y="180.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="273.0" y="111.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

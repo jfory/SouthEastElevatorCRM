@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="contractModifyMapper">
+	
+	
+	<!-- 列表 -->
+	<select id="list" parameterType="pd" resultType="pd">
+		select a.*,u1.NAME from tb_contract_modify a left join sys_user u1 on a.input_user=u1.user_id where contract_id=#{HT_UUID}
+	</select>
+	
+	<!-- 查询列表页面头信息(项目名称/客户名称) -->
+	<select id="findHeadMsg" parameterType="pd" resultType="pd">
+		select i.item_name,c.customer_name from tb_iteminoffer i 
+		inner join tb_so_contract sc ON i.offer_id=sc.ht_offer_id
+		left join (
+			select customer_id,customer_name from tb_customer_core
+			union
+			select customer_id,customer_name from tb_customer_merchant
+			union
+			select customer_id,customer_name from tb_customer_ordinary
+		) c on i.end_user=c.customer_id
+		where sc.HT_UUID=#{HT_UUID}
+	</select>
+	
+	<!-- 查询新增编辑页面头信息 -->
+	<select id="findHeadInfo" parameterType="pd" resultType="pd">
+		SELECT
+			i.item_id,
+		  i.item_no,
+		  i.item_name,
+			sc.ht_qdrq,
+			sc.ht_no,
+		  customer.customer_name,
+			customer.customer_name as end_user,
+		  address.*
+		FROM
+			tb_iteminoffer AS i
+		LEFT JOIN
+		tb_so_contract sc ON i.offer_id=sc.ht_offer_id
+		LEFT JOIN (
+			SELECT
+				customer_no,
+				customer_name
+			FROM
+				tb_customer_core
+			UNION
+				SELECT
+					customer_no,
+					customer_name
+				FROM
+					tb_customer_merchant
+				UNION
+					SELECT
+						customer_no,
+						customer_name
+					FROM
+						tb_customer_ordinary
+		) AS customer ON i.customer_no = customer.customer_no
+		LEFT JOIN
+		  (
+		    SELECT
+			tb_address.id,
+		  tb_loc_province.name as province_name,
+		  tb_loc_city.name as city_name,
+		  tb_loc_county.name as county_name,
+		  tb_address.address_info
+		FROM
+			tb_address
+		LEFT JOIN
+		  tb_loc_province
+		ON
+		  tb_address.province_id=tb_loc_province.id
+		LEFT JOIN
+		  tb_loc_city
+		ON
+		  tb_address.city_id=tb_loc_city.id
+		LEFT JOIN
+		  tb_loc_county
+		ON
+		  tb_address.county_id=tb_loc_county.id  
+		
+		  ) as address ON i.item_install_address=address.id
+		   where sc.ht_uuid=#{ht_uuid}
+	</select>
+	
+	<!-- 根据合同主键查询电梯列表 -->
+	<select id="findDtinfoForAdd" parameterType="pd" resultType="pd">
+		select *,DT_SBDJ as modify_sbdj,DT_AZDJ as modify_azdj from tb_so_dtinfo where dt_ht_id=#{ht_uuid}
+	</select>
+	
+	<!-- 根据合同主键查询付款方式列表 -->
+	<select id="findFkfsForAdd" parameterType="pd" resultType="pd">
+		select a.*,d.inv_price inv_price from tb_so_fkfs a LEFT JOIN
+			(SELECT sum(b.inv_price) inv_price,c.YSK_FKFS_ID
+			 from tb_invoice_info b,tb_so_ysk c
+			 WHERE b.ysk_id=c.YSK_UUID
+			 GROUP BY c.YSK_FKFS_ID
+			) d
+				ON a.FKFS_UUID=d.YSK_FKFS_ID
+		where fkfs_ht_uuid=#{ht_uuid} order by FKFS_QS
+	</select>
+	
+	
+	<!-- 保存合同变更 -->
+	<insert id="saveContractModify" parameterType="pd">
+		insert into tb_contract_modify
+		(
+			id,
+			serial_number,
+			modify_number,
+			item_id,
+			contract_id,
+			squence,
+			reason,
+			content,
+			special_desc,
+			date_deli,
+			other,
+			input_user,
+			input_date,
+			total,
+			act_key,
+			act_status,
+			NonUpload,
+			previous_modify_id
+		)values(
+			#{id},
+			#{serial_number},
+			#{modify_number},
+			#{item_id},
+			#{contract_id},
+			(select ifnull(a.sequ,'1') from (select max(squence)+1 as sequ from tb_contract_modify where contract_id=#{contract_id}) a) ,
+			#{reason},
+			#{content},
+			#{special_desc},
+			#{date_deli},
+			#{other},
+			#{input_user},
+			#{input_date},
+			#{total},
+			#{act_key},
+			#{act_status},
+			#{NonUpload_json},
+			#{previousModifyId}
+		)
+	</insert>
+	
+	<!-- save变更电梯信息 -->
+	<insert id="saveCmElev" parameterType="pd">
+		insert into tb_cm_elev(
+			id,
+			so_dtinfo,
+			contract_modify_id,
+			modify_sbdj,
+			modify_azdj,
+			modify_total,
+			previous_sbdj,
+			previous_azdj,
+			previous_total
+		)values(
+			#{id},
+			#{so_dtinfo},
+			#{contract_modify_id},
+			#{modify_sbdj},
+			#{modify_azdj},
+			#{modify_total},
+			#{previous_sbdj},
+			#{previous_azdj},
+			#{previous_total}
+		)
+	</insert>
+	
+	<!-- save变更付款方式信息 -->
+	<insert id="saveCmFkfs" parameterType="pd">
+		insert into tb_cm_fkfs(
+			id,
+			so_fkfs,
+			contract_modify_id,
+			period,
+			stage,
+			so_pdrq,
+			so_fkts,
+			pay_percent,
+			price,
+			remark,
+			type
+		)values(
+			#{id},
+			#{so_fkfs},
+			#{contract_modify_id},
+			#{period},
+			#{stage},
+			#{so_pdrq},
+			#{so_fkts},
+			#{pay_percent},
+			#{price},
+			#{remark},
+			#{type}
+		)
+	</insert>
+	
+	<!-- 根据主键查询 -->
+	<select id="findContractModify" parameterType="pd" resultType="pd">
+		select a.*,u1.NAME,c.item_name from tb_contract_modify a left join sys_user u1 on a.input_user=u1.user_id
+			LEFT JOIN tb_so_contract c ON a.contract_id = c.HT_UUID
+		where id=#{id}
+		<if test="userList!=null and userList.size()>0">
+			and a.input_user in
+			<foreach collection="userList"  item="user_id" index="index" open="(" close=")" separator=",">
+				${user_id}
+			</foreach>
+		</if>
+	</select>
+	
+	<!-- 根据主键修改流程key -->
+	<update id="editActKey" parameterType="pd">
+		update tb_contract_modify set act_key=#{act_key} where id=#{id}
+	</update>
+	
+	<!-- 根据主键修改流程status -->
+	<update id="editActStatus" parameterType="pd">
+		update tb_contract_modify set act_status=#{act_status} where id=#{id}
+	</update>
+	
+	
+	<!-- 删除 -->
+	<delete id="deleteContractModify" parameterType="pd">
+		delete from tb_contract_modify where id=#{id}
+	</delete>
+	
+	<!-- 删除关联电梯信息 -->
+	<delete id="deleteCmElev" parameterType="pd">
+		delete from tb_cm_elev where contract_modify_id=#{id}
+	</delete>
+	
+	<!-- 删除关联付款方式信息 -->
+	<delete id="deleteCmFkfs" parameterType="pd">
+		delete from tb_cm_fkfs where contract_modify_id=#{id}
+	</delete>
+	
+	<!-- 根据变更id查询TB_CM_ELEV -->
+	<select id="findCmElevForEdit" parameterType="pd" resultType="pd">
+		select ce.id,ce.contract_modify_id,ce.modify_sbdj,ce.modify_azdj,
+		sd.DT_UUID,sd.DT_TH,sd.DT_CZM,sd.DT_SBDJ,sd.DT_XJ,ce.modify_total,sd.DT_AZDJ,sd.DT_YSJ,sd.DT_TX
+		from tb_cm_elev ce left join tb_so_dtinfo sd on ce.so_dtinfo=sd.DT_UUID
+		where ce.contract_modify_id=#{id}
+	</select>
+	
+	<select id="findCmElevForModifyId" parameterType="pd" resultType="pd">
+		select ce.id,ce.contract_modify_id,ce.modify_sbdj,ce.modify_azdj,
+		sd.DT_UUID,sd.DT_TH,sd.DT_CZM,ce.previous_sbdj DT_SBDJ,ce.previous_total DT_XJ,ce.modify_total,ce.previous_azdj DT_AZDJ,sd.DT_YSJ,sd.DT_TX
+		from tb_cm_elev ce left join tb_so_dtinfo sd on ce.so_dtinfo=sd.DT_UUID
+		where ce.contract_modify_id=#{id}
+	</select>
+	
+	
+	<!-- 根据变更id查询TB_CM_FKFS -->
+	<select id="findCmFkfsForEdit" parameterType="pd" resultType="pd">
+		select a.id as ID,
+			a.so_fkfs as FKFS_UUID,
+			a.stage as FKFS_KX,
+			a.so_pdrq as FKFS_PDRQ,
+			a.so_fkts as FKFS_FKTS,
+			a.pay_percent as FKFS_FKBL,
+			a.price as FKFS_JE,
+			a.remark as REMARK,
+			a.period,
+			d.inv_price as inv_price
+		from tb_cm_fkfs a LEFT JOIN
+			(SELECT sum(b.inv_price) inv_price,c.YSK_FKFS_ID
+			 from tb_invoice_info b,tb_so_ysk c
+			 WHERE b.ysk_id=c.YSK_UUID
+			 GROUP BY c.YSK_FKFS_ID
+			) d
+				ON a.so_fkfs=d.YSK_FKFS_ID
+		where contract_modify_id=#{id} ORDER BY period
+	</select>
+	
+	
+	<!-- 编辑合同变更 -->
+	<update id="updateContractModify" parameterType="pd">
+		update tb_contract_modify set
+			squence=#{squence},
+			reason=#{reason},
+			content=#{content},
+			special_desc=#{special_desc},
+			date_deli=#{date_deli},
+			other=#{other},
+			total=#{total},
+			NonUpload=#{NonUpload_json}
+		where 
+			id=#{id}
+	</update>
+	
+	<!-- 编辑变更电梯信息 -->
+	<update id="updateCmElev" parameterType="pd">
+		update tb_cm_elev set
+			so_dtinfo=#{so_dtinfo},
+			modify_sbdj=#{modify_sbdj},
+			modify_azdj=#{modify_azdj},
+			modify_total=#{modify_total}
+		where
+			id=#{id}
+	</update>
+	
+	<!-- 编辑变更付款方式信息 -->
+	<update id="updateCmFkfs" parameterType="pd">
+		update tb_cm_fkfs set
+			so_fkfs=#{so_fkfs},
+			period=#{period},
+			stage=#{stage},
+			date_devi=#{date_devi},
+			pay_percent=#{pay_percent},
+			price=#{price},
+			remark=#{remark},
+			type=#{type}
+		where
+			id=#{id}
+	</update>
+	
+	<!-- 变更协议输出 -->
+    <select id="printContractModify" parameterType="page" resultType="pd">
+		select 
+			*
+		from
+			tb_so_contract
+		where 1=1 limit 1
+	</select>
+	
+	<!-- 查询流水号 -->
+	<select id="findSerialNumber" resultType="pd">
+		select serial_number from tb_contract_modify order by serial_number+0 desc limit 1
+	</select>
+	
+	<!-- 获取合同信息 -->
+	<select id="findContractModifyById" resultType="pd">
+		SELECT m.squence,c.HT_QDRQ,c.item_name,c.HT_NO,m.reason,m.content,c.HT_OFFER_ID as offer_id FROM tb_contract_modify m
+		LEFT JOIN tb_so_contract c
+		ON m.contract_id = c.HT_UUID
+		WHERE m.id = #{id}	
+	</select>
+
+	<update id="updateContractDtInfo" parameterType="pd">
+		update tb_so_dtinfo set
+			DT_SBDJ=#{modify_sbdj},
+			DT_AZDJ=#{modify_azdj},
+			DT_XJ=#{modify_total}
+		where
+			DT_UUID=#{DT_UUID}
+	</update>
+
+	<delete id="deleteContractFkfs" parameterType="pd">
+		DELETE a from tb_so_fkfs a ,tb_contract_modify b where a.FKFS_HT_UUID=b.contract_id
+		AND b.id=#{id}
+		AND a.FKFS_UUID not in(
+		select so_fkfs from tb_cm_fkfs WHERE contract_modify_id=#{id}
+		)
+	</delete>
+
+	<update id="updateContractFkfs" parameterType="pd">
+		update tb_so_fkfs set
+			FKFS_QS=#{period},
+			FKFS_KX=#{FKFS_KX},
+			FKFS_PDRQ=#{FKFS_PDRQ},
+			FKFS_FKBL=#{FKFS_FKBL},
+			FKFS_JE=#{FKFS_JE},
+			FKFS_BZ=#{REMARK},
+			FKFS_FKTS=#{FKFS_FKTS}
+		where
+			FKFS_UUID=#{FKFS_UUID}
+	</update>
+
+	<delete id="deleteContractYSK" parameterType="pd">
+		delete  a from tb_so_ysk a,tb_contract_modify b WHERE
+			a.YSK_HT_ID=b.contract_id AND b.id=#{id}
+			AND a.YSK_FKFS_ID not in(
+				select so_fkfs from tb_cm_fkfs WHERE contract_modify_id=b.id
+			)
+	</delete>
+
+	<update id="updateContractYSK" parameterType="pd">
+		UPDATE tb_so_ysk a,tb_cm_fkfs b
+		SET a.YSK_QS=b.period,
+			a.YSK_KX=b.stage,
+			a.YSK_YSJE=b.price,
+			a.YSK_YSRQ=b.so_pdrq
+		where a.YSK_FKFS_ID=b.so_fkfs and b.contract_modify_id=#{id}
+	</update>
+
+	<select id="findNoYSKFkfs" resultType="pd">
+		SELECT
+			b.HT_UUID AS YSK_HT_ID,
+			b.HT_ITEM_ID AS YSK_ITEM_ID,
+			a.FKFS_UUID AS YSK_FKFS_ID,
+			a.FKFS_QS AS YSK_QS,
+			a.FKFS_KX AS YSK_KX,
+			a.FKFS_JE AS YSK_YSJE,
+			a.FKFS_PDRQ AS YSK_YSRQ,
+			a.FKFS_PCRQ AS YSK_PCTS,
+			"" AS YSK_KP_ID,
+			"" AS YSK_LK_ID,
+			a.FKFS_BZ AS YSK_BZ,
+			b.HT_NO AS YSK_AZ_NO,
+			b.item_name AS item_name
+		FROM tb_so_fkfs a,tb_so_contract b,tb_contract_modify c
+		where a.FKFS_HT_UUID=b.HT_UUID AND b.HT_UUID=c.contract_id
+			  AND c.id=#{id}
+			  AND a.FKFS_UUID NOT IN(
+			SELECT YSK_FKFS_ID FROM tb_so_ysk d where d.YSK_HT_ID=c.contract_id
+		)
+
+	</select>
+	<update id="updateContractTotalPrice" parameterType="pd">
+		update tb_so_contract set
+			TOTAL=#{total},PRICE=#{total}
+		where
+			HT_UUID=#{contract_id}
+	</update>
+	
+	<!-- 显示待我处理 -->
+	<select id="findAuditcontractModifyPage" parameterType="pd" resultType="pd">
+	select distinct con.*,RES.NAME_ as task_name,RES.ID_ as task_id,(case when RES.ASSIGNEE_ is not null then 1 else 0 end) as type,con.input_date as TASK_TIME,'6' as TASK_TYPE  from ACT_RU_TASK RES
+		left join ACT_RU_IDENTITYLINK I on I.TASK_ID_ = RES.ID_ left join act_re_procdef proc on proc.ID_ = RES.PROC_DEF_ID_ 
+		left join act_ru_execution exe on RES.PROC_INST_ID_=exe.PROC_INST_ID_ 
+		right join (
+			SELECT a.*,
+				u1.NAME user_name,
+                item.item_name 
+                from tb_contract_modify a left join sys_user u1 on a.input_user=u1.user_id
+			LEFT JOIN tb_item item ON a.item_id=item.item_id
+			<where>
+				<if test="userList!=null and userList.size()>0">
+					and a.input_user in
+					<foreach collection="userList"  item="userId" index="index" open="(" close=")" separator=",">
+						${userId}
+					</foreach>
+				</if>
+			</where>
+		) con on con.id = substring_index(exe.BUSINESS_KEY_,'.', -1)
+		WHERE (
+		  RES.ASSIGNEE_ = #{user_id}
+		  or (
+			RES.ASSIGNEE_ is null
+			and (
+			  I.USER_ID_ = #{user_id}
+			  or
+			  I.GROUP_ID_ IN (
+				select g.GROUP_ID_ from ACT_ID_MEMBERSHIP g where g.USER_ID_ = #{user_id}
+			  )
+			)
+		  )
+		) and proc.KEY_ = 'ContractModify' and exe.BUSINESS_KEY_  like 'tb_contract_modify.id.%'
+		<if test="project_name != null and project_name != ''">
+			and con.item_name like CONCAT('%',#{project_name},'%')
+		</if>
+		order by RES.CREATE_TIME_ desc
+		<if test="firstResult != null and firstResult != '' and maxResults!=null and maxResults != ''">
+			limit #{firstResult},#{maxResults}
+		</if>
+	</select>
+	
+	<!-- 获取变更通过列表 -->
+	<select id="findContractModifyPassList" parameterType="pd" resultType="pd">
+		select a.END_TIME_,m.* from tb_contract_modify m 
+		LEFT JOIN (select PROC_INST_ID_,MAX(END_TIME_) END_TIME_ from act_hi_taskinst group by PROC_INST_ID_ ) a on m.act_key = PROC_INST_ID_
+		WHERE m.act_status = '4' AND contract_id=#{contract_id} order by a.END_TIME_ desc
+	</select>
+	
+		<!-- 获取合同或上一次变更 -->
+	<select id="findPrevContractModifyList" parameterType="pd" resultType="pd">
+		select id,squence,modify_number,content from tb_contract_modify where id=#{id}
+		union all 
+		select ht_uuid as id,'' as squence,ht_no as modify_number,'' as content from tb_so_contract where ht_uuid=#{id}
+	</select>
+	
+</mapper>
